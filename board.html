@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 게시판</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">code<span>studio</span> // 새암</div>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="board.html" class="active">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="game.html">게임제작</a>
+      <a href="app.html">APP제작</a>
+      <a href="mypage.html">마이페이지</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">BOARD</div>
+    <h1>게시판</h1>
+    <p class="lead">
+      학습일지, 질문, 공지를 남기는 공간입니다. 아래 글쓰기 폼은 <code>backend-python</code>의
+      Flask 서버(<code>http://127.0.0.1:5000</code>)가 켜져 있어야 동작합니다.
+    </p>
+
+    <form id="post-form" class="card">
+      <h3>새 글 쓰기</h3>
+      <div class="form-row">
+        <input type="text" id="title" placeholder="제목" required>
+      </div>
+      <div class="form-row">
+        <textarea id="content" rows="3" placeholder="내용" required></textarea>
+      </div>
+      <button type="submit">등록</button>
+      <span id="form-status" class="form-status"></span>
+    </form>
+
+    <table>
+      <thead>
+        <tr><th>번호</th><th>제목</th><th>작성일</th><th></th></tr>
+      </thead>
+      <tbody id="post-list">
+        <tr><td colspan="4">불러오는 중...</td></tr>
+      </tbody>
+    </table>
+  </main>
+</div>
+
+<script>
+  const API_BASE = "http://127.0.0.1:5000/api/posts";
+
+  async function loadPosts() {
+    const listEl = document.getElementById("post-list");
+    try {
+      const res = await fetch(API_BASE);
+      if (!res.ok) throw new Error("서버 응답 오류");
+      const posts = await res.json();
+
+      if (posts.length === 0) {
+        listEl.innerHTML = '<tr><td colspan="4">등록된 글이 없습니다.</td></tr>';
+        return;
+      }
+
+      listEl.innerHTML = posts.map(p => `
+        <tr>
+          <td>${p.id}</td>
+          <td>${escapeHtml(p.title)}</td>
+          <td>${p.created_at}</td>
+          <td><button data-id="${p.id}" class="delete-btn">삭제</button></td>
+        </tr>
+      `).join("");
+
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", () => deletePost(btn.dataset.id));
+      });
+    } catch (err) {
+      listEl.innerHTML =
+        '<tr><td colspan="4">서버에 연결할 수 없습니다. backend-python 서버가 실행 중인지 확인하세요.</td></tr>';
+    }
+  }
+
+  async function deletePost(id) {
+    await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+    loadPosts();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  document.getElementById("post-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+    const statusEl = document.getElementById("form-status");
+
+    try {
+      const res = await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content }),
+      });
+      if (!res.ok) throw new Error();
+
+      statusEl.textContent = "등록되었습니다.";
+      document.getElementById("post-form").reset();
+      loadPosts();
+    } catch (err) {
+      statusEl.textContent = "등록 실패 — 서버 연결을 확인하세요.";
+    }
+  });
+
+  loadPosts();
+</script>
+</body>
+</html>

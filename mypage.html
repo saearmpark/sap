@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 마이페이지</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">code<span>studio</span> // 새암</div>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="game.html">게임제작</a>
+      <a href="app.html">APP제작</a>
+      <a href="mypage.html" class="active">마이페이지</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">PROFILE</div>
+    <h1>마이페이지</h1>
+    <p class="lead">학습 진행 상황과 계정 설정을 관리하는 공간입니다.</p>
+    <div class="card">
+      <h3>진행 체크리스트</h3>
+      <div id="progress-bar-track" class="progress-track">
+        <div id="progress-bar-fill" class="progress-fill"></div>
+      </div>
+      <p id="progress-summary" class="progress-summary"></p>
+      <ul id="checklist" class="checklist"></ul>
+    </div>
+  </main>
+</div>
+
+<script>
+  const STORAGE_KEY = "codestudio_progress";
+
+  const ITEMS = [
+    { id: "board", label: "게시판 — Flask API 연동" },
+    { id: "files", label: "자료실 — 파일 업로드/다운로드" },
+    { id: "backend-java", label: "게시판 — Java(Spring Boot) 백엔드" },
+    { id: "game1", label: "게임제작 STEP 1 — 틱택토" },
+    { id: "game2", label: "게임제작 STEP 2 — 벽돌깨기" },
+    { id: "game3", label: "게임제작 STEP 3 — 슈팅게임" },
+    { id: "game4", label: "게임제작 STEP 4 — 슬라이딩 퍼즐" },
+    { id: "app1", label: "App제작 STEP 1 — 콘솔 계산기" },
+    { id: "app2", label: "App제작 STEP 2 — 할일 관리 CLI" },
+    { id: "app3", label: "App제작 STEP 3 — Swing 메모장" },
+    { id: "app4", label: "App제작 STEP 4 — DB 연동 앱(JDBC)" },
+  ];
+
+  function loadState() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    } catch (err) {
+      return {};
+    }
+  }
+
+  function saveState(state) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (err) {
+      // 브라우저 저장소를 쓸 수 없는 환경이면 조용히 무시 (체크 자체는 화면에서 동작)
+    }
+  }
+
+  function render() {
+    const state = loadState();
+    const listEl = document.getElementById("checklist");
+    listEl.innerHTML = "";
+
+    ITEMS.forEach(item => {
+      const li = document.createElement("li");
+      li.className = "checklist-item";
+
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = !!state[item.id];
+      checkbox.addEventListener("change", () => {
+        const current = loadState();
+        current[item.id] = checkbox.checked;
+        saveState(current);
+        render();
+      });
+
+      const span = document.createElement("span");
+      span.textContent = item.label;
+      if (checkbox.checked) span.style.textDecoration = "line-through";
+
+      label.appendChild(checkbox);
+      label.appendChild(span);
+      li.appendChild(label);
+      listEl.appendChild(li);
+    });
+
+    const done = ITEMS.filter(item => state[item.id]).length;
+    const percent = Math.round((done / ITEMS.length) * 100);
+    document.getElementById("progress-bar-fill").style.width = percent + "%";
+    document.getElementById("progress-summary").textContent =
+      `${done} / ${ITEMS.length} 완료 (${percent}%)`;
+  }
+
+  render();
+</script>
+</body>
+</html>

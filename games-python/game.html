@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 게임제작</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">code<span>studio</span> // 새암</div>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="game.html" class="active">게임제작</a>
+      <a href="app.html">APP제작</a>
+      <a href="mypage.html">마이페이지</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">GAME DEV</div>
+    <h1>게임제작</h1>
+    <p class="lead">
+      Python(pygame) 또는 JavaScript(Canvas)로 난이도를 올려가며 만드는 미니게임 실습 코너입니다.
+      아래 STEP 1~4는 이 페이지 안에서 바로 플레이할 수 있고, 같은 로직을 Python으로 옮긴 코드는
+      <code>games-python</code> 폴더에서 따로 실습할 수 있습니다.
+    </p>
+
+    <div class="card">
+      <span class="tag">STEP 1 · 지금 해보기</span>
+      <h3>틱택토 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">기본 로직과 화면 갱신을 익히는 첫 프로젝트입니다. O와 X가 번갈아 두며, 3칸이 한 줄로 맞으면 승리합니다.</p>
+
+      <div id="ttt-board" class="ttt-board"></div>
+      <div class="ttt-controls">
+        <span id="ttt-status" class="ttt-status">O 차례입니다</span>
+        <button id="ttt-reset" type="button">다시 시작</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 14px;">
+      <span class="tag">STEP 2 · 지금 해보기</span>
+      <h3>벽돌깨기 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">충돌 처리와 게임 루프 개념을 익힙니다. 마우스나 좌우 방향키로 패들을 움직여 공을 튕기고 벽돌을 모두 깨면 승리입니다.</p>
+
+      <canvas id="bo-canvas" class="breakout-canvas" width="480" height="320"></canvas>
+      <div class="ttt-controls">
+        <span id="bo-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="bo-start" type="button">시작</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 14px;">
+      <span class="tag">STEP 3 · 지금 해보기</span>
+      <h3>슈팅게임 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">스프라이트(여러 개체), 점수, 시간에 따른 난이도 조절을 추가합니다. 좌우 방향키로 이동, 스페이스바로 발사합니다.</p>
+
+      <canvas id="sh-canvas" class="breakout-canvas" width="480" height="360"></canvas>
+      <div class="ttt-controls">
+        <span id="sh-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="sh-start" type="button">시작</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 14px;">
+      <span class="tag">STEP 4 · 지금 해보기</span>
+      <h3>퍼즐게임 — 슬라이딩 퍼즐 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">상태 관리와 저장/불러오기를 실습합니다. 빈칸과 붙어있는 숫자를 클릭하면 이동합니다. 1~15가 순서대로 맞춰지면 완성입니다.</p>
+
+      <div id="pz-board" class="pz-board"></div>
+      <div class="ttt-controls">
+        <span id="pz-status" class="ttt-status">섞기를 눌러 시작하세요</span>
+        <button id="pz-shuffle" type="button">섞기</button>
+        <button id="pz-save" type="button">저장</button>
+        <button id="pz-load" type="button">불러오기</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const boardEl = document.getElementById("ttt-board");
+  const statusEl = document.getElementById("ttt-status");
+  const resetBtn = document.getElementById("ttt-reset");
+
+  const WIN_LINES = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6],
+  ];
+
+  let cells = Array(9).fill(null);
+  let current = "O";
+  let gameOver = false;
+
+  function render() {
+    boardEl.innerHTML = "";
+    cells.forEach((value, i) => {
+      const cell = document.createElement("div");
+      cell.className = "ttt-cell";
+      cell.textContent = value || "";
+      cell.addEventListener("click", () => handleClick(i));
+      boardEl.appendChild(cell);
+    });
+  }
+
+  function checkWinner() {
+    for (const [a, b, c] of WIN_LINES) {
+      if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+        return cells[a];
+      }
+    }
+    if (cells.every(v => v !== null)) return "draw";
+    return null;
+  }
+
+  function handleClick(i) {
+    if (gameOver || cells[i]) return;
+    cells[i] = current;
+    const winner = checkWinner();
+
+    if (winner === "draw") {
+      statusEl.textContent = "무승부입니다.";
+      gameOver = true;
+    } else if (winner) {
+      statusEl.textContent = `${winner} 승리!`;
+      gameOver = true;
+    } else {
+      current = current === "O" ? "X" : "O";
+      statusEl.textContent = `${current} 차례입니다`;
+    }
+    render();
+  }
+
+  resetBtn.addEventListener("click", () => {
+    cells = Array(9).fill(null);
+    current = "O";
+    gameOver = false;
+    statusEl.textContent = "O 차례입니다";
+    render();
+  });
+
+  render();
+</script>
+<script>
+  // ── STEP 2: 벽돌깨기 ─────────────────────────────
+  (function () {
+    const canvas = document.getElementById("bo-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("bo-status");
+    const startBtn = document.getElementById("bo-start");
+
+    const W = canvas.width, H = canvas.height;
+    const ROWS = 4, COLS = 8, BW = 50, BH = 16, GAP = 8, TOP = 30;
+    const LEFT = (W - (COLS * BW + (COLS - 1) * GAP)) / 2;
+    const css = getComputedStyle(document.documentElement);
+    const ACCENT = css.getPropertyValue("--accent").trim() || "#3f6650";
+    const INK = css.getPropertyValue("--ink").trim() || "#1b1f1d";
+
+    const paddle = { w: 80, h: 10, x: W / 2 - 40, speed: 6 };
+    let ball, bricks, score, lives, running = false;
+    const keys = {};
+
+    function resetBall() {
+      ball = { x: W / 2, y: H - 40, dx: 3, dy: -3, r: 6 };
+    }
+
+    function newGame() {
+      bricks = [];
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          bricks.push({ x: LEFT + c * (BW + GAP), y: TOP + r * (BH + GAP), alive: true });
+        }
+      }
+      score = 0;
+      lives = 3;
+      paddle.x = W / 2 - paddle.w / 2;
+      resetBall();
+    }
+
+    function updateStatus(text) {
+      statusEl.textContent = text || `점수 ${score} · 목숨 ${lives}`;
+    }
+
+    function update() {
+      // 패들 이동 (키보드)
+      if (keys.ArrowLeft) paddle.x -= paddle.speed;
+      if (keys.ArrowRight) paddle.x += paddle.speed;
+      paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
+
+      // 공 이동
+      ball.x += ball.dx;
+      ball.y += ball.dy;
+
+      // 벽 충돌
+      if (ball.x - ball.r < 0 || ball.x + ball.r > W) ball.dx *= -1;
+      if (ball.y - ball.r < 0) ball.dy *= -1;
+
+      // 패들 충돌: 맞은 위치에 따라 튕기는 각도를 바꾼다
+      const py = H - 20 - paddle.h;
+      if (ball.dy > 0 && ball.y + ball.r >= py && ball.y + ball.r <= py + paddle.h + 6 &&
+          ball.x >= paddle.x && ball.x <= paddle.x + paddle.w) {
+        const hit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2); // -1 ~ 1
+        ball.dx = hit * 4;
+        ball.dy = -Math.abs(ball.dy);
+      }
+
+      // 벽돌 충돌
+      for (const b of bricks) {
+        if (!b.alive) continue;
+        if (ball.x > b.x && ball.x < b.x + BW && ball.y - ball.r < b.y + BH && ball.y + ball.r > b.y) {
+          b.alive = false;
+          ball.dy *= -1;
+          score += 10;
+          break;
+        }
+      }
+
+      // 바닥에 떨어짐
+      if (ball.y - ball.r > H) {
+        lives--;
+        if (lives <= 0) {
+          running = false;
+          updateStatus(`게임 오버 · 최종 점수 ${score}`);
+          return;
+        }
+        resetBall();
+      }
+
+      // 승리
+      if (bricks.every(b => !b.alive)) {
+        running = false;
+        updateStatus(`승리! 최종 점수 ${score}`);
+        return;
+      }
+      updateStatus();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      ctx.fillStyle = ACCENT;
+      for (const b of bricks) {
+        if (b.alive) ctx.fillRect(b.x, b.y, BW, BH);
+      }
+
+      ctx.fillStyle = INK;
+      ctx.fillRect(paddle.x, H - 20 - paddle.h, paddle.w, paddle.h);
+
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 게임 루프: 갱신 → 그리기 → 다음 프레임 예약
+    function loop() {
+      if (running) update();
+      draw();
+      if (running) requestAnimationFrame(loop);
+    }
+
+    canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (W / rect.width);
+      paddle.x = Math.max(0, Math.min(W - paddle.w, x - paddle.w / 2));
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        keys[e.key] = true;
+        if (running) e.preventDefault();
+      }
+    });
+    document.addEventListener("keyup", (e) => { keys[e.key] = false; });
+
+    startBtn.addEventListener("click", () => {
+      const wasRunning = running;  // 이미 루프가 돌고 있으면 새로 시작하지 않는다
+      newGame();
+      running = true;
+      updateStatus();
+      if (!wasRunning) loop();
+    });
+
+    newGame();
+    draw();
+  })();
+</script>
+
+<script>
+  // ── STEP 3: 슈팅게임 ─────────────────────────────
+  (function () {
+    const canvas = document.getElementById("sh-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("sh-status");
+    const startBtn = document.getElementById("sh-start");
+
+    const W = canvas.width, H = canvas.height;
+    const css = getComputedStyle(document.documentElement);
+    const ACCENT = css.getPropertyValue("--accent").trim() || "#3f6650";
+    const INK = css.getPropertyValue("--ink").trim() || "#1b1f1d";
+    const SOFT = css.getPropertyValue("--ink-soft").trim() || "#565e58";
+
+    const player = { w: 26, h: 16, x: W / 2 - 13, y: H - 40, speed: 5 };
+    let bullets, enemies, score, lives, running = false, elapsed, spawnTimer;
+    const keys = {};
+
+    function newGame() {
+      bullets = [];
+      enemies = [];
+      score = 0;
+      lives = 3;
+      elapsed = 0;
+      spawnTimer = 0;
+      player.x = W / 2 - player.w / 2;
+    }
+
+    function spawnInterval() {
+      // 시간이 지날수록(elapsed) 적이 더 자주 등장한다 — 최소 25프레임 간격
+      return Math.max(25, 70 - Math.floor(elapsed / 300));
+    }
+
+    function enemySpeed() {
+      // 시간이 지날수록 적이 더 빨리 내려온다
+      return 1.5 + elapsed / 1800;
+    }
+
+    function update() {
+      elapsed++;
+
+      if (keys.ArrowLeft) player.x -= player.speed;
+      if (keys.ArrowRight) player.x += player.speed;
+      player.x = Math.max(0, Math.min(W - player.w, player.x));
+
+      // 총알 이동
+      bullets.forEach(b => (b.y -= 6));
+      bullets = bullets.filter(b => b.y > -10);
+
+      // 적 생성
+      spawnTimer++;
+      if (spawnTimer >= spawnInterval()) {
+        spawnTimer = 0;
+        enemies.push({ x: Math.random() * (W - 24), y: -20, w: 24, h: 18, speed: enemySpeed() });
+      }
+
+      // 적 이동
+      enemies.forEach(e => (e.y += e.speed));
+
+      // 총알-적 충돌
+      for (const e of enemies) {
+        for (const b of bullets) {
+          if (b.hit) continue;
+          if (b.x > e.x && b.x < e.x + e.w && b.y > e.y && b.y < e.y + e.h) {
+            b.hit = true;
+            e.dead = true;
+            score += 10;
+          }
+        }
+      }
+      bullets = bullets.filter(b => !b.hit);
+
+      // 화면을 벗어나거나 플레이어와 부딪힌 적 처리
+      const playerBox = { x: player.x, y: player.y, w: player.w, h: player.h };
+      for (const e of enemies) {
+        if (e.dead) continue;
+        const hitPlayer =
+          e.x < playerBox.x + playerBox.w && e.x + e.w > playerBox.x &&
+          e.y < playerBox.y + playerBox.h && e.y + e.h > playerBox.y;
+        if (hitPlayer || e.y > H) {
+          e.dead = true;
+          lives--;
+        }
+      }
+      enemies = enemies.filter(e => !e.dead);
+
+      if (lives <= 0) {
+        running = false;
+        updateStatus(`게임 오버 · 최종 점수 ${score}`);
+        return;
+      }
+      updateStatus();
+    }
+
+    function updateStatus(text) {
+      statusEl.textContent = text || `점수 ${score} · 목숨 ${lives}`;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      ctx.fillStyle = INK;
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+
+      ctx.fillStyle = SOFT;
+      bullets.forEach(b => ctx.fillRect(b.x - 2, b.y - 6, 4, 10));
+
+      ctx.fillStyle = ACCENT;
+      enemies.forEach(e => ctx.fillRect(e.x, e.y, e.w, e.h));
+    }
+
+    function loop() {
+      if (running) update();
+      draw();
+      if (running) requestAnimationFrame(loop);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (["ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+        if (running) e.preventDefault();
+      }
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") keys[e.key] = true;
+      if (e.key === " " && running && !e.repeat) {
+        bullets.push({ x: player.x + player.w / 2, y: player.y });
+      }
+    });
+    document.addEventListener("keyup", (e) => { keys[e.key] = false; });
+
+    startBtn.addEventListener("click", () => {
+      const wasRunning = running;
+      newGame();
+      running = true;
+      updateStatus();
+      if (!wasRunning) loop();
+    });
+
+    newGame();
+    draw();
+  })();
+</script>
+
+<script>
+  // ── STEP 4: 슬라이딩 퍼즐 ─────────────────────────
+  (function () {
+    const boardEl = document.getElementById("pz-board");
+    const statusEl = document.getElementById("pz-status");
+    const shuffleBtn = document.getElementById("pz-shuffle");
+    const saveBtn = document.getElementById("pz-save");
+    const loadBtn = document.getElementById("pz-load");
+
+    const SIZE = 4; // 4x4 = 15 퍼즐
+    const STORAGE_KEY = "codestudio_puzzle_state";
+    const SOLVED = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]; // 0 = 빈칸
+
+    let tiles = SOLVED.slice();
+
+    function isSolved() {
+      return tiles.every((v, i) => v === SOLVED[i]);
+    }
+
+    function render() {
+      boardEl.innerHTML = "";
+      tiles.forEach((value, i) => {
+        const cell = document.createElement("div");
+        cell.className = "pz-cell" + (value === 0 ? " pz-empty" : "");
+        cell.textContent = value === 0 ? "" : value;
+        cell.addEventListener("click", () => tryMove(i));
+        boardEl.appendChild(cell);
+      });
+    }
+
+    function tryMove(i) {
+      const emptyIndex = tiles.indexOf(0);
+      const row = Math.floor(i / SIZE), col = i % SIZE;
+      const erow = Math.floor(emptyIndex / SIZE), ecol = emptyIndex % SIZE;
+      const adjacent = (Math.abs(row - erow) + Math.abs(col - ecol)) === 1;
+
+      if (!adjacent) return;
+
+      [tiles[i], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[i]];
+      render();
+
+      if (isSolved()) {
+        statusEl.textContent = "완성했습니다!";
+      } else {
+        statusEl.textContent = "빈칸 옆 숫자를 클릭해 이동하세요";
+      }
+    }
+
+    function shuffle() {
+      tiles = SOLVED.slice();
+      // 무작위로 뒤섞되, "빈칸과 인접한 칸만 바꾸는" 방식으로 섞어야 항상 풀 수 있는 상태가 된다
+      let emptyIndex = tiles.indexOf(0);
+      for (let n = 0; n < 300; n++) {
+        const row = Math.floor(emptyIndex / SIZE), col = emptyIndex % SIZE;
+        const candidates = [];
+        if (row > 0) candidates.push(emptyIndex - SIZE);
+        if (row < SIZE - 1) candidates.push(emptyIndex + SIZE);
+        if (col > 0) candidates.push(emptyIndex - 1);
+        if (col < SIZE - 1) candidates.push(emptyIndex + 1);
+
+        const target = candidates[Math.floor(Math.random() * candidates.length)];
+        [tiles[emptyIndex], tiles[target]] = [tiles[target], tiles[emptyIndex]];
+        emptyIndex = target;
+      }
+      statusEl.textContent = "빈칸 옆 숫자를 클릭해 이동하세요";
+      render();
+    }
+
+    shuffleBtn.addEventListener("click", shuffle);
+
+    saveBtn.addEventListener("click", () => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tiles));
+        statusEl.textContent = "저장했습니다 (이 브라우저에만 저장됨)";
+      } catch (err) {
+        statusEl.textContent = "저장 실패 — 브라우저 저장소를 사용할 수 없습니다";
+      }
+    });
+
+    loadBtn.addEventListener("click", () => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) {
+          statusEl.textContent = "저장된 기록이 없습니다";
+          return;
+        }
+        tiles = JSON.parse(saved);
+        statusEl.textContent = "불러왔습니다";
+        render();
+      } catch (err) {
+        statusEl.textContent = "불러오기 실패";
+      }
+    });
+
+    render();
+  })();
+</script>
+</body>
+</html>

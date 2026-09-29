@@ -1,0 +1,5 @@
+com\codestudio\board\BoardApplication.class
+com\codestudio\board\Post.class
+com\codestudio\board\CorsConfig.class
+com\codestudio\board\PostController.class
+com\codestudio\board\PostRepository.class
