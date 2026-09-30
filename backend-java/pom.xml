@@ -18,10 +18,12 @@
     <description>codestudio 게시판 API 서버 (Spring Boot)</description>
 
     <properties>
-        <java.version>17</java.version>
+        <!-- Java LTS 버전 21 설정 -->
+        <java.version>21</java.version>
     </properties>
 
     <dependencies>
+        <!-- Web & JPA 의존성 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -30,10 +32,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+
+        <!-- H2 In-Memory DB -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- 테스트 환경 구축에 필수적인 스타터 추가 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
