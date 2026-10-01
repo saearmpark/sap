@@ -18,12 +18,11 @@
     <description>codestudio 게시판 API 서버 (Spring Boot)</description>
 
     <properties>
-        <!-- Java LTS 버전 21 설정 -->
-        <java.version>21</java.version>
+        <!-- 컴퓨터에 설치된 JDK 17과 맞춥니다. 21을 쓰려면 JDK 21을 새로 설치해야 하므로 17로 유지합니다. -->
+        <java.version>17</java.version>
     </properties>
 
     <dependencies>
-        <!-- Web & JPA 의존성 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -33,25 +32,18 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- PostgreSQL 데이터베이스 드라이버 (데이터 영구 보존용) -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- H2 In-Memory DB (로컬 테스트용 필요 시 사용) -->
+        <!-- 로컬 개발/실습용: 파일 하나로 끝나는 H2 -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Spring Boot Test 의존성 -->
+        <!-- 배포용: 데이터가 사라지지 않는 진짜 PostgreSQL (Neon 등에 연결) -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
