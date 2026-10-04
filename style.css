@@ -311,54 +311,6 @@ code {
   cursor: default;
 }
 
-/* --- 마이페이지 진행 체크리스트 --- */
-.progress-track {
-  width: 100%;
-  height: 10px;
-  background: var(--border);
-  border-radius: 5px;
-  overflow: hidden;
-  margin: 12px 0 6px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--accent);
-  width: 0%;
-  transition: width 0.2s ease;
-}
-
-.progress-summary {
-  font-family: var(--mono);
-  font-size: 12.5px;
-  color: var(--ink-soft);
-  margin: 0 0 16px 0;
-}
-
-.checklist {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.checklist-item label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.checklist-item input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
-
 .ttt-controls {
   display: flex;
   align-items: center;
