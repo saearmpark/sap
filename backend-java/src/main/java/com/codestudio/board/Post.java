@@ -10,8 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 // JSON으로 내보낼 때 createdAt -> created_at 처럼 snake_case로 바꿔줍니다.
-// board.html이 Flask API와 똑같은 모양(created_at)을 기대하기 때문에, 두 백엔드를
-// 그대로 바꿔 끼워 쓸 수 있도록(API 호환) 여기서 이름 규칙을 맞춰줍니다.
+// (board.html의 JavaScript가 created_at 이라는 이름을 기대하기 때문입니다.)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Entity
 @Table(name = "posts")
@@ -41,6 +40,10 @@ public class Post {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getTitle() {

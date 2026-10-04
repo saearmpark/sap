@@ -23,7 +23,9 @@ mvn spring-boot:run
 
 서버는 `http://127.0.0.1:8080` 에서 실행됩니다. (Flask 서버는 5000번 포트라 동시에 켜도 충돌하지 않습니다.)
 
-## API 목록 (Flask 버전과 동일)
+## API 목록
+
+### 게시판
 
 | Method | 경로 | 설명 |
 |---|---|---|
@@ -32,16 +34,36 @@ mvn spring-boot:run
 | POST | `/api/posts` | 글 등록 |
 | DELETE | `/api/posts/{id}` | 글 삭제 |
 
+### 자료실 (파일)
+
+파일의 실제 내용도 디스크가 아니라 DB(배포 시 Neon PostgreSQL)에 저장합니다. 그래서
+Render 서버가 재시작/재배포되어도 업로드한 파일이 사라지지 않습니다.
+
+| Method | 경로 | 설명 |
+|---|---|---|
+| GET | `/api/files` | 전체 파일 목록 조회 (파일 내용 제외) |
+| POST | `/api/files` | 파일 업로드 (multipart/form-data, 필드명 `file`) |
+| GET | `/api/files/{id}/download` | 파일 다운로드 |
+| DELETE | `/api/files/{id}` | 파일 삭제 |
+
+## 로컬에서 실행할 때 주의할 점
+
+로컬(VS Code Run 버튼)에서 실행하면 환경변수가 없으므로 자동으로 H2(파일 DB)를 사용합니다.
+`backend-java/data/board.mv.db` 파일에 게시글과 업로드한 파일이 함께 저장됩니다.
+
+배포(Render)에서는 `SPRING_DATASOURCE_*` 환경변수가 Neon(PostgreSQL) 값으로 채워져 있으므로
+코드 수정 없이 그대로 영구 저장소를 사용하게 됩니다.
+
 ## 프론트엔드에서 이 서버 사용하기
 
-`board.html` 안의 다음 줄을 찾아서 포트만 8080으로 바꾸면 Java 백엔드로 그대로 동작합니다.
+`board.html`과 `files.html`의 `API_BASE`는 이미 배포된 주소를 가리키고 있습니다.
 
 ```js
-const API_BASE = "http://127.0.0.1:5000/api/posts";
+// board.html
+const API_BASE = "https://board-backend-nngx.onrender.com/api/posts";
+
+// files.html
+const API_BASE = "https://board-backend-nngx.onrender.com/api/files";
 ```
 
-```js
-const API_BASE = "http://127.0.0.1:8080/api/posts";
-```
-
-데이터는 `backend-java/data/board.mv.db` (H2 파일 데이터베이스)에 저장됩니다.
+로컬에서 테스트할 때는 포트만 바꿔서 `http://127.0.0.1:8080/api/posts` 처럼 쓰면 됩니다.

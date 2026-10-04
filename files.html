@@ -25,8 +25,8 @@
     <div class="eyebrow">ARCHIVE</div>
     <h1>자료실</h1>
     <p class="lead">
-      참고 문서, 강의 노트, 소스코드를 업로드하고 다운로드하는 공간입니다.
-      <code>backend-python</code>의 Flask 서버가 켜져 있어야 동작합니다. (최대 20MB)
+      참고 문서, 강의 노트, 소스코드를 업로드하고 다운로드하는 공간입니다. Java(Spring Boot) 백엔드와
+      PostgreSQL(Neon)에 연결되어 있어, 업로드한 파일은 서버가 재시작되어도 삭제되지 않습니다. (최대 20MB)
     </p>
 
     <form id="upload-form" class="card">
@@ -50,7 +50,18 @@
 </div>
 
 <script>
-  const API_BASE = "https://sap-799h.onrender.com/api/files";
+  const API_BASE = "https://board-backend-nngx.onrender.com/api/files";
+
+  function formatSize(numBytes) {
+    const units = ["B", "KB", "MB", "GB"];
+    let size = numBytes;
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
+    }
+    return unitIndex === 0 ? `${size.toFixed(0)}${units[unitIndex]}` : `${size.toFixed(1)}${units[unitIndex]}`;
+  }
 
   async function loadFiles() {
     const listEl = document.getElementById("file-list");
@@ -66,24 +77,24 @@
 
       listEl.innerHTML = files.map(f => `
         <tr>
-          <td><a href="${API_BASE}/${encodeURIComponent(f.stored_name)}">${escapeHtml(f.original_name)}</a></td>
-          <td>${f.size_display}</td>
+          <td><a href="${API_BASE}/${f.id}/download">${escapeHtml(f.original_name)}</a></td>
+          <td>${formatSize(f.size_bytes)}</td>
           <td>${f.uploaded_at}</td>
-          <td><button data-name="${f.stored_name}" class="delete-btn">삭제</button></td>
+          <td><button data-id="${f.id}" class="delete-btn">삭제</button></td>
         </tr>
       `).join("");
 
       document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.addEventListener("click", () => deleteFile(btn.dataset.name));
+        btn.addEventListener("click", () => deleteFile(btn.dataset.id));
       });
     } catch (err) {
       listEl.innerHTML =
-        '<tr><td colspan="4">서버에 연결할 수 없습니다. backend-python 서버가 실행 중인지 확인하세요.</td></tr>';
+        '<tr><td colspan="4">서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요 (무료 서버는 깨어나는 데 최대 1분 정도 걸릴 수 있습니다).</td></tr>';
     }
   }
 
-  async function deleteFile(storedName) {
-    await fetch(`${API_BASE}/${encodeURIComponent(storedName)}`, { method: "DELETE" });
+  async function deleteFile(id) {
+    await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
     loadFiles();
   }
 
@@ -103,6 +114,7 @@
     const formData = new FormData();
     formData.append("file", input.files[0]);
 
+    statusEl.textContent = "업로드 중...";
     try {
       const res = await fetch(API_BASE, { method: "POST", body: formData });
       if (!res.ok) throw new Error();
