@@ -5,6 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codestudio — 게임제작</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  .game-select {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: var(--sans);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .game-select:hover {
+    border-color: var(--accent);
+  }
+  .game-back {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+</style>
 </head>
 <body>
 <div class="layout">
@@ -24,12 +45,41 @@
     <h1>게임제작</h1>
     <p class="lead">
       Python(pygame) 또는 JavaScript(Canvas)로 난이도를 올려가며 만드는 미니게임 실습 코너입니다.
-      아래 STEP 1~5는 이 페이지 안에서 바로 플레이할 수 있고, 같은 로직을 Python으로 옮긴 코드는
-      <code>games-python</code> 폴더에서 따로 실습할 수 있습니다.
+      아래 목록에서 게임을 하나 선택하면 그 자리에서 바로 플레이할 수 있고, 같은 로직을 Python으로
+      옮긴 코드는 <code>games-python</code> 폴더에서 따로 실습할 수 있습니다.
     </p>
 
-    <div class="card">
-      <span class="tag">STEP 1 · 지금 해보기</span>
+    <div id="game-menu" class="grid">
+      <button class="card game-select" type="button" data-target="panel-ttt">
+        <span class="tag">STEP 1</span>
+        <h3>틱택토 (JavaScript)</h3>
+        <p>기본 로직과 화면 갱신을 익히는 첫 프로젝트입니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-bo">
+        <span class="tag">STEP 2</span>
+        <h3>벽돌깨기 (JavaScript)</h3>
+        <p>충돌 처리와 게임 루프 개념을 익힙니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-sh">
+        <span class="tag">STEP 3</span>
+        <h3>슈팅게임 (JavaScript)</h3>
+        <p>여러 개체 관리와 시간에 따른 난이도 조절을 추가합니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-pz">
+        <span class="tag">STEP 4</span>
+        <h3>슬라이딩 퍼즐 (JavaScript)</h3>
+        <p>상태 관리와 저장/불러오기를 실습합니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-sn">
+        <span class="tag">STEP 5</span>
+        <h3>스네이크 (JavaScript)</h3>
+        <p>타이머 기반 이동과 길어지는 자료구조를 다룹니다.</p>
+      </button>
+    </div>
+
+    <div id="panel-ttt" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 1</span>
       <h3>틱택토 (JavaScript)</h3>
       <p style="margin-bottom: 14px;">기본 로직과 화면 갱신을 익히는 첫 프로젝트입니다. O와 X가 번갈아 두며, 3칸이 한 줄로 맞으면 승리합니다.</p>
 
@@ -40,8 +90,9 @@
       </div>
     </div>
 
-    <div class="card" style="margin-top: 14px;">
-      <span class="tag">STEP 2 · 지금 해보기</span>
+    <div id="panel-bo" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 2</span>
       <h3>벽돌깨기 (JavaScript)</h3>
       <p style="margin-bottom: 14px;">충돌 처리와 게임 루프 개념을 익힙니다. 마우스나 좌우 방향키로 패들을 움직여 공을 튕기고 벽돌을 모두 깨면 승리입니다.</p>
 
@@ -52,8 +103,9 @@
       </div>
     </div>
 
-    <div class="card" style="margin-top: 14px;">
-      <span class="tag">STEP 3 · 지금 해보기</span>
+    <div id="panel-sh" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 3</span>
       <h3>슈팅게임 (JavaScript)</h3>
       <p style="margin-bottom: 14px;">스프라이트(여러 개체), 점수, 시간에 따른 난이도 조절을 추가합니다. 좌우 방향키로 이동, 스페이스바로 발사합니다.</p>
 
@@ -64,8 +116,9 @@
       </div>
     </div>
 
-    <div class="card" style="margin-top: 14px;">
-      <span class="tag">STEP 4 · 지금 해보기</span>
+    <div id="panel-pz" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 4</span>
       <h3>퍼즐게임 — 슬라이딩 퍼즐 (JavaScript)</h3>
       <p style="margin-bottom: 14px;">상태 관리와 저장/불러오기를 실습합니다. 빈칸과 붙어있는 숫자를 클릭하면 이동합니다. 1~15가 순서대로 맞춰지면 완성입니다.</p>
 
@@ -78,8 +131,9 @@
       </div>
     </div>
 
-    <div class="card" style="margin-top: 14px;">
-      <span class="tag">STEP 5 · 지금 해보기</span>
+    <div id="panel-sn" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 5</span>
       <h3>스네이크 (JavaScript)</h3>
       <p style="margin-bottom: 14px;">
         일정한 간격(타이머)으로 반복해서 움직이는 게임 루프와, 몸이 계속 길어지는 자료구조(배열)를 다룹니다.
@@ -96,69 +150,91 @@
 </div>
 
 <script>
-  const boardEl = document.getElementById("ttt-board");
-  const statusEl = document.getElementById("ttt-status");
-  const resetBtn = document.getElementById("ttt-reset");
-
-  const WIN_LINES = [
-    [0,1,2],[3,4,5],[6,7,8],
-    [0,3,6],[1,4,7],[2,5,8],
-    [0,4,8],[2,4,6],
-  ];
-
-  let cells = Array(9).fill(null);
-  let current = "O";
-  let gameOver = false;
-
-  function render() {
-    boardEl.innerHTML = "";
-    cells.forEach((value, i) => {
-      const cell = document.createElement("div");
-      cell.className = "ttt-cell";
-      cell.textContent = value || "";
-      cell.addEventListener("click", () => handleClick(i));
-      boardEl.appendChild(cell);
-    });
-  }
-
-  function checkWinner() {
-    for (const [a, b, c] of WIN_LINES) {
-      if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
-        return cells[a];
-      }
-    }
-    if (cells.every(v => v !== null)) return "draw";
-    return null;
-  }
-
-  function handleClick(i) {
-    if (gameOver || cells[i]) return;
-    cells[i] = current;
-    const winner = checkWinner();
-
-    if (winner === "draw") {
-      statusEl.textContent = "무승부입니다.";
-      gameOver = true;
-    } else if (winner) {
-      statusEl.textContent = `${winner} 승리!`;
-      gameOver = true;
-    } else {
-      current = current === "O" ? "X" : "O";
-      statusEl.textContent = `${current} 차례입니다`;
-    }
-    render();
-  }
-
-  resetBtn.addEventListener("click", () => {
-    cells = Array(9).fill(null);
-    current = "O";
-    gameOver = false;
-    statusEl.textContent = "O 차례입니다";
-    render();
-  });
-
-  render();
+  // 각 게임이 자기 자신을 등록해두는 작은 레지스트리입니다.
+  // init: 이 게임 화면을 처음 열 때 한 번 호출 (보드/캔버스를 그려 보여줍니다)
+  // stop: 다른 화면으로 나갈 때 호출 (돌고 있는 루프/타이머를 멈춰서 자원을 아낍니다)
+  window.gamePanels = {};
+  window.registerGame = function (id, handlers) {
+    window.gamePanels[id] = handlers;
+  };
 </script>
+
+<script>
+  // ── STEP 1: 틱택토 ─────────────────────────────
+  (function () {
+    const boardEl = document.getElementById("ttt-board");
+    const statusEl = document.getElementById("ttt-status");
+    const resetBtn = document.getElementById("ttt-reset");
+
+    const WIN_LINES = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6],
+    ];
+
+    let cells = Array(9).fill(null);
+    let current = "O";
+    let gameOver = false;
+
+    function render() {
+      boardEl.innerHTML = "";
+      cells.forEach((value, i) => {
+        const cell = document.createElement("div");
+        cell.className = "ttt-cell";
+        cell.textContent = value || "";
+        cell.addEventListener("click", () => handleClick(i));
+        boardEl.appendChild(cell);
+      });
+    }
+
+    function checkWinner() {
+      for (const [a, b, c] of WIN_LINES) {
+        if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+          return cells[a];
+        }
+      }
+      if (cells.every(v => v !== null)) return "draw";
+      return null;
+    }
+
+    function handleClick(i) {
+      if (gameOver || cells[i]) return;
+      cells[i] = current;
+      const winner = checkWinner();
+
+      if (winner === "draw") {
+        statusEl.textContent = "무승부입니다.";
+        gameOver = true;
+      } else if (winner) {
+        statusEl.textContent = `${winner} 승리!`;
+        gameOver = true;
+      } else {
+        current = current === "O" ? "X" : "O";
+        statusEl.textContent = `${current} 차례입니다`;
+      }
+      render();
+    }
+
+    resetBtn.addEventListener("click", () => {
+      cells = Array(9).fill(null);
+      current = "O";
+      gameOver = false;
+      statusEl.textContent = "O 차례입니다";
+      render();
+    });
+
+    registerGame("panel-ttt", {
+      init() {
+        cells = Array(9).fill(null);
+        current = "O";
+        gameOver = false;
+        statusEl.textContent = "O 차례입니다";
+        render();
+      },
+    });
+  })();
+</script>
+
 <script>
   // ── STEP 2: 벽돌깨기 ─────────────────────────────
   (function () {
@@ -298,8 +374,15 @@
       if (!wasRunning) loop();
     });
 
-    newGame();
-    draw();
+    registerGame("panel-bo", {
+      init() {
+        newGame();
+        draw();
+      },
+      stop() {
+        running = false;  // loop()가 다음 프레임에 requestAnimationFrame을 다시 걸지 않게 된다
+      },
+    });
   })();
 </script>
 
@@ -439,8 +522,15 @@
       if (!wasRunning) loop();
     });
 
-    newGame();
-    draw();
+    registerGame("panel-sh", {
+      init() {
+        newGame();
+        draw();
+      },
+      stop() {
+        running = false;
+      },
+    });
   })();
 </script>
 
@@ -538,7 +628,13 @@
       }
     });
 
-    render();
+    registerGame("panel-pz", {
+      init() {
+        tiles = SOLVED.slice();
+        statusEl.textContent = "섞기를 눌러 시작하세요";
+        render();
+      },
+    });
   })();
 </script>
 
@@ -652,8 +748,60 @@
       tickHandle = setInterval(loop, 120);
     });
 
-    newGame();
-    draw();
+    registerGame("panel-sn", {
+      init() {
+        newGame();
+        running = false;
+        clearInterval(tickHandle);
+        updateStatus("시작 버튼을 눌러주세요");
+        draw();
+      },
+      stop() {
+        running = false;
+        clearInterval(tickHandle);
+      },
+    });
+  })();
+</script>
+
+<script>
+  // ── 게임 목록 ↔ 선택한 게임 화면 전환 ─────────────────
+  (function () {
+    const menuEl = document.getElementById("game-menu");
+    const panels = Array.from(document.querySelectorAll(".game-panel"));
+    const initialized = new Set();
+    let activeId = null;
+
+    function openGame(id) {
+      menuEl.hidden = true;
+      panels.forEach(p => { p.hidden = p.id !== id; });
+
+      // 이 게임 화면을 처음 여는 경우에만 init()을 호출합니다.
+      // (다시 들어왔을 때는 이전 진행 상태를 그대로 보여줍니다.)
+      if (!initialized.has(id)) {
+        window.gamePanels[id]?.init();
+        initialized.add(id);
+      }
+      activeId = id;
+    }
+
+    function closeGame() {
+      // 돌고 있던 게임 루프/타이머를 멈춥니다 (다른 화면에서 계속 도는 것을 막기 위함).
+      if (activeId) {
+        window.gamePanels[activeId]?.stop?.();
+      }
+      panels.forEach(p => { p.hidden = true; });
+      menuEl.hidden = false;
+      activeId = null;
+    }
+
+    document.querySelectorAll(".game-select").forEach(btn => {
+      btn.addEventListener("click", () => openGame(btn.dataset.target));
+    });
+
+    document.querySelectorAll(".game-back").forEach(btn => {
+      btn.addEventListener("click", closeGame);
+    });
   })();
 </script>
 </body>
