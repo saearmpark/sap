@@ -46,7 +46,7 @@
     <p class="lead">
       Python(pygame) 또는 JavaScript(Canvas)로 난이도를 올려가며 만드는 미니게임 실습 코너입니다.
       아래 목록에서 게임을 하나 선택하면 그 자리에서 바로 플레이할 수 있고, 같은 로직을 Python으로
-      옮긴 코드는 <code>games-python</code> 폴더에서 따로 실습할 수 있습니다.
+      옮긴 코드는 <code>games-python</code> 폴더에서 따로 실습할 수 있습니다. (STEP 1~6)
     </p>
 
     <div id="game-menu" class="grid">
@@ -74,6 +74,11 @@
         <span class="tag">STEP 5</span>
         <h3>스네이크 (JavaScript)</h3>
         <p>타이머 기반 이동과 길어지는 자료구조를 다룹니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-tt">
+        <span class="tag">STEP 6</span>
+        <h3>테트리스 (JavaScript)</h3>
+        <p>블록 회전, 충돌 판정, 줄 삭제까지 다루는 종합 실습입니다.</p>
       </button>
     </div>
 
@@ -144,6 +149,23 @@
       <div class="ttt-controls">
         <span id="sn-status" class="ttt-status">시작 버튼을 눌러주세요</span>
         <button id="sn-start" type="button">시작</button>
+      </div>
+    </div>
+
+    <div id="panel-tt" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 6</span>
+      <h3>테트리스 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">
+        4칸짜리 블록(테트로미노)이 위에서 계속 내려오는 게임입니다. 블록을 회전시키고, 가로 한 줄을
+        빈틈없이 채우면 그 줄이 사라지고 위에 있던 블록들이 아래로 당겨 내려옵니다.
+        좌우 방향키로 이동, 위 방향키로 회전, 아래 방향키로 빨리 내리기, 스페이스바로 바로 떨어뜨립니다.
+      </p>
+
+      <canvas id="tt-canvas" class="breakout-canvas" width="240" height="480"></canvas>
+      <div class="ttt-controls">
+        <span id="tt-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="tt-start" type="button">시작</button>
       </div>
     </div>
   </main>
@@ -751,6 +773,219 @@
     registerGame("panel-sn", {
       init() {
         newGame();
+        running = false;
+        clearInterval(tickHandle);
+        updateStatus("시작 버튼을 눌러주세요");
+        draw();
+      },
+      stop() {
+        running = false;
+        clearInterval(tickHandle);
+      },
+    });
+  })();
+</script>
+
+<script>
+  // ── STEP 6: 테트리스 ─────────────────────────────
+  (function () {
+    const canvas = document.getElementById("tt-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("tt-status");
+    const startBtn = document.getElementById("tt-start");
+
+    const COLS = 10, ROWS = 20, CELL = 24;
+
+    // 블록 모양은 0/1로 채운 2차원 배열로 표현합니다. (1 = 칸이 채워짐)
+    const SHAPES = {
+      I: [[1, 1, 1, 1]],
+      O: [[1, 1], [1, 1]],
+      T: [[0, 1, 0], [1, 1, 1]],
+      S: [[0, 1, 1], [1, 1, 0]],
+      Z: [[1, 1, 0], [0, 1, 1]],
+      J: [[1, 0, 0], [1, 1, 1]],
+      L: [[0, 0, 1], [1, 1, 1]],
+    };
+    const TYPES = Object.keys(SHAPES);
+    const COLORS = {
+      I: "#3f6650", O: "#1b1f1d", T: "#8aa89a", S: "#c7d9cb",
+      Z: "#565e58", J: "#2f4a3a", L: "#9fb8a8",
+    };
+
+    let grid, piece, score, running, tickHandle;
+
+    function emptyGrid() {
+      return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    }
+
+    // 2차원 배열을 시계 방향으로 90도 돌립니다: 열을 행으로 바꾸고 각 행의 순서를 뒤집습니다.
+    function rotate(matrix) {
+      return matrix[0].map((_, c) => matrix.map(row => row[c]).reverse());
+    }
+
+    function collide(matrix, row, col) {
+      for (let r = 0; r < matrix.length; r++) {
+        for (let c = 0; c < matrix[r].length; c++) {
+          if (!matrix[r][c]) continue;
+          const gr = row + r, gc = col + c;
+          if (gc < 0 || gc >= COLS || gr >= ROWS) return true;
+          if (gr >= 0 && grid[gr][gc]) return true;
+        }
+      }
+      return false;
+    }
+
+    function spawn() {
+      const type = TYPES[Math.floor(Math.random() * TYPES.length)];
+      const matrix = SHAPES[type];
+      const col = Math.floor((COLS - matrix[0].length) / 2);
+      piece = { type, matrix, row: 0, col };
+      if (collide(piece.matrix, piece.row, piece.col)) {
+        gameOver();
+      }
+    }
+
+    function mergePiece() {
+      piece.matrix.forEach((row, r) => {
+        row.forEach((v, c) => {
+          if (v) {
+            const gr = piece.row + r, gc = piece.col + c;
+            if (gr >= 0) grid[gr][gc] = piece.type;
+          }
+        });
+      });
+    }
+
+    function clearLines() {
+      let cleared = 0;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (grid[r].every(cell => cell)) {
+          grid.splice(r, 1);
+          grid.unshift(Array(COLS).fill(null));
+          cleared++;
+          r++; // 위 줄이 한 칸 내려왔으므로 같은 자리를 다시 검사한다
+        }
+      }
+      const bonus = [0, 100, 300, 500, 800]; // 한 번에 여러 줄을 지우면 더 큰 보너스
+      score += cleared <= 4 ? bonus[cleared] : cleared * 200;
+    }
+
+    function lockPiece() {
+      mergePiece();
+      clearLines();
+      spawn();
+    }
+
+    function newGame() {
+      grid = emptyGrid();
+      score = 0;
+      spawn();
+    }
+
+    function gameOver() {
+      running = false;
+      clearInterval(tickHandle);
+      updateStatus(`게임 오버 · 최종 점수 ${score} (시작 버튼으로 재시작)`);
+    }
+
+    function updateStatus(text) {
+      statusEl.textContent = text || `점수 ${score}`;
+    }
+
+    function softDrop() {
+      if (!running) return;
+      if (!collide(piece.matrix, piece.row + 1, piece.col)) {
+        piece.row++;
+      } else {
+        lockPiece();
+      }
+      updateStatus();
+      draw();
+    }
+
+    function hardDrop() {
+      if (!running) return;
+      while (!collide(piece.matrix, piece.row + 1, piece.col)) {
+        piece.row++;
+      }
+      lockPiece();
+      updateStatus();
+      draw();
+    }
+
+    function moveHorizontal(dir) {
+      if (!running) return;
+      if (!collide(piece.matrix, piece.row, piece.col + dir)) {
+        piece.col += dir;
+        draw();
+      }
+    }
+
+    function rotatePiece() {
+      if (!running) return;
+      const rotated = rotate(piece.matrix);
+      // 회전했을 때 벽이나 다른 블록에 부딪히면 좌우로 살짝 밀어서(wall kick) 다시 시도해본다
+      for (const offset of [0, -1, 1, -2, 2]) {
+        if (!collide(rotated, piece.row, piece.col + offset)) {
+          piece.matrix = rotated;
+          piece.col += offset;
+          draw();
+          return;
+        }
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (grid[r][c]) {
+            ctx.fillStyle = COLORS[grid[r][c]];
+            ctx.fillRect(c * CELL, r * CELL, CELL - 1, CELL - 1);
+          }
+        }
+      }
+
+      if (piece) {
+        ctx.fillStyle = COLORS[piece.type];
+        piece.matrix.forEach((row, r) => {
+          row.forEach((v, c) => {
+            if (v) {
+              const gr = piece.row + r, gc = piece.col + c;
+              if (gr >= 0) ctx.fillRect(gc * CELL, gr * CELL, CELL - 1, CELL - 1);
+            }
+          });
+        });
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (!running) return;
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(e.key)) {
+        e.preventDefault();
+      }
+      if (e.key === "ArrowLeft") moveHorizontal(-1);
+      else if (e.key === "ArrowRight") moveHorizontal(1);
+      else if (e.key === "ArrowUp") rotatePiece();
+      else if (e.key === "ArrowDown") softDrop();
+      else if (e.key === " ") hardDrop();
+    });
+
+    startBtn.addEventListener("click", () => {
+      clearInterval(tickHandle);
+      newGame();
+      running = true;
+      updateStatus();
+      draw();
+      tickHandle = setInterval(softDrop, 500); // 0.5초마다 한 칸씩 자동으로 내려온다
+    });
+
+    registerGame("panel-tt", {
+      init() {
+        grid = emptyGrid();
+        piece = null;
+        score = 0;
         running = false;
         clearInterval(tickHandle);
         updateStatus("시작 버튼을 눌러주세요");
