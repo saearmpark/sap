@@ -51,6 +51,40 @@
     border: 1px solid var(--border);
     border-radius: 4px;
   }
+  .mole-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 320px;
+    margin-bottom: 14px;
+  }
+  .mole-hole {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent; /* 모바일에서 탭할 때 생기는 회색 하이라이트 제거 */
+    touch-action: manipulation; /* 더블탭 확대/지연을 막아 반응을 빠르게 한다 */
+  }
+  .mole-hole .mole {
+    width: 62%;
+    height: 62%;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: scale(0);
+    transition: transform 0.08s ease-out;
+  }
+  .mole-hole.mole-up .mole {
+    transform: scale(1);
+  }
+  .mole-hole.mole-hit .mole {
+    background: var(--ink);
+  }
 </style>
 </head>
 <body>
@@ -72,7 +106,7 @@
     <p class="lead">
       Python(pygame) 또는 JavaScript(Canvas)로 난이도를 올려가며 만드는 미니게임 실습 코너입니다.
       아래 목록에서 게임을 하나 선택하면 그 자리에서 바로 플레이할 수 있고, 같은 로직을 Python으로
-      옮긴 코드는 <code>games-python</code> 폴더에서 따로 실습할 수 있습니다. (STEP 1~7)
+      옮긴 코드는 <code>games-python</code> 폴더에서 따로 실습할 수 있습니다. (STEP 1~8)
     </p>
 
     <div id="game-menu" class="grid">
@@ -110,6 +144,11 @@
         <span class="tag">STEP 7</span>
         <h3>2048 (JavaScript)</h3>
         <p>타일을 밀고 합치는, 지금까지와는 다른 방식의 퍼즐입니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-mole">
+        <span class="tag">STEP 8 · 모바일 친화적</span>
+        <h3>두더지 잡기 (JavaScript)</h3>
+        <p>키보드 없이 탭(터치)만으로 즐기는 반응 속도 게임입니다. 휴대폰에서도 바로 플레이할 수 있습니다.</p>
       </button>
     </div>
 
@@ -228,6 +267,24 @@
       <div class="ttt-controls">
         <span id="tw-status" class="ttt-status">시작 버튼을 눌러주세요 (조작: 방향키)</span>
         <button id="tw-start" type="button">시작</button>
+      </div>
+    </div>
+
+    <div id="panel-mole" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 8</span>
+      <h3>두더지 잡기 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">
+        지금까지 나온 게임은 전부 방향키로 조작했지만, 이번에는 화면을 탭(클릭)만 하면 됩니다.
+        구멍에서 무작위로 두더지가 올라오면 사라지기 전에 눌러서 점수를 얻으세요. 시간이 지날수록
+        두더지가 더 짧게 나타납니다. 제한 시간 30초 동안 최대한 많이 잡아보세요.
+        키보드가 필요 없어서 휴대폰 화면에서도 그대로 플레이할 수 있습니다.
+      </p>
+
+      <div id="mole-grid" class="mole-grid"></div>
+      <div class="ttt-controls">
+        <span id="mole-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="mole-start" type="button">시작</button>
       </div>
     </div>
   </main>
@@ -1396,6 +1453,159 @@
       },
       stop() {
         running = false;
+      },
+    });
+  })();
+</script>
+
+<script>
+  // ── STEP 8: 두더지 잡기 ─────────────────────────────
+  // 지금까지의 게임은 전부 키보드(방향키/스페이스/Shift)로 조작했지만,
+  // 이 게임은 화면을 탭(클릭)하는 것만으로 플레이합니다. 그래서 키보드가 없는
+  // 휴대폰에서도 그대로 즐길 수 있습니다.
+  (function () {
+    const gridEl = document.getElementById("mole-grid");
+    const statusEl = document.getElementById("mole-status");
+    const startBtn = document.getElementById("mole-start");
+
+    const HOLE_COUNT = 9; // 3×3
+    const GAME_DURATION_MS = 30000; // 제한 시간 30초
+
+    let holeEls = [];
+    let holeTimers = []; // 각 구멍마다: 두더지가 자동으로 내려가는 setTimeout
+    let score, running, spawnTimer, countdownTimer, startedAt;
+
+    // 구멍 9개를 한 번만 만들어서 재사용한다 (탭할 때마다 새로 만들지 않는다)
+    function buildHoles() {
+      gridEl.innerHTML = "";
+      holeEls = [];
+      for (let i = 0; i < HOLE_COUNT; i++) {
+        const hole = document.createElement("div");
+        hole.className = "mole-hole";
+        const mole = document.createElement("div");
+        mole.className = "mole";
+        hole.appendChild(mole);
+        hole.addEventListener("click", () => hitHole(i));
+        gridEl.appendChild(hole);
+        holeEls.push(hole);
+      }
+    }
+
+    function elapsedMs() {
+      return Date.now() - startedAt;
+    }
+
+    // 시간이 지날수록 두더지가 더 짧게 나타난다 (900ms → 최소 350ms)
+    function moleVisibleMs() {
+      const progress = Math.min(1, elapsedMs() / GAME_DURATION_MS);
+      return Math.round(900 - progress * 550);
+    }
+
+    // 시간이 지날수록 두더지가 더 자주 나타난다 (900ms 간격 → 최소 450ms)
+    function spawnIntervalMs() {
+      const progress = Math.min(1, elapsedMs() / GAME_DURATION_MS);
+      return Math.round(900 - progress * 450);
+    }
+
+    function spawnMole() {
+      if (!running) return;
+      const emptyIndexes = holeEls
+        .map((el, i) => (el.classList.contains("mole-up") ? -1 : i))
+        .filter(i => i !== -1);
+      if (emptyIndexes.length === 0) return; // 모든 구멍에 이미 두더지가 있으면 이번엔 건너뛴다
+
+      const i = emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
+      showMole(i);
+    }
+
+    function showMole(i) {
+      const hole = holeEls[i];
+      hole.classList.remove("mole-hit");
+      hole.classList.add("mole-up");
+
+      clearTimeout(holeTimers[i]);
+      holeTimers[i] = setTimeout(() => {
+        hole.classList.remove("mole-up"); // 못 잡고 시간이 지나면 그냥 내려간다 (감점 없음)
+      }, moleVisibleMs());
+    }
+
+    function hitHole(i) {
+      if (!running) return;
+      const hole = holeEls[i];
+      if (!hole.classList.contains("mole-up")) return; // 빈 구멍을 눌러도 아무 일도 없다
+
+      clearTimeout(holeTimers[i]);
+      hole.classList.remove("mole-up");
+      hole.classList.add("mole-hit");
+      score++;
+      updateStatus();
+    }
+
+    function updateStatus(text) {
+      if (text) {
+        statusEl.textContent = text;
+        return;
+      }
+      const remaining = Math.max(0, Math.ceil((GAME_DURATION_MS - elapsedMs()) / 1000));
+      statusEl.textContent = `남은 시간 ${remaining}초 · 점수 ${score}`;
+    }
+
+    function endGame() {
+      running = false;
+      clearInterval(spawnTimer);
+      clearInterval(countdownTimer);
+      holeTimers.forEach(t => clearTimeout(t));
+      holeEls.forEach(el => el.classList.remove("mole-up", "mole-hit"));
+      updateStatus(`게임 종료 · 최종 점수 ${score} (시작 버튼으로 재시작)`);
+    }
+
+    // 다음 두더지를 "일정한 간격"이 아니라 스스로 다시 예약하는 방식으로 띄운다.
+    // 이러면 spawnIntervalMs()가 시간이 지나며 점점 짧아지는 것을 바로바로 반영할 수 있다.
+    function scheduleNextSpawn() {
+      if (!running) return;
+      spawnTimer = setTimeout(() => {
+        spawnMole();
+        scheduleNextSpawn();
+      }, spawnIntervalMs());
+    }
+
+    function newGame() {
+      score = 0;
+      running = true;
+      startedAt = Date.now();
+      holeEls.forEach(el => el.classList.remove("mole-up", "mole-hit"));
+    }
+
+    startBtn.addEventListener("click", () => {
+      clearTimeout(spawnTimer);
+      clearInterval(countdownTimer);
+      holeTimers.forEach(t => clearTimeout(t));
+
+      newGame();
+      updateStatus();
+      scheduleNextSpawn();
+      countdownTimer = setInterval(() => {
+        if (elapsedMs() >= GAME_DURATION_MS) {
+          endGame();
+        } else {
+          updateStatus();
+        }
+      }, 250);
+    });
+
+    registerGame("panel-mole", {
+      init() {
+        buildHoles();
+        score = 0;
+        running = false;
+        holeTimers = new Array(HOLE_COUNT).fill(null);
+        updateStatus("시작 버튼을 눌러주세요");
+      },
+      stop() {
+        running = false;
+        clearTimeout(spawnTimer);
+        clearInterval(countdownTimer);
+        holeTimers.forEach(t => clearTimeout(t));
       },
     });
   })();
