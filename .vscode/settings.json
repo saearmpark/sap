@@ -1,0 +1,15 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "disabled",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-25",
+            "path": "C:\\Users\\saear\\AppData\\Local\\jdks\\jdk-25.0.2",
+            "default": true
+        }
+    ],
+    "terminal.integrated.env.windows": {
+        "PATH": "C:\\Users\\saear\\AppData\\Local\\jdks\\jdk-25.0.2\\bin;${env:PATH}"
+    },
+    "python-envs.defaultEnvManager": "ms-python.python:system"
+}

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 자료실</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">SAP</div>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="board.html">게시판</a>
+      <a href="files.html" class="active">자료실</a>
+      <a href="game.html">게임제작</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">ARCHIVE</div>
+    <h1>자료실</h1>
+    <p class="lead">
+      참고 문서, 강의 노트, 소스코드를 업로드하고 다운로드하는 공간입니다. Java(Spring Boot) 백엔드와
+      PostgreSQL(Neon)에 연결되어 있어, 업로드한 파일은 서버가 재시작되어도 삭제되지 않습니다. (최대 20MB)
+    </p>
+
+    <form id="upload-form" class="card">
+      <h3>파일 업로드</h3>
+      <div class="form-row">
+        <input type="file" id="file-input" required>
+      </div>
+      <button type="submit">업로드</button>
+      <span id="form-status" class="form-status"></span>
+    </form>
+
+    <table>
+      <thead>
+        <tr><th>파일명</th><th>크기</th><th>업로드일</th><th></th></tr>
+      </thead>
+      <tbody id="file-list">
+        <tr><td colspan="4">불러오는 중...</td></tr>
+      </tbody>
+    </table>
+  </main>
+</div>
+
+<script>
+  const API_BASE = "https://board-backend-nngx.onrender.com/api/files";
+
+  function formatSize(numBytes) {
+    const units = ["B", "KB", "MB", "GB"];
+    let size = numBytes;
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
+    }
+    return unitIndex === 0 ? `${size.toFixed(0)}${units[unitIndex]}` : `${size.toFixed(1)}${units[unitIndex]}`;
+  }
+
+  async function loadFiles() {
+    const listEl = document.getElementById("file-list");
+    try {
+      const res = await fetch(API_BASE);
+      if (!res.ok) throw new Error("서버 응답 오류");
+      const files = await res.json();
+
+      if (files.length === 0) {
+        listEl.innerHTML = '<tr><td colspan="4">아직 업로드된 자료가 없습니다.</td></tr>';
+        return;
+      }
+
+      listEl.innerHTML = files.map(f => `
+        <tr>
+          <td><a href="${API_BASE}/${f.id}/download">${escapeHtml(f.original_name)}</a></td>
+          <td>${formatSize(f.size_bytes)}</td>
+          <td>${f.uploaded_at}</td>
+          <td><button data-id="${f.id}" class="delete-btn">삭제</button></td>
+        </tr>
+      `).join("");
+
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", () => deleteFile(btn.dataset.id));
+      });
+    } catch (err) {
+      listEl.innerHTML =
+        '<tr><td colspan="4">서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요 (무료 서버는 깨어나는 데 최대 1분 정도 걸릴 수 있습니다).</td></tr>';
+    }
+  }
+
+  async function deleteFile(id) {
+    await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+    loadFiles();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  document.getElementById("upload-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const input = document.getElementById("file-input");
+    const statusEl = document.getElementById("form-status");
+
+    if (!input.files.length) return;
+
+    const formData = new FormData();
+    formData.append("file", input.files[0]);
+
+    statusEl.textContent = "업로드 중...";
+    try {
+      const res = await fetch(API_BASE, { method: "POST", body: formData });
+      if (!res.ok) throw new Error();
+
+      statusEl.textContent = "업로드되었습니다.";
+      document.getElementById("upload-form").reset();
+      loadFiles();
+    } catch (err) {
+      statusEl.textContent = "업로드 실패 — 서버 연결을 확인하세요.";
+    }
+  });
+
+  loadFiles();
+</script>
+</body>
+</html>

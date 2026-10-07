@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>codestudio — 모바일 게임실습</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { touch-action: pan-y; }
+  .game-select { display: block; width: 100%; text-align: left; font-family: var(--sans); color: var(--ink); cursor: pointer; }
+  .game-select:hover { border-color: var(--accent); }
+  .game-back { background: transparent; color: var(--ink-soft); border: 1px solid var(--border); padding: 6px 12px; font-size: 13px; margin-bottom: 14px; cursor: pointer; }
+  .breakout-canvas { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; display: block; margin: 0 auto 14px auto; max-width: 100%; height: auto; }
+  .ttt-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 240px; margin: 0 auto 14px auto; }
+  .ttt-cell { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; background: var(--bg); border: 1px solid var(--border); cursor: pointer; }
+  .pz-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-width: 280px; margin: 0 auto 14px auto; }
+  .pz-cell { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; background: var(--bg); border: 1px solid var(--border); cursor: pointer; user-select: none; }
+  .pz-empty { background: transparent; border: 1px dashed var(--border); cursor: default; }
+  .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 300px; margin: 0 auto 14px auto; }
+  .mole-hole { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; background: var(--bg); border: 2px dashed var(--border); border-radius: 50%; cursor: pointer; user-select: none; }
+  .mole-hole .mole { width: 62%; height: 62%; border-radius: 50%; background: var(--accent); transform: scale(0); transition: transform 0.08s ease-out; }
+  .mole-hole.mole-up .mole { transform: scale(1); }
+  .mole-hole.mole-hit .mole { background: var(--ink); }
+  .ttt-controls { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .virtual-pad { display: flex; justify-content: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .v-btn { background-color: #3f6650; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .v-btn:active { background-color: #2b4737; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">SAP MOBILE</div>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="game-mobile.html" class="active">모바일 게임</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · mobile build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">MOBILE GAME DEV</div>
+    <h1>모바일 미니게임 실습</h1>
+    
+    <div style="margin-bottom: 14px;">
+      <a href="game.html" style="display: inline-block; background-color: var(--ink-soft); color: white; padding: 6px 14px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: bold;">
+        💻 PC 버전으로 이동하기
+      </a>
+    </div>
+
+    <p class="lead">터치 조작에 최적화된 모바일 미니게임 코너입니다.</p>
+
+    <div id="game-menu" class="grid">
+      <button class="card game-select" type="button" data-target="panel-ttt"><span class="tag">STEP 1</span><h3>틱택토</h3></button>
+      <button class="card game-select" type="button" data-target="panel-bo"><span class="tag">STEP 2</span><h3>벽돌깨기</h3></button>
+      <button class="card game-select" type="button" data-target="panel-sh"><span class="tag">STEP 3</span><h3>슈팅게임</h3></button>
+      <button class="card game-select" type="button" data-target="panel-pz"><span class="tag">STEP 4</span><h3>슬라이딩 퍼즐</h3></button>
+      <button class="card game-select" type="button" data-target="panel-sn"><span class="tag">STEP 5</span><h3>스네이크</h3></button>
+      <button class="card game-select" type="button" data-target="panel-tt"><span class="tag">STEP 6</span><h3>테트리스</h3></button>
+      <button class="card game-select" type="button" data-target="panel-2048"><span class="tag">STEP 7</span><h3>2048</h3></button>
+      <button class="card game-select" type="button" data-target="panel-mole"><span class="tag">STEP 8</span><h3>두더지 잡기</h3></button>
+      <button class="card game-select" type="button" data-target="panel-pong"><span class="tag">STEP 9</span><h3>퐁 / 탁구</h3></button>
+      <button class="card game-select" type="button" data-target="panel-gyeol"><span class="tag">STEP 10 · NEW</span><h3>결합 게임</h3></button>
+    </div>
+
+    <div id="panel-ttt" class="card game-panel" hidden><button class="game-back" type="button">← 목록으로</button><h3>틱택토</h3><div id="ttt-board" class="ttt-board"></div><div class="ttt-controls"><span id="ttt-status">O 차례</span><button id="ttt-reset" type="button">다시 시작</button></div></div>
+    <div id="panel-bo" class="card game-panel" hidden><button class="game-back" type="button">← 목록으로</button><h3>벽돌깨기</h3><canvas id="bo-canvas" class="breakout-canvas" width="360" height="280"></canvas><div class="ttt-controls"><span id="bo-status">시작 대기</span><button id="bo-start" type="button">시작</button></div><div class="virtual-pad"><button class="v-btn" id="bo-left">◀</button><button class="v-btn" id="bo-right">▶</button></div></div>
+    <div id="panel-sh" class="card game-panel" hidden><button class="game-back" type="button">← 목록으로</button><h3>슈팅게임</h3><canvas id="sh-canvas" class="breakout-canvas" width="360" height="320"></canvas><div class="ttt-controls"><span id="sh-status">시작 대기</span><button id="sh-start" type="button">시작</button></div><div class="virtual-pad"><button class="v-btn" id="sh-left">◀</button><button class="v-btn" id="sh-fire">발사</button><button class="v-btn" id="sh-right">▶</button></div></div>
+    <div id="panel-pz" class="card game-panel" hidden><button class="game-back" type="button">← 목록으로</button><h3>슬라이딩 퍼즐</h3><div style="font-family:var(--mono);font-size:13px;margin-bottom:8px;text-align:center;">⏱️ <span id="pz-timer">00:00</span></div><div id="pz-board" class="pz-board"></div><div class="ttt-controls"><span id="pz-status">대기 중</span><button id="pz-start" type="button">시작</button></div></div>
+    <div id="panel-sn" class="card game-panel" hidden><button class="game-back" type="button">← 목록으로</button><h3>스네이크</h3><canvas id="sn-canvas" class="breakout-canvas" width="320" height="320"></canvas><div class="ttt-controls"><span id="sn-status">대기 중</span><button id="sn-start" type="button">시작</button></div><div class="virtual-pad" style="flex-direction:column;align-items:center;"><button class="v-btn" id="sn-up">▲</button><div style="display:flex;gap:40px;"><button class="v-btn" id="sn-left">◀</button><button class="v-btn" id="sn-right">▶</button></div><button class="v-btn" id="sn-down">▼</button></div></div>
+    <div id="panel-tt" class="card game-panel" hidden><button class="game-back" type="button">← 목록으로</button><h3>테트리스</h3><canvas id="tt-canvas" class="breakout-canvas" width="200" height="400"></canvas><div class="ttt-controls"><span id="tt-status">대기 중</span><button id="tt-start" type="button">시작</button></div><div class="virtual-pad"><button class="v-btn" id="tt-left">◀</button><button class="v-btn" id="tt-rotate">회전</button><button class="v-btn" id="tt-down">▼</button><button class="v-btn" id="tt-right">▶</button><button class="v-btn" id="tt-drop" style="background:#d9534f;">DROP</button></div></div>
+    <div id="panel-2048" class="card game-panel" hidden><button class="game-back" type="button">← 목록으로</button><h3>2048</h3><canvas id="tw-canvas" class="breakout-canvas" width="320" height="320"></canvas><div class="ttt-controls"><span id="tw-status">대기 중</span><button id="tw-start" type="button">시작</button></div><div class="virtual-pad" style="flex-direction:column;align-items:center;"><button class="v-btn" id="tw-up">▲</button><div style="display:flex;gap:60px;"><button class="v-btn" id="tw-left">◀</button><button class="v-btn" id="tw-right">▶</button></div><button class="v-btn" id="tw-down">▼</button></div></div>
+    <div id="panel-mole" class="card game-panel" hidden><button class="game-back" type="button">← 목록으로</button><h3>두더지 잡기</h3><div id="mole-grid" class="mole-grid"></div><div class="ttt-controls"><span id="mole-status">대기 중</span><button id="mole-start" type="button">시작</button></div></div>
+    <div id="panel-pong" class="card game-panel" hidden><button class="game-back" type="button">← 목록으로</button><h3>퐁 / 탁구</h3><canvas id="pong-canvas" class="breakout-canvas" width="360" height="260"></canvas><div class="ttt-controls"><span id="pong-status">대기 중</span><button id="pong-start" type="button">시작</button></div><div class="virtual-pad"><button class="v-btn" id="pong-up">▲</button><button class="v-btn" id="pong-down">▼</button></div></div>
+
+    <div id="panel-gyeol" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 10</span>
+      <h3>결합 게임</h3>
+      <p style="margin-bottom: 8px; text-align:center; font-size:12px;">도형(1개), 색상, 바탕색(검/회/흰)이 모두 같거나 다른 3장(합) 터치!</p>
+      <div style="font-family: var(--mono); font-size: 13px; margin-bottom: 8px; color: var(--ink-soft); text-align:center;">
+        ⏱️ <span id="gyeol-timer">00:00</span> | 합: <span id="gyeol-score">0</span>개
+      </div>
+      <div id="gyeol-board" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 280px; margin: 0 auto 14px auto;"></div>
+      <div class="ttt-controls">
+        <span id="gyeol-status">시작 버튼을 눌러주세요</span>
+        <button id="gyeol-start" type="button">시작</button>
+        <button id="gyeol-action" type="button" style="background-color: var(--accent); color: white;">결합!</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  window.keysPressed = {};
+  document.addEventListener("DOMContentLoaded", () => {
+    const menuEl = document.getElementById("game-menu");
+    const panels = document.querySelectorAll(".game-panel");
+    document.querySelectorAll(".game-select").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-target");
+        menuEl.hidden = true;
+        panels.forEach(p => p.hidden = true);
+        const ap = document.getElementById(targetId);
+        if (ap) { ap.hidden = false; if (window.gamePanels[targetId]?.init) window.gamePanels[targetId].init(); }
+      });
+    });
+    document.querySelectorAll(".game-back").forEach(btn => {
+      btn.addEventListener("click", () => {
+        panels.forEach(p => { p.hidden = true; if (window.gamePanels[p.id]?.stop) window.gamePanels[p.id].stop(); });
+        menuEl.hidden = false;
+      });
+    });
+  });
+  window.gamePanels = {};
+  window.registerGame = (id, h) => { window.gamePanels[id] = h; };
+</script>
+
+<script>
+  // STEP 1 ~ 9 로직 유지
+  (function () {
+    const boardEl = document.getElementById("ttt-board"), statusEl = document.getElementById("ttt-status"), resetBtn = document.getElementById("ttt-reset");
+    const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let cells = Array(9).fill(null), current = "O", gameOver = false;
+    function render() {
+      boardEl.innerHTML = "";
+      cells.forEach((v, i) => {
+        const cell = document.createElement("div"); cell.className = "ttt-cell"; cell.textContent = v || "";
+        cell.addEventListener("click", () => {
+          if (gameOver || cells[i]) return;
+          cells[i] = current; let w = checkWin();
+          if (w) { statusEl.textContent = w === "draw" ? "무승부" : `${w} 승리`; gameOver = true; }
+          else { current = current === "O" ? "X" : "O"; statusEl.textContent = `${current} 차례`; }
+          render();
+        });
+        boardEl.appendChild(cell);
+      });
+    }
+    function checkWin() {
+      for (let [a,b,c] of WIN_LINES) { if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) return cells[a]; }
+      return cells.every(v => v !== null) ? "draw" : null;
+    }
+    resetBtn.addEventListener("click", () => { cells = Array(9).fill(null); current = "O"; gameOver = false; statusEl.textContent = "O 차례"; render(); });
+    registerGame("panel-ttt", { init() { cells = Array(9).fill(null); current = "O"; gameOver = false; statusEl.textContent = "O 차례"; render(); } });
+  })();
+
+  (function () {
+    const canvas = document.getElementById("bo-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("bo-status"), startBtn = document.getElementById("bo-start");
+    let ball, paddle, bricks, score = 0, stage = 1, running = false, animId = null;
+    function resetBallAndPaddle() {
+      paddle = { x: 140, w: 80, h: 10 };
+      ball = { x: 180, y: 200, dx: 3, dy: -3, r: 5 };
+    }
+    function createBricks() {
+      bricks = [];
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 5; c++) bricks.push({ x: c * 65 + 20, y: r * 18 + 25, alive: true });
+      }
+    }
+    function loop() {
+      if (!running) return;
+      if (window.keysPressed["ArrowLeft"]) paddle.x = Math.max(0, paddle.x - 6);
+      if (window.keysPressed["ArrowRight"]) paddle.x = Math.min(280, paddle.x + 6);
+      ctx.clearRect(0, 0, 360, 280);
+      ball.x += ball.dx; ball.y += ball.dy;
+      if (ball.x - ball.r <= 0 || ball.x + ball.r >= 360) ball.dx *= -1;
+      if (ball.y - ball.r <= 0) ball.dy *= -1;
+      if (ball.y + ball.r >= 270 && ball.x >= paddle.x && ball.x <= paddle.x + paddle.w) ball.dy = -Math.abs(ball.dy);
+      if (ball.y > 280) { running = false; statusEl.textContent = `게임 오버! 점수: ${score}`; return; }
+      let active = 0;
+      bricks.forEach(b => {
+        if (b.alive) {
+          if (ball.x > b.x && ball.x < b.x + 60 && ball.y > b.y && ball.y < b.y + 14) {
+            b.alive = false; ball.dy *= -1; score += 10;
+          } else { active++; }
+        }
+      });
+      if (active === 0) { stage++; createBricks(); resetBallAndPaddle(); }
+      ctx.fillStyle = "#3f6650"; bricks.forEach(b => { if (b.alive) ctx.fillRect(b.x, b.y, 60, 14); });
+      ctx.fillStyle = "#1b1f1d"; ctx.fillRect(paddle.x, 270, paddle.w, paddle.h);
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
+      statusEl.textContent = `점수: ${score}`;
+      animId = requestAnimationFrame(loop);
+    }
+    function bindBtn(id, key) {
+      const el = document.getElementById(id);
+      if(!el) return;
+      const setTrue = (e) => { e.preventDefault(); window.keysPressed[key] = true; };
+      const setFalse = (e) => { e.preventDefault(); window.keysPressed[key] = false; };
+      el.addEventListener("touchstart", setTrue); el.addEventListener("touchend", setFalse);
+      el.addEventListener("mousedown", setTrue); el.addEventListener("mouseup", setFalse);
+    }
+    bindBtn("bo-left", "ArrowLeft"); bindBtn("bo-right", "ArrowRight");
+    startBtn.addEventListener("click", () => {
+      cancelAnimationFrame(animId); score = 0; stage = 1; createBricks(); resetBallAndPaddle(); running = true; loop();
+    });
+    registerGame("panel-bo", { init() { cancelAnimationFrame(animId); ctx.clearRect(0,0,360,280); }, stop() { running = false; cancelAnimationFrame(animId); } });
+  })();
+
+  (function () {
+    const canvas = document.getElementById("sh-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("sh-status"), startBtn = document.getElementById("sh-start");
+    let px, bullets, enemies, score, running = false, animId = null, spawnTimer = 0, lastShot = 0;
+    function loop() {
+      if (!running) return;
+      if (window.keysPressed["ArrowLeft"]) px = Math.max(0, px - 6);
+      if (window.keysPressed["ArrowRight"]) px = Math.min(330, px + 6);
+      const now = Date.now();
+      if (window.keysPressed[" "] && now - lastShot > 150) {
+        bullets.push({ x: px + 13, y: 290 }); lastShot = now;
+      }
+      ctx.clearRect(0, 0, 360, 320);
+      spawnTimer++;
+      if (spawnTimer >= 90) { spawnTimer = 0; enemies.push({ x: Math.random() * 320, y: -20, w: 26, h: 18 }); }
+      bullets.forEach(b => b.y -= 6);
+      enemies.forEach(e => e.y += 1.5);
+      for (let i = 0; i < enemies.length; i++) {
+        if (enemies[i].y >= 320) { running = false; statusEl.textContent = `게임 오버! 점수: ${score}`; return; }
+      }
+      bullets.forEach(b => {
+        enemies.forEach(e => {
+          if (!b.hit && !e.dead && b.x > e.x && b.x < e.x + 26 && b.y > e.y && b.y < e.y + 18) {
+            b.hit = true; e.dead = true; score += 10;
+          }
+        });
+      });
+      bullets = bullets.filter(b => b.y > 0 && !b.hit);
+      enemies = enemies.filter(e => !e.dead);
+      ctx.fillStyle = "#1b1f1d"; ctx.fillRect(px, 290, 30, 18);
+      ctx.fillStyle = "#3f6650"; enemies.forEach(e => ctx.fillRect(e.x, e.y, e.w, e.h));
+      ctx.fillStyle = "#565e58"; bullets.forEach(b => ctx.fillRect(b.x, b.y, 3, 6));
+      statusEl.textContent = `점수: ${score}`;
+      animId = requestAnimationFrame(loop);
+    }
+    function bindBtn(id, key) {
+      const el = document.getElementById(id);
+      if(!el) return;
+      const setTrue = (e) => { e.preventDefault(); window.keysPressed[key] = true; };
+      const setFalse = (e) => { e.preventDefault(); window.keysPressed[key] = false; };
+      el.addEventListener("touchstart", setTrue); el.addEventListener("touchend", setFalse);
+      el.addEventListener("mousedown", setTrue); el.addEventListener("mouseup", setFalse);
+    }
+    bindBtn("sh-left", "ArrowLeft"); bindBtn("sh-right", "ArrowRight"); bindBtn("sh-fire", " ");
+    startBtn.addEventListener("click", () => {
+      cancelAnimationFrame(animId); px = 165; bullets = []; enemies = []; score = 0; running = true; loop();
+    });
+    registerGame("panel-sh", { init() { cancelAnimationFrame(animId); ctx.clearRect(0,0,360,320); }, stop() { running = false; cancelAnimationFrame(animId); } });
+  })();
+
+  (function () {
+    const boardEl = document.getElementById("pz-board"), statusEl = document.getElementById("pz-status");
+    const timerEl = document.getElementById("pz-timer"), startBtn = document.getElementById("pz-start");
+    let tiles = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0], running = false, timerInterval = null, secondsElapsed = 0;
+    function render() {
+      boardEl.innerHTML = "";
+      tiles.forEach((v, i) => {
+        const cell = document.createElement("div");
+        cell.className = "pz-cell" + (v === 0 ? " pz-empty" : "");
+        cell.textContent = v || "";
+        cell.addEventListener("click", () => {
+          if (!running) return;
+          let empty = tiles.indexOf(0);
+          if (Math.abs(Math.floor(i/4) - Math.floor(empty/4)) + Math.abs((i%4) - (empty%4)) === 1) {
+            [tiles[i], tiles[empty]] = [tiles[empty], tiles[i]];
+            render();
+            if (tiles.every((val, idx) => val === [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0][idx])) {
+              running = false; clearInterval(timerInterval);
+              statusEl.textContent = `🎉 퍼즐 완성! (${Math.floor(secondsElapsed/60)}분 ${secondsElapsed%60}초)`;
+              startBtn.textContent = "시작";
+            }
+          }
+        });
+        boardEl.appendChild(cell);
+      });
+    }
+    startBtn.addEventListener("click", () => {
+      tiles = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
+      for(let k=0; k<80; k++) {
+        let empty = tiles.indexOf(0), valid = [], r = Math.floor(empty/4), c = empty%4;
+        if(r>0) valid.push(empty-4); if(r<3) valid.push(empty+4); if(c>0) valid.push(empty-1); if(c<3) valid.push(empty+1);
+        let t = valid[Math.floor(Math.random()*valid.length)];
+        [tiles[empty], tiles[t]] = [tiles[t], tiles[empty]];
+      }
+      render(); running = true; startBtn.textContent = "재시작"; statusEl.textContent = "맞추는 중...";
+      secondsElapsed = 0; clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        timerEl.textContent = `${Math.floor(secondsElapsed/60).toString().padStart(2,'0')}:${(secondsElapsed%60).toString().padStart(2,'0')}`;
+      }, 1000);
+    });
+    registerGame("panel-pz", { init() { running = false; clearInterval(timerInterval); tiles = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0]; render(); timerEl.textContent="00:00"; statusEl.textContent="시작 버튼을 누르세요"; }, stop() { running = false; clearInterval(timerInterval); } });
+  })();
+
+  (function () {
+    const canvas = document.getElementById("sn-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("sn-status"), startBtn = document.getElementById("sn-start");
+    let snake, dir, nextDir, food, score, handle;
+    function changeDir(newDir) {
+      if (newDir === 'UP' && dir.y === 0) nextDir = { x: 0, y: -1 };
+      if (newDir === 'DOWN' && dir.y === 0) nextDir = { x: 0, y: 1 };
+      if (newDir === 'LEFT' && dir.x === 0) nextDir = { x: -1, y: 0 };
+      if (newDir === 'RIGHT' && dir.x === 0) nextDir = { x: 1, y: 0 };
+    }
+    function loop() {
+      dir = nextDir;
+      let head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+      if (head.x < 0 || head.x >= 16 || head.y < 0 || head.y >= 16 || snake.some(s => s.x === head.x && s.y === head.y)) {
+        clearInterval(handle); statusEl.textContent = `게임 오버! 점수: ${score}`; return;
+      }
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        score += 10; food = { x: Math.floor(Math.random()*16), y: Math.floor(Math.random()*16) };
+      } else { snake.pop(); }
+      ctx.clearRect(0,0,320,320);
+      ctx.fillStyle = "#3f6650"; ctx.fillRect(food.x*20, food.y*20, 18, 18);
+      ctx.fillStyle = "#1b1f1d"; snake.forEach(s => ctx.fillRect(s.x*20, s.y*20, 18, 18));
+      statusEl.textContent = `점수: ${score}`;
+    }
+    function bindSnakeBtn(id, d) {
+      const el = document.getElementById(id);
+      if(!el) return;
+      const fn = (e) => { e.preventDefault(); changeDir(d); };
+      el.addEventListener("touchstart", fn); el.addEventListener("mousedown", fn);
+    }
+    bindSnakeBtn("sn-up", "UP"); bindSnakeBtn("sn-down", "DOWN"); bindSnakeBtn("sn-left", "LEFT"); bindSnakeBtn("sn-right", "RIGHT");
+    startBtn.addEventListener("click", () => {
+      snake = [{x:8,y:8}]; dir = {x:1,y:0}; nextDir = {x:1,y:0}; food = {x:3,y:3}; score = 0;
+      clearInterval(handle); handle = setInterval(loop, 150); statusEl.textContent = "게임 진행 중...";
+    });
+    registerGame("panel-sn", { init() { ctx.clearRect(0,0,320,320); }, stop() { clearInterval(handle); } });
+  })();
+
+  (function () {
+    const canvas = document.getElementById("tt-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("tt-status"), startBtn = document.getElementById("tt-start");
+    const COLS = 10, ROWS = 20, CELL = 20;
+    const SHAPES = [
+      [[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]],
+      [[0,1,1],[1,1,0]], [[1,1,0],[0,1,1]], [[1,0,0],[1,1,1]], [[0,0,1],[1,1,1]]
+    ];
+    let grid, piece, score, running = false, timer = null;
+    function newPiece() {
+      const mat = SHAPES[Math.floor(Math.random()*SHAPES.length)];
+      piece = { matrix: mat, row: 0, col: Math.floor((COLS - mat[0].length)/2) };
+      if (collide(piece.matrix, piece.row, piece.col)) {
+        running = false; clearInterval(timer); statusEl.textContent = `게임 오버! 점수: ${score}`;
+      }
+    }
+    function collide(mat, r, c) {
+      for(let y=0; y<mat.length; y++) {
+        for(let x=0; x<mat[y].length; x++) {
+          if(mat[y][x] && (grid[r+y] && grid[r+y][c+x]) !== 0) return true;
+        }
+      }
+      return false;
+    }
+    function merge() {
+      piece.matrix.forEach((row, r) => {
+        row.forEach((val, c) => { if(val) grid[piece.row + r][piece.col + c] = 1; });
+      });
+    }
+    function clearLines() {
+      for(let r = ROWS-1; r >= 0; r--) {
+        if(grid[r].every(v => v === 1)) { grid.splice(r, 1); grid.unshift(Array(COLS).fill(0)); score += 100; r++; }
+      }
+    }
+    function drop() {
+      if(!running) return;
+      if(!collide(piece.matrix, piece.row + 1, piece.col)) { piece.row++; }
+      else { merge(); clearLines(); newPiece(); }
+      draw();
+    }
+    function moveLeft() { if(running && !collide(piece.matrix, piece.row, piece.col - 1)) { piece.col--; draw(); } }
+    function moveRight() { if(running && !collide(piece.matrix, piece.row, piece.col + 1)) { piece.col++; draw(); } }
+    function rotate() {
+      if(!running) return;
+      const rotated = piece.matrix[0].map((_, i) => piece.matrix.map(row => row[row.length - 1 - i]));
+      if(!collide(rotated, piece.row, piece.col)) { piece.matrix = rotated; draw(); }
+    }
+    function hardDrop() {
+      if(!running) return;
+      while(!collide(piece.matrix, piece.row + 1, piece.col)) piece.row++;
+      drop();
+    }
+    function draw() {
+      ctx.clearRect(0, 0, 200, 400);
+      grid.forEach((row, r) => {
+        row.forEach((v, c) => { if(v) { ctx.fillStyle = "#1b1f1d"; ctx.fillRect(c*CELL, r*CELL, CELL-1, CELL-1); } });
+      });
+      if(piece) {
+        ctx.fillStyle = "#3f6650";
+        piece.matrix.forEach((row, r) => {
+          row.forEach((v, c) => { if(v) ctx.fillRect((piece.col + c)*CELL, (piece.row + r)*CELL, CELL-1, CELL-1); });
+        });
+      }
+      statusEl.textContent = `점수: ${score}`;
+    }
+    function bindTetrisBtn(id, fn) {
+      const el = document.getElementById(id);
+      if(!el) return;
+      const cb = (e) => { e.preventDefault(); fn(); };
+      el.addEventListener("touchstart", cb); el.addEventListener("mousedown", cb);
+    }
+    bindTetrisBtn("tt-left", moveLeft); bindTetrisBtn("tt-right", moveRight);
+    bindTetrisBtn("tt-down", drop); bindTetrisBtn("tt-rotate", rotate); bindTetrisBtn("tt-drop", hardDrop);
+    startBtn.addEventListener("click", () => {
+      grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+      score = 0; running = true; clearInterval(timer);
+      newPiece(); draw(); timer = setInterval(drop, 500);
+    });
+    registerGame("panel-tt", { init() { grid = Array.from({length: ROWS}, () => Array(COLS).fill(0)); ctx.clearRect(0,0,200,400); }, stop() { running = false; clearInterval(timer); } });
+  })();
+
+  (function () {
+    const canvas = document.getElementById("tw-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("tw-status"), startBtn = document.getElementById("tw-start");
+    let board = Array(16).fill(0), score = 0, running = false;
+    function addTile() {
+      let empty = [];
+      board.forEach((v, i) => { if (v === 0) empty.push(i); });
+      if (empty.length > 0) {
+        let idx = empty[Math.floor(Math.random() * empty.length)];
+        board[idx] = Math.random() < 0.9 ? 2 : 4;
+      }
+    }
+    function draw() {
+      ctx.clearRect(0, 0, 320, 320);
+      for (let i = 0; i < 16; i++) {
+        let col = i % 4, row = Math.floor(i / 4), x = col * 80, y = row * 80;
+        ctx.strokeStyle = "#d1d5db"; ctx.strokeRect(x, y, 80, 80);
+        if (board[i]) {
+          ctx.fillStyle = "#3f6650"; ctx.fillRect(x + 4, y + 4, 72, 72);
+          ctx.fillStyle = "#fff"; ctx.font = "bold 20px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.fillText(board[i], x + 40, y + 40);
+        }
+      }
+      statusEl.textContent = `점수: ${score}`;
+    }
+    function slideRow(row) {
+      let arr = row.filter(v => v !== 0);
+      for (let i = 0; i < arr.length - 1; i++) {
+        if (arr[i] === arr[i + 1]) { arr[i] *= 2; score += arr[i]; arr[i + 1] = 0; }
+      }
+      arr = arr.filter(v => v !== 0);
+      while (arr.length < 4) arr.push(0);
+      return arr;
+    }
+    function move(dir) {
+      if (!running) return;
+      let prev = [...board];
+      if (dir === "left" || dir === "right") {
+        for (let r = 0; r < 4; r++) {
+          let row = [board[r*4], board[r*4+1], board[r*4+2], board[r*4+3]];
+          if (dir === "right") row.reverse();
+          let nRow = slideRow(row);
+          if (dir === "right") nRow.reverse();
+          for (let c = 0; c < 4; c++) board[r*4 + c] = nRow[c];
+        }
+      } else {
+        for (let c = 0; c < 4; c++) {
+          let col = [board[c], board[c+4], board[c+8], board[c+12]];
+          if (dir === "down") col.reverse();
+          let nCol = slideRow(col);
+          if (dir === "down") nCol.reverse();
+          for (let r = 0; r < 4; r++) board[r*4 + c] = nCol[r];
+        }
+      }
+      if (board.some((v, i) => v !== prev[i])) { addTile(); draw(); }
+    }
+    function bind2048Btn(id, d) {
+      const el = document.getElementById(id);
+      if(!el) return;
+      const cb = (e) => { e.preventDefault(); move(d); };
+      el.addEventListener("touchstart", cb); el.addEventListener("mousedown", cb);
+    }
+    bind2048Btn("tw-left", "left"); bind2048Btn("tw-right", "right");
+    bind2048Btn("tw-up", "up"); bind2048Btn("tw-down", "down");
+    startBtn.addEventListener("click", () => {
+      board.fill(0); score = 0; running = true; addTile(); addTile(); draw();
+    });
+    registerGame("panel-2048", { init() { board.fill(0); draw(); }, stop() { running = false; } });
+  })();
+
+  (function () {
+    const gridEl = document.getElementById("mole-grid"), statusEl = document.getElementById("mole-status"), startBtn = document.getElementById("mole-start");
+    let score = 0, timer, activeHole = -1;
+    function createGrid() {
+      gridEl.innerHTML = "";
+      for (let i = 0; i < 9; i++) {
+        const hole = document.createElement("div"); hole.className = "mole-hole";
+        const mole = document.createElement("div"); mole.className = "mole";
+        hole.appendChild(mole);
+        hole.addEventListener("click", () => {
+          if (i === activeHole) { score += 10; activeHole = -1; hole.classList.remove("mole-up"); }
+        });
+        gridEl.appendChild(hole);
+      }
+    }
+    startBtn.addEventListener("click", () => {
+      createGrid(); score = 0; clearInterval(timer);
+      timer = setInterval(() => {
+        document.querySelectorAll(".mole-hole").forEach(h => h.classList.remove("mole-up"));
+        activeHole = Math.floor(Math.random()*9);
+        document.querySelectorAll(".mole-hole")[activeHole].classList.add("mole-up");
+      }, 800);
+      setTimeout(() => { clearInterval(timer); statusEl.textContent = `종료! 점수: ${score}`; }, 15000);
+    });
+    registerGame("panel-mole", { init() { createGrid(); } });
+  })();
+
+  (function () {
+    const canvas = document.getElementById("pong-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("pong-status"), startBtn = document.getElementById("pong-start"), timerEl = document.getElementById("pong-timer");
+    let ball, p1, p2, running = false, animId = null, timerInterval = null, secondsElapsed = 0;
+    startBtn.addEventListener("click", () => {
+      cancelAnimationFrame(animId);
+      ball = { x: 180, y: 130, dx: 4, dy: 4 }; p1 = { y: 100 }; p2 = { y: 100 };
+      running = true; secondsElapsed = 0; clearInterval(timerInterval);
+      timerInterval = setInterval(() => { secondsElapsed++; timerEl.textContent = `${Math.floor(secondsElapsed/60).toString().padStart(2,'0')}:${(secondsElapsed%60).toString().padStart(2,'0')}`; }, 1000);
+      statusEl.textContent = "게임 진행 중...";
+      loop();
+    });
+    function loop() {
+      if (!running) return;
+      if (window.keysPressed["ArrowUp"]) p1.y = Math.max(0, p1.y - 7);
+      if (window.keysPressed["ArrowDown"]) p1.y = Math.min(200, p1.y + 7);
+      ctx.clearRect(0, 0, 360, 260);
+      ball.x += ball.dx; ball.y += ball.dy;
+      if (ball.y <= 0 || ball.y >= 260) ball.dy *= -1;
+      if (ball.x <= 20 && ball.y >= p1.y && ball.y <= p1.y + 60) ball.dx *= -1;
+      if (ball.x >= 340 && ball.y >= p2.y && ball.y <= p2.y + 60) ball.dx *= -1;
+      if (ball.x < 0 || ball.x > 360) {
+        running = false; clearInterval(timerInterval);
+        statusEl.textContent = ball.x < 0 ? "AI 승리!" : "플레이어 승리!"; return;
+      }
+      p2.y += (ball.y - (p2.y + 30)) * 0.08;
+      p2.y = Math.max(0, Math.min(200, p2.y));
+      ctx.fillStyle = "#1b1f1d";
+      ctx.fillRect(10, p1.y, 8, 60); ctx.fillRect(342, p2.y, 8, 60);
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, 5, 0, Math.PI * 2); ctx.fill();
+      animId = requestAnimationFrame(loop);
+    }
+    registerGame("panel-pong", { init() { cancelAnimationFrame(animId); ctx.clearRect(0,0,360,260); timerEl.textContent="00:00"; startBtn.textContent="시작"; statusEl.textContent="시작 버튼을 눌러주세요"; }, stop() { running=false; clearInterval(timerInterval); cancelAnimationFrame(animId); } });
+  })();
+
+  // STEP 10: 결합 게임 (도형 1개 표시 구조 적용)
+  (function () {
+    const boardEl = document.getElementById("gyeol-board");
+    const statusEl = document.getElementById("gyeol-status");
+    const timerEl = document.getElementById("gyeol-timer");
+    const scoreEl = document.getElementById("gyeol-score");
+    const startBtn = document.getElementById("gyeol-start");
+    const gyeolBtn = document.getElementById("gyeol-action");
+
+    let cards = [], selected = [], foundSets = [], running = false;
+    let timerInterval = null, secondsElapsed = 0;
+
+    const SHAPES = ['●', '▲', '■'];
+    const COLORS = ['#e74c3c', '#2ecc71', '#3498db'];
+    const BG_COLORS = ['#1b1f1d', '#95a5a6', '#ffffff'];
+
+    function generateCards() {
+      let deck = [];
+      for(let s=0; s<3; s++) {
+        for(let c=0; c<3; c++) {
+          for(let b=0; b<3; b++) {
+            deck.push({shape: s, color: c, bg: b});
+          }
+        }
+      }
+      deck.sort(() => Math.random() - 0.5);
+      cards = deck.slice(0, 9);
+    }
+
+    function renderBoard() {
+      boardEl.innerHTML = "";
+      cards.forEach((card, idx) => {
+        const div = document.createElement("div");
+        div.style.cssText = `aspect-ratio:1; background:${BG_COLORS[card.bg]}; border:2px solid ${selected.includes(idx) ? 'var(--accent)' : 'var(--border)'}; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer;`;
+        
+        const span = document.createElement("span");
+        span.style.cssText = `font-size:28px; color:${COLORS[card.color]}; font-weight:bold; line-height:1;`;
+        span.textContent = SHAPES[card.shape];
+        div.appendChild(span);
+
+        div.addEventListener("click", () => {
+          if (!running) return;
+          const pos = selected.indexOf(idx);
+          if (pos > -1) selected.splice(pos, 1);
+          else if (selected.length < 3) selected.push(idx);
+          renderBoard();
+          if (selected.length === 3) checkHap();
+        });
+        boardEl.appendChild(div);
+      });
+    }
+
+    function isHap(c1, c2, c3) {
+      return (
+        (c1.shape === c2.shape && c2.shape === c3.shape || c1.shape !== c2.shape && c2.shape !== c3.shape && c1.shape !== c3.shape) &&
+        (c1.color === c2.color && c2.color === c3.color || c1.color !== c2.color && c2.color !== c3.color && c1.color !== c3.color) &&
+        (c1.bg === c2.bg && c2.bg === c3.bg || c1.bg !== c2.bg && c2.bg !== c3.bg && c1.bg !== c3.bg)
+      );
+    }
+
+    function getAllPossibleHaps() {
+      let haps = [];
+      for(let i=0; i<9; i++) {
+        for(let j=i+1; j<9; j++) {
+          for(let k=j+1; k<9; k++) {
+            if(isHap(cards[i], cards[j], cards[k])) {
+              haps.push([i, j, k].sort().toString());
+            }
+          }
+        }
+      }
+      return [...new Set(haps)];
+    }
+
+    function checkHap() {
+      let sortedSel = [...selected].sort().toString();
+      let allHaps = getAllPossibleHaps();
+
+      if(allHaps.includes(sortedSel) && !foundSets.includes(sortedSel)) {
+        foundSets.push(sortedSel);
+        scoreEl.textContent = foundSets.length;
+        statusEl.textContent = "정답! '합' 발견!";
+        selected = [];
+        renderBoard();
+        if(foundSets.length === allHaps.length) {
+          statusEl.textContent = "모든 합 완료! '결합!'을 누르세요.";
+        }
+      } else {
+        statusEl.textContent = "오답이거나 중복입니다.";
+        setTimeout(() => { selected = []; renderBoard(); }, 800);
+      }
+    }
+
+    gyeolBtn.addEventListener("click", () => {
+      if(!running) return;
+      let allHaps = getAllPossibleHaps();
+      if(foundSets.length === allHaps.length && allHaps.length > 0) {
+        running = false; clearInterval(timerInterval);
+        statusEl.textContent = `🎉 결합 성공! (${timerEl.textContent})`;
+        startBtn.textContent = "시작";
+      } else {
+        statusEl.textContent = "찾지 못한 '합'이 있습니다!";
+      }
+    });
+
+    startBtn.addEventListener("click", () => {
+      generateCards();
+      while(getAllPossibleHaps().length === 0) { generateCards(); }
+      selected = []; foundSets = []; scoreEl.textContent = "0";
+      running = true; startBtn.textContent = "재시작";
+      statusEl.textContent = "합을 터치하세요!";
+      secondsElapsed = 0; clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        timerEl.textContent = `${Math.floor(secondsElapsed/60).toString().padStart(2,'0')}:${(secondsElapsed%60).toString().padStart(2,'0')}`;
+      }, 1000);
+      renderBoard();
+    });
+
+    registerGame("panel-gyeol", {
+      init() {
+        running = false; clearInterval(timerInterval);
+        timerEl.textContent = "00:00"; scoreEl.textContent = "0";
+        statusEl.textContent = "시작 버튼을 눌러주세요"; boardEl.innerHTML = "";
+      },
+      stop() { running = false; clearInterval(timerInterval); }
+    });
+  })();
+</script>
+</body>
+</html>

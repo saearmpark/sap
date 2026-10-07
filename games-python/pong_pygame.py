@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 게임제작</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .game-select {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: var(--sans);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .game-select:hover {
+    border-color: var(--accent);
+  }
+  .game-back {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    font-size: 12px;
+    margin-bottom: 14px;
+    cursor: pointer;
+  }
+  .tt-layout {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .tt-side {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .tt-box {
+    text-align: center;
+  }
+  .tt-box-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+  .tt-box canvas {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .mole-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 320px;
+    margin-bottom: 14px;
+  }
+  .mole-hole {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .mole-hole .mole {
+    width: 62%;
+    height: 62%;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: scale(0);
+    transition: transform 0.08s ease-out;
+  }
+  .mole-hole.mole-up .mole {
+    transform: scale(1);
+  }
+  .mole-hole.mole-hit .mole {
+    background: var(--ink);
+  }
+  .ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    max-width: 240px;
+    margin-bottom: 14px;
+  }
+  .ttt-cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .pz-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    max-width: 280px;
+    margin-bottom: 14px;
+  }
+  .pz-cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .pz-empty {
+    background: transparent;
+    border: 1px dashed var(--border);
+    cursor: default;
+  }
+  .breakout-canvas {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: block;
+    margin-bottom: 14px;
+  }
+  .ttt-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">SAP</div>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="game.html" class="active">게임제작</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">GAME DEV</div>
+    <h1>게임제작</h1>
+    <p class="lead">
+      Python(pygame) 또는 JavaScript(Canvas)로 난이도를 올려가며 만드는 미니게임 실습 코너입니다.
+      아래 목록에서 게임을 하나 선택하면 그 자리에서 바로 플레이할 수 있고, 같은 로직을 Python으로
+      옮긴 코드는 <code>games-python</code> 폴더에서 따로 실습할 수 있습니다. (STEP 1~9)
+    </p>
+
+    <div id="game-menu" class="grid">
+      <button class="card game-select" type="button" data-target="panel-ttt">
+        <span class="tag">STEP 1</span>
+        <h3>틱택토 (JavaScript)</h3>
+        <p>기본 로직과 화면 갱신을 익히는 첫 프로젝트입니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-bo">
+        <span class="tag">STEP 2</span>
+        <h3>벽돌깨기 (JavaScript)</h3>
+        <p>충돌 처리와 게임 루프 개념을 익힙니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-sh">
+        <span class="tag">STEP 3</span>
+        <h3>슈팅게임 (JavaScript)</h3>
+        <p>여러 개체 관리와 시간에 따른 난이도 조절을 추가합니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-pz">
+        <span class="tag">STEP 4</span>
+        <h3>슬라이딩 퍼즐 (JavaScript)</h3>
+        <p>상태 관리와 저장/불러오기를 실습합니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-sn">
+        <span class="tag">STEP 5</span>
+        <h3>스네이크 (JavaScript)</h3>
+        <p>타이머 기반 이동과 길어지는 자료구조를 다룹니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-tt">
+        <span class="tag">STEP 6</span>
+        <h3>테트리스 (JavaScript)</h3>
+        <p>블록 회전, 충돌 판정, 줄 삭제까지 다루는 종합 실습입니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-2048">
+        <span class="tag">STEP 7</span>
+        <h3>2048 (JavaScript)</h3>
+        <p>타일을 밀고 합치는, 지금까지와는 다른 방식의 퍼즐입니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-mole">
+        <span class="tag">STEP 8 · 모바일 친화적</span>
+        <h3>두더지 잡기 (JavaScript)</h3>
+        <p>키보드 없이 탭(터치)만으로 즐기는 반응 속도 게임입니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-pong">
+        <span class="tag">STEP 9 · NEW</span>
+        <h3>퐁 / 탁구 (JavaScript)</h3>
+        <p>패들을 조작하여 공을 튕겨내는 아케이드 대표 게임입니다.</p>
+      </button>
+    </div>
+
+    <!-- 게임 패널들 생략없이 포함 -->
+    <div id="panel-ttt" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 1</span>
+      <h3>틱택토 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">O와 X가 번갈아 두며, 3칸이 한 줄로 맞으면 승리합니다.</p>
+      <div id="ttt-board" class="ttt-board"></div>
+      <div class="ttt-controls">
+        <span id="ttt-status" class="ttt-status">O 차례입니다</span>
+        <button id="ttt-reset" type="button">다시 시작</button>
+      </div>
+    </div>
+
+    <div id="panel-bo" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 2</span>
+      <h3>벽돌깨기 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">방향키나 마우스로 패들을 움직여 공을 튕기고 벽돌을 모두 깨세요.</p>
+      <canvas id="bo-canvas" class="breakout-canvas" width="480" height="320"></canvas>
+      <div class="ttt-controls">
+        <span id="bo-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="bo-start" type="button">시작</button>
+      </div>
+    </div>
+
+    <div id="panel-sh" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 3</span>
+      <h3>슈팅게임 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">좌우 방향키로 이동하고 스페이스바로 총알을 발사해 적을 맞추세요.</p>
+      <canvas id="sh-canvas" class="breakout-canvas" width="480" height="360"></canvas>
+      <div class="ttt-controls">
+        <span id="sh-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="sh-start" type="button">시작</button>
+      </div>
+    </div>
+
+    <div id="panel-pz" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 4</span>
+      <h3>슬라이딩 퍼즐 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">빈칸과 붙어있는 숫자를 클릭해 1~15를 순서대로 만드세요.</p>
+      <div id="pz-board" class="pz-board"></div>
+      <div class="ttt-controls">
+        <span id="pz-status" class="ttt-status">섞기를 눌러 시작하세요</span>
+        <button id="pz-shuffle" type="button">섞기</button>
+        <button id="pz-save" type="button">저장</button>
+        <button id="pz-load" type="button">불러오기</button>
+      </div>
+    </div>
+
+    <div id="panel-sn" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 5</span>
+      <h3>스네이크 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">방향키로 뱀을 조종하여 사과를 먹으세요. 벽이나 자기 몸에 부딪히면 오버입니다.</p>
+      <canvas id="sn-canvas" class="breakout-canvas" width="400" height="400"></canvas>
+      <div class="ttt-controls">
+        <span id="sn-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="sn-start" type="button">시작</button>
+      </div>
+    </div>
+
+    <div id="panel-tt" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 6</span>
+      <h3>테트리스 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">조작: 방향키(이동/회전/하강), Space(하드드롭), Shift(홀드)</p>
+      <div class="tt-layout">
+        <canvas id="tt-canvas" class="breakout-canvas" width="240" height="480"></canvas>
+        <div class="tt-side">
+          <div class="tt-box">
+            <div class="tt-box-label">HOLD</div>
+            <canvas id="tt-hold-canvas" width="96" height="96"></canvas>
+          </div>
+          <div class="tt-box">
+            <div class="tt-box-label">NEXT</div>
+            <canvas id="tt-next-canvas" width="96" height="96"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="ttt-controls">
+        <span id="tt-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="tt-start" type="button">시작</button>
+      </div>
+    </div>
+
+    <div id="panel-2048" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 7</span>
+      <h3>2048 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">방향키로 타일을 밀어 같은 숫자끼리 합치세요.</p>
+      <canvas id="tw-canvas" class="breakout-canvas" width="360" height="360"></canvas>
+      <div class="ttt-controls">
+        <span id="tw-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="tw-start" type="button">시작</button>
+      </div>
+    </div>
+
+    <div id="panel-mole" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 8</span>
+      <h3>두더지 잡기 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">30초 동안 구멍에서 올라오는 두더지를 터치해 잡으세요.</p>
+      <div id="mole-grid" class="mole-grid"></div>
+      <div class="ttt-controls">
+        <span id="mole-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="mole-start" type="button">시작</button>
+      </div>
+    </div>
+
+    <div id="panel-pong" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 9</span>
+      <h3>퐁 / 탁구 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">위/아래 방향키를 누르고 있어 패들을 연속으로 움직이세요.</p>
+      <canvas id="pong-canvas" class="breakout-canvas" width="480" height="320"></canvas>
+      <div class="ttt-controls">
+        <span id="pong-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="pong-start" type="button">시작</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 글로벌 키 이벤트 수신기: 방향키 스크롤 차단 -->
+<script>
+  window.addEventListener("keydown", (e) => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+      const activePanel = document.querySelector(".game-panel:not([hidden])");
+      if (activePanel) {
+        e.preventDefault(); // 게임 화면일 때 웹페이지 스크롤 차단!
+      }
+    }
+  });
+
+  window.gamePanels = {};
+  window.registerGame = function (id, handlers) {
+    window.gamePanels[id] = handlers;
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const menuEl = document.getElementById("game-menu");
+    const panels = document.querySelectorAll(".game-panel");
+
+    document.querySelectorAll(".game-select").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-target");
+        menuEl.hidden = true;
+        panels.forEach(p => p.hidden = true);
+        const activePanel = document.getElementById(targetId);
+        if (activePanel) {
+          activePanel.hidden = false;
+          if (window.gamePanels[targetId] && window.gamePanels[targetId].init) {
+            window.gamePanels[targetId].init();
+          }
+        }
+      });
+    });
+
+    document.querySelectorAll(".game-back").forEach(btn => {
+      btn.addEventListener("click", () => {
+        panels.forEach(p => {
+          p.hidden = true;
+          const id = p.id;
+          if (window.gamePanels[id] && window.gamePanels[id].stop) {
+            window.gamePanels[id].stop();
+          }
+        });
+        menuEl.hidden = false;
+      });
+    });
+  });
+</script>
+
+<!-- 기본 게임 스크립트 (STEP 1 ~ STEP 8) 생략 없이 동일하게 작성 -->
+<script>
+  // STEP 1 ~ 8 로직 생략 없이 포함...
+  (function () {
+    const boardEl = document.getElementById("ttt-board"), statusEl = document.getElementById("ttt-status"), resetBtn = document.getElementById("ttt-reset");
+    const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let cells = Array(9).fill(null), current = "O", gameOver = false;
+    function render() {
+      boardEl.innerHTML = "";
+      cells.forEach((v, i) => {
+        const cell = document.createElement("div"); cell.className = "ttt-cell"; cell.textContent = v || "";
+        cell.addEventListener("click", () => handleClick(i)); boardEl.appendChild(cell);
+      });
+    }
+    function handleClick(i) {
+      if (gameOver || cells[i]) return;
+      cells[i] = current; let winner = checkWin();
+      if (winner) { statusEl.textContent = winner === "draw" ? "무승부입니다." : `${winner} 승리!`; gameOver = true; }
+      else { current = current === "O" ? "X" : "O"; statusEl.textContent = `${current} 차례입니다`; }
+      render();
+    }
+    function checkWin() {
+      for (let [a,b,c] of WIN_LINES) { if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) return cells[a]; }
+      return cells.every(v => v !== null) ? "draw" : null;
+    }
+    resetBtn.addEventListener("click", () => { cells = Array(9).fill(null); current = "O"; gameOver = false; statusEl.textContent = "O 차례입니다"; render(); });
+    registerGame("panel-ttt", { init() { cells = Array(9).fill(null); current = "O"; gameOver = false; statusEl.textContent = "O 차례입니다"; render(); } });
+  })();
+
+  // STEP 2: 벽돌깨기
+  (function () {
+    const canvas = document.getElementById("bo-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("bo-status"), startBtn = document.getElementById("bo-start");
+    let ball, paddle, bricks, score, running = false;
+    function newGame() {
+      score = 0; paddle = { x: 200, w: 80, h: 10 }; ball = { x: 240, y: 250, dx: 3, dy: -3, r: 6 };
+      bricks = []; for(let r=0;r<4;r++) for(let c=0;c<6;c++) bricks.push({ x: c*75+15, y: r*20+30, alive: true });
+    }
+    function loop() {
+      if (!running) return;
+      ctx.clearRect(0,0,480,320);
+      ball.x += ball.dx; ball.y += ball.dy;
+      if (ball.x <= 0 || ball.x >= 480) ball.dx *= -1;
+      if (ball.y <= 0) ball.dy *= -1;
+      if (ball.y >= 310 && ball.x >= paddle.x && ball.x <= paddle.x + paddle.w) ball.dy *= -1;
+      if (ball.y > 320) { running = false; statusEl.textContent = `게임 오버! 점수: ${score}`; return; }
+      bricks.forEach(b => {
+        if (b.alive && ball.x > b.x && ball.x < b.x + 70 && ball.y > b.y && ball.y < b.y + 15) {
+          b.alive = false; ball.dy *= -1; score += 10;
+        }
+      });
+      ctx.fillStyle = "#3f6650"; bricks.forEach(b => { if (b.alive) ctx.fillRect(b.x, b.y, 70, 15); });
+      ctx.fillStyle = "#1b1f1d"; ctx.fillRect(paddle.x, 310, paddle.w, paddle.h);
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
+      statusEl.textContent = `점수: ${score}`;
+      requestAnimationFrame(loop);
+    }
+    canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      paddle.x = Math.max(0, Math.min(400, (e.clientX - rect.left) - 40));
+    });
+    startBtn.addEventListener("click", () => { newGame(); running = true; loop(); });
+    registerGame("panel-bo", { init() { newGame(); ctx.clearRect(0,0,480,320); }, stop() { running = false; } });
+  })();
+
+  // STEP 3: 슈팅게임
+  (function () {
+    const canvas = document.getElementById("sh-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("sh-status"), startBtn = document.getElementById("sh-start");
+    let px = 225, bullets = [], enemies = [], score = 0, running = false;
+    function loop() {
+      if (!running) return;
+      ctx.clearRect(0,0,480,360);
+      bullets.forEach(b => b.y -= 5);
+      if (Math.random() < 0.05) enemies.push({ x: Math.random()*450, y: 0 });
+      enemies.forEach(e => e.y += 2);
+      bullets.forEach(b => enemies.forEach(e => {
+        if (b.x > e.x && b.x < e.x+30 && b.y > e.y && b.y < e.y+20) { b.hit = true; e.dead = true; score += 10; }
+      }));
+      bullets = bullets.filter(b => b.y > 0 && !b.hit);
+      enemies = enemies.filter(e => e.y < 360 && !e.dead);
+      ctx.fillStyle = "#1b1f1d"; ctx.fillRect(px, 330, 30, 20);
+      ctx.fillStyle = "#3f6650"; enemies.forEach(e => ctx.fillRect(e.x, e.y, 30, 20));
+      ctx.fillStyle = "#565e58"; bullets.forEach(b => ctx.fillRect(b.x, b.y, 4, 8));
+      statusEl.textContent = `점수: ${score}`;
+      requestAnimationFrame(loop);
+    }
+    document.addEventListener("keydown", (e) => {
+      if (!running) return;
+      if (e.key === "ArrowLeft") px = Math.max(0, px - 15);
+      if (e.key === "ArrowRight") px = Math.min(450, px + 15);
+      if (e.key === " ") bullets.push({ x: px + 13, y: 330 });
+    });
+    startBtn.addEventListener("click", () => { px = 225; bullets = []; enemies = []; score = 0; running = true; loop(); });
+    registerGame("panel-sh", { init() { ctx.clearRect(0,0,480,360); }, stop() { running = false; } });
+  })();
+
+  // STEP 4: 퍼즐
+  (function () {
+    const boardEl = document.getElementById("pz-board"), statusEl = document.getElementById("pz-status");
+    let tiles = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
+    function render() {
+      boardEl.innerHTML = "";
+      tiles.forEach((v, i) => {
+        const cell = document.createElement("div");
+        cell.className = "pz-cell" + (v === 0 ? " pz-empty" : "");
+        cell.textContent = v || "";
+        cell.addEventListener("click", () => move(i));
+        boardEl.appendChild(cell);
+      });
+    }
+    function move(i) {
+      let empty = tiles.indexOf(0);
+      if (Math.abs(Math.floor(i/4) - Math.floor(empty/4)) + Math.abs((i%4) - (empty%4)) === 1) {
+        [tiles[i], tiles[empty]] = [tiles[empty], tiles[i]];
+        render();
+      }
+    }
+    document.getElementById("pz-shuffle").addEventListener("click", () => {
+      tiles.sort(() => Math.random() - 0.5); render(); statusEl.textContent = "퍼즐이 섞였습니다.";
+    });
+    registerGame("panel-pz", { init() { render(); } });
+  })();
+
+  // STEP 5: 스네이크
+  (function () {
+    const canvas = document.getElementById("sn-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("sn-status"), startBtn = document.getElementById("sn-start");
+    let snake, dir, food, score, handle;
+    function loop() {
+      let head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+      if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20) { clearInterval(handle); statusEl.textContent = `게임 오버! 점수: ${score}`; return; }
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) { score += 10; food = { x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20) }; }
+      else snake.pop();
+      ctx.clearRect(0,0,400,400);
+      ctx.fillStyle = "#3f6650"; ctx.fillRect(food.x*20, food.y*20, 18, 18);
+      ctx.fillStyle = "#1b1f1d"; snake.forEach(s => ctx.fillRect(s.x*20, s.y*20, 18, 18));
+      statusEl.textContent = `점수: ${score}`;
+    }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp" && dir.y === 0) dir = { x: 0, y: -1 };
+      if (e.key === "ArrowDown" && dir.y === 0) dir = { x: 0, y: 1 };
+      if (e.key === "ArrowLeft" && dir.x === 0) dir = { x: -1, y: 0 };
+      if (e.key === "ArrowRight" && dir.x === 0) dir = { x: 1, y: 0 };
+    });
+    startBtn.addEventListener("click", () => {
+      snake = [{x:10,y:10}]; dir = {x:1,y:0}; food = {x:5,y:5}; score = 0;
+      clearInterval(handle); handle = setInterval(loop, 120);
+    });
+    registerGame("panel-sn", { init() { ctx.clearRect(0,0,400,400); }, stop() { clearInterval(handle); } });
+  })();
+
+  // STEP 6: 테트리스
+  (function () {
+    const canvas = document.getElementById("tt-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("tt-status"), startBtn = document.getElementById("tt-start");
+    const COLS = 10, ROWS = 20, CELL = 24;
+    const SHAPES = { I:[[1,1,1,1]], O:[[1,1],[1,1]], T:[[0,1,0],[1,1,1]] };
+    let grid, piece, score, running, tickHandle;
+
+    function newGame() {
+      grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+      score = 0; spawn();
+    }
+    function spawn() { piece = { matrix: SHAPES.I, row: 0, col: 3 }; }
+    function update() {
+      if (!running) return;
+      piece.row++;
+      if (piece.row + piece.matrix.length > ROWS) { piece.row--; merge(); spawn(); }
+      draw();
+    }
+    function merge() {
+      piece.matrix.forEach((r, dr) => r.forEach((v, dc) => {
+        if (v) grid[piece.row + dr][piece.col + dc] = 1;
+      }));
+    }
+    function draw() {
+      ctx.clearRect(0, 0, 240, 480);
+      ctx.fillStyle = "#1b1f1d";
+      grid.forEach((r, row) => r.forEach((v, col) => {
+        if (v) ctx.fillRect(col * CELL, row * CELL, CELL - 1, CELL - 1);
+      }));
+      ctx.fillStyle = "#3f6650";
+      piece.matrix.forEach((r, dr) => r.forEach((v, dc) => {
+        if (v) ctx.fillRect((piece.col + dc) * CELL, (piece.row + dr) * CELL, CELL - 1, CELL - 1);
+      }));
+    }
+    startBtn.addEventListener("click", () => {
+      newGame(); running = true; clearInterval(tickHandle); tickHandle = setInterval(update, 500);
+    });
+    registerGame("panel-tt", { init() { ctx.clearRect(0,0,240,480); }, stop() { clearInterval(tickHandle); } });
+  })();
+
+  // STEP 7: 2048
+  (function () {
+    const canvas = document.getElementById("tw-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("tw-status"), startBtn = document.getElementById("tw-start");
+    let board = Array(16).fill(0);
+    function addTile() {
+      let empty = []; board.forEach((v, i) => { if (v === 0) empty.push(i); });
+      if (empty.length) board[empty[Math.floor(Math.random() * empty.length)]] = Math.random() < 0.9 ? 2 : 4;
+    }
+    function draw() {
+      ctx.clearRect(0, 0, 360, 360);
+      for (let i = 0; i < 16; i++) {
+        let x = (i % 4) * 90, y = Math.floor(i / 4) * 90;
+        ctx.strokeStyle = "#border"; ctx.strokeRect(x, y, 90, 90);
+        if (board[i]) {
+          ctx.fillStyle = "#3f6650"; ctx.fillRect(x + 5, y + 5, 80, 80);
+          ctx.fillStyle = "#fff"; ctx.font = "24px sans-serif";
+          ctx.fillText(board[i], x + 35, y + 50);
+        }
+      }
+    }
+    startBtn.addEventListener("click", () => {
+      board.fill(0); addTile(); addTile(); draw(); statusEl.textContent = "게임 진행 중";
+    });
+    registerGame("panel-2048", { init() { board.fill(0); draw(); } });
+  })();
+
+  // STEP 8: 두더지 잡기
+  (function () {
+    const gridEl = document.getElementById("mole-grid"), statusEl = document.getElementById("mole-status");
+    const startBtn = document.getElementById("mole-start");
+    let score = 0, timer, activeHole = -1;
+    function createGrid() {
+      gridEl.innerHTML = "";
+      for (let i = 0; i < 9; i++) {
+        const hole = document.createElement("div"); hole.className = "mole-hole";
+        const mole = document.createElement("div"); mole.className = "mole";
+        hole.appendChild(mole);
+        hole.addEventListener("click", () => {
+          if (i === activeHole) { score += 10; activeHole = -1; hole.classList.remove("mole-up"); }
+        });
+        gridEl.appendChild(hole);
+      }
+    }
+    function pop() {
+      const holes = document.querySelectorAll(".mole-hole");
+      holes.forEach(h => h.classList.remove("mole-up"));
+      activeHole = Math.floor(Math.random() * 9);
+      holes[activeHole].classList.add("mole-up");
+    }
+    startBtn.addEventListener("click", () => {
+      createGrid(); score = 0;
+      clearInterval(timer); timer = setInterval(pop, 800);
+      setTimeout(() => { clearInterval(timer); statusEl.textContent = `시간 종료! 점수: ${score}`; }, 15000);
+    });
+    registerGame("panel-mole", { init() { createGrid(); } });
+  })();
+
+  // STEP 9: 퐁(Pong) - [연속 이동 기능 및 스크롤 방지 완벽 처리]
+  (function () {
+    const canvas = document.getElementById("pong-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("pong-status"), startBtn = document.getElementById("pong-start");
+    let ball, p1, p2, running = false;
+    let upPressed = false, downPressed = false; // 키 상태 감지 플래그
+
+    function loop() {
+      if (!running) return;
+
+      // 2) 키를 계속 누르고 있을 때 쭉 매끄럽게 움직이는 처리
+      if (upPressed) p1.y = Math.max(0, p1.y - 6);
+      if (downPressed) p1.y = Math.min(260, p1.y + 6);
+
+      ctx.clearRect(0, 0, 480, 320);
+      ball.x += ball.dx; ball.y += ball.dy;
+      if (ball.y <= 0 || ball.y >= 320) ball.dy *= -1;
+      if (ball.x <= 20 && ball.y >= p1.y && ball.y <= p1.y + 60) ball.dx *= -1;
+      if (ball.x >= 460 && ball.y >= p2.y && ball.y <= p2.y + 60) ball.dx *= -1;
+      if (ball.x < 0 || ball.x > 480) { running = false; statusEl.textContent = "게임 종료!"; return; }
+
+      // AI 패들 추적
+      p2.y += (ball.y - (p2.y + 30)) * 0.06;
+
+      ctx.fillStyle = "#1b1f1d";
+      ctx.fillRect(10, p1.y, 10, 60); ctx.fillRect(460, p2.y, 10, 60);
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, 6, 0, Math.PI*2); ctx.fill();
+      requestAnimationFrame(loop);
+    }
+
+    // 키 누름/떼기 감지 이벤트
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") upPressed = true;
+      if (e.key === "ArrowDown") downPressed = true;
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowUp") upPressed = false;
+      if (e.key === "ArrowDown") downPressed = false;
+    });
+
+    startBtn.addEventListener("click", () => {
+      ball = { x: 240, y: 160, dx: 3.5, dy: 3.5 }; p1 = { y: 130 }; p2 = { y: 130 };
+      running = true; loop();
+    });
+    registerGame("panel-pong", { init() { ctx.clearRect(0,0,480,320); }, stop() { running = false; } });
+  })();
+</script>
+</body>
+</html>
