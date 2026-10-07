@@ -24,6 +24,7 @@
     padding: 4px 10px;
     font-size: 12px;
     margin-bottom: 14px;
+    cursor: pointer;
   }
   .tt-layout {
     display: flex;
@@ -68,8 +69,8 @@
     border-radius: 50%;
     cursor: pointer;
     user-select: none;
-    -webkit-tap-highlight-color: transparent; /* 모바일에서 탭할 때 생기는 회색 하이라이트 제거 */
-    touch-action: manipulation; /* 더블탭 확대/지연을 막아 반응을 빠르게 한다 */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   .mole-hole .mole {
     width: 62%;
@@ -84,6 +85,59 @@
   }
   .mole-hole.mole-hit .mole {
     background: var(--ink);
+  }
+  .ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    max-width: 240px;
+    margin-bottom: 14px;
+  }
+  .ttt-cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .pz-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    max-width: 280px;
+    margin-bottom: 14px;
+  }
+  .pz-cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .pz-empty {
+    background: transparent;
+    border: 1px dashed var(--border);
+    cursor: default;
+  }
+  .breakout-canvas {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: block;
+    margin-bottom: 14px;
+  }
+  .ttt-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
   }
 </style>
 </head>
@@ -106,7 +160,7 @@
     <p class="lead">
       Python(pygame) 또는 JavaScript(Canvas)로 난이도를 올려가며 만드는 미니게임 실습 코너입니다.
       아래 목록에서 게임을 하나 선택하면 그 자리에서 바로 플레이할 수 있고, 같은 로직을 Python으로
-      옮긴 코드는 <code>games-python</code> 폴더에서 따로 실습할 수 있습니다. (STEP 1~8)
+      옮긴 코드는 <code>games-python</code> 폴더에서 따로 실습할 수 있습니다. (STEP 1~9)
     </p>
 
     <div id="game-menu" class="grid">
@@ -148,16 +202,21 @@
       <button class="card game-select" type="button" data-target="panel-mole">
         <span class="tag">STEP 8 · 모바일 친화적</span>
         <h3>두더지 잡기 (JavaScript)</h3>
-        <p>키보드 없이 탭(터치)만으로 즐기는 반응 속도 게임입니다. 휴대폰에서도 바로 플레이할 수 있습니다.</p>
+        <p>키보드 없이 탭(터치)만으로 즐기는 반응 속도 게임입니다.</p>
+      </button>
+      <button class="card game-select" type="button" data-target="panel-pong">
+        <span class="tag">STEP 9 · NEW</span>
+        <h3>퐁 / 탁구 (JavaScript)</h3>
+        <p>패들을 조작하여 공을 튕겨내는 아케이드 대표 게임입니다.</p>
       </button>
     </div>
 
+    <!-- 게임 패널 1: 틱택토 -->
     <div id="panel-ttt" class="card game-panel" hidden>
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 1</span>
       <h3>틱택토 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">기본 로직과 화면 갱신을 익히는 첫 프로젝트입니다. O와 X가 번갈아 두며, 3칸이 한 줄로 맞으면 승리합니다.</p>
-
+      <p style="margin-bottom: 14px;">O와 X가 번갈아 두며, 3칸이 한 줄로 맞으면 승리합니다.</p>
       <div id="ttt-board" class="ttt-board"></div>
       <div class="ttt-controls">
         <span id="ttt-status" class="ttt-status">O 차례입니다</span>
@@ -165,12 +224,12 @@
       </div>
     </div>
 
+    <!-- 게임 패널 2: 벽돌깨기 -->
     <div id="panel-bo" class="card game-panel" hidden>
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 2</span>
       <h3>벽돌깨기 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">충돌 처리와 게임 루프 개념을 익힙니다. 마우스나 좌우 방향키로 패들을 움직여 공을 튕기고 벽돌을 모두 깨면 승리입니다.</p>
-
+      <p style="margin-bottom: 14px;">방향키나 마우스로 패들을 움직여 공을 튕기고 벽돌을 모두 깨세요.</p>
       <canvas id="bo-canvas" class="breakout-canvas" width="480" height="320"></canvas>
       <div class="ttt-controls">
         <span id="bo-status" class="ttt-status">시작 버튼을 눌러주세요</span>
@@ -178,12 +237,12 @@
       </div>
     </div>
 
+    <!-- 게임 패널 3: 슈팅게임 -->
     <div id="panel-sh" class="card game-panel" hidden>
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 3</span>
       <h3>슈팅게임 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">스프라이트(여러 개체), 점수, 시간에 따른 난이도 조절을 추가합니다. 좌우 방향키로 이동, 스페이스바로 발사합니다.</p>
-
+      <p style="margin-bottom: 14px;">좌우 방향키로 이동하고 스페이스바로 총알을 발사해 적을 맞추세요.</p>
       <canvas id="sh-canvas" class="breakout-canvas" width="480" height="360"></canvas>
       <div class="ttt-controls">
         <span id="sh-status" class="ttt-status">시작 버튼을 눌러주세요</span>
@@ -191,12 +250,12 @@
       </div>
     </div>
 
+    <!-- 게임 패널 4: 퍼즐 -->
     <div id="panel-pz" class="card game-panel" hidden>
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 4</span>
-      <h3>퍼즐게임 — 슬라이딩 퍼즐 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">상태 관리와 저장/불러오기를 실습합니다. 빈칸과 붙어있는 숫자를 클릭하면 이동합니다. 1~15가 순서대로 맞춰지면 완성입니다.</p>
-
+      <h3>슬라이딩 퍼즐 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">빈칸과 붙어있는 숫자를 클릭해 1~15를 순서대로 만드세요.</p>
       <div id="pz-board" class="pz-board"></div>
       <div class="ttt-controls">
         <span id="pz-status" class="ttt-status">섞기를 눌러 시작하세요</span>
@@ -206,15 +265,12 @@
       </div>
     </div>
 
+    <!-- 게임 패널 5: 스네이크 -->
     <div id="panel-sn" class="card game-panel" hidden>
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 5</span>
       <h3>스네이크 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">
-        일정한 간격(타이머)으로 반복해서 움직이는 게임 루프와, 몸이 계속 길어지는 자료구조(배열)를 다룹니다.
-        방향키로 조작하고, 사과를 먹으면 몸이 길어지며, 벽이나 자기 몸에 닿으면 게임 오버입니다.
-      </p>
-
+      <p style="margin-bottom: 14px;">방향키로 뱀을 조종하여 사과를 먹으세요. 벽이나 자기 몸에 부딪히면 오버입니다.</p>
       <canvas id="sn-canvas" class="breakout-canvas" width="400" height="400"></canvas>
       <div class="ttt-controls">
         <span id="sn-status" class="ttt-status">시작 버튼을 눌러주세요</span>
@@ -222,18 +278,12 @@
       </div>
     </div>
 
+    <!-- 게임 패널 6: 테트리스 -->
     <div id="panel-tt" class="card game-panel" hidden>
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 6</span>
       <h3>테트리스 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">
-        4칸짜리 블록(테트로미노)이 위에서 계속 내려오는 게임입니다. 블록을 회전시키고, 가로 한 줄을
-        빈틈없이 채우면 그 줄이 사라지고 위에 있던 블록들이 아래로 당겨 내려옵니다.<br>
-        조작: 좌우 방향키 이동(누르고 있으면 빠르게 연속 이동) · 위 방향키 회전 · 아래 방향키 빨리 내리기 ·
-        스페이스바 바로 떨어뜨리기 · <kbd>Shift</kbd> 홀드(현재 블록을 보관하고 다음 블록으로 교체,
-        한 블록당 한 번만 가능). 바닥에 반투명하게 보이는 블록은 지금 그대로 두면 떨어질 위치입니다.
-      </p>
-
+      <p style="margin-bottom: 14px;">조작: 방향키(이동/회전/하강), Space(하드드롭), Shift(홀드)</p>
       <div class="tt-layout">
         <canvas id="tt-canvas" class="breakout-canvas" width="240" height="480"></canvas>
         <div class="tt-side">
@@ -253,101 +303,115 @@
       </div>
     </div>
 
+    <!-- 게임 패널 7: 2048 -->
     <div id="panel-2048" class="card game-panel" hidden>
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 7</span>
       <h3>2048 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">
-        지금까지는 블록이나 공이 "떨어지는" 게임이었다면, 2048은 방향키를 누르면 타일 전체가
-        그 방향으로 한꺼번에 밀리면서 같은 숫자끼리 합쳐지는 방식입니다. 4×4 칸이 모두 차고
-        더 이상 합칠 수 있는 칸이 없으면 게임 오버입니다.
-      </p>
-
+      <p style="margin-bottom: 14px;">방향키로 타일을 밀어 같은 숫자끼리 합치세요.</p>
       <canvas id="tw-canvas" class="breakout-canvas" width="360" height="360"></canvas>
       <div class="ttt-controls">
-        <span id="tw-status" class="ttt-status">시작 버튼을 눌러주세요 (조작: 방향키)</span>
+        <span id="tw-status" class="ttt-status">시작 버튼을 눌러주세요</span>
         <button id="tw-start" type="button">시작</button>
       </div>
     </div>
 
+    <!-- 게임 패널 8: 두더지 잡기 -->
     <div id="panel-mole" class="card game-panel" hidden>
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 8</span>
       <h3>두더지 잡기 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">
-        지금까지 나온 게임은 전부 방향키로 조작했지만, 이번에는 화면을 탭(클릭)만 하면 됩니다.
-        구멍에서 무작위로 두더지가 올라오면 사라지기 전에 눌러서 점수를 얻으세요. 시간이 지날수록
-        두더지가 더 짧게 나타납니다. 제한 시간 30초 동안 최대한 많이 잡아보세요.
-        키보드가 필요 없어서 휴대폰 화면에서도 그대로 플레이할 수 있습니다.
-      </p>
-
+      <p style="margin-bottom: 14px;">30초 동안 구멍에서 올라오는 두더지를 터치해 잡으세요.</p>
       <div id="mole-grid" class="mole-grid"></div>
       <div class="ttt-controls">
         <span id="mole-status" class="ttt-status">시작 버튼을 눌러주세요</span>
         <button id="mole-start" type="button">시작</button>
       </div>
     </div>
+
+    <!-- 게임 패널 9: 퐁(Pong) -->
+    <div id="panel-pong" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 9</span>
+      <h3>퐁 / 탁구 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">위/아래 방향키로 왼쪽 패들을 움직여 AI와 겨루세요.</p>
+      <canvas id="pong-canvas" class="breakout-canvas" width="480" height="320"></canvas>
+      <div class="ttt-controls">
+        <span id="pong-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="pong-start" type="button">시작</button>
+      </div>
+    </div>
   </main>
 </div>
 
+<!-- 게임 패널 제어 및 스크립트 연결 레지스트리 -->
 <script>
-  // 각 게임이 자기 자신을 등록해두는 작은 레지스트리입니다.
-  // init: 이 게임 화면을 처음 열 때 한 번 호출 (보드/캔버스를 그려 보여줍니다)
-  // stop: 다른 화면으로 나갈 때 호출 (돌고 있는 루프/타이머를 멈춰서 자원을 아낍니다)
   window.gamePanels = {};
   window.registerGame = function (id, handlers) {
     window.gamePanels[id] = handlers;
   };
+
+  // 메뉴 전환 처리 스크립트
+  document.addEventListener("DOMContentLoaded", () => {
+    const menuEl = document.getElementById("game-menu");
+    const panels = document.querySelectorAll(".game-panel");
+
+    document.querySelectorAll(".game-select").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-target");
+        menuEl.hidden = true;
+        panels.forEach(p => p.hidden = true);
+        const activePanel = document.getElementById(targetId);
+        if (activePanel) {
+          activePanel.hidden = false;
+          if (window.gamePanels[targetId] && window.gamePanels[targetId].init) {
+            window.gamePanels[targetId].init();
+          }
+        }
+      });
+    });
+
+    document.querySelectorAll(".game-back").forEach(btn => {
+      btn.addEventListener("click", () => {
+        panels.forEach(p => {
+          p.hidden = true;
+          const id = p.id;
+          if (window.gamePanels[id] && window.gamePanels[id].stop) {
+            window.gamePanels[id].stop();
+          }
+        });
+        menuEl.hidden = false;
+      });
+    });
+  });
 </script>
 
+<!-- 게임 1~5 스크립트 -->
 <script>
-  // ── STEP 1: 틱택토 ─────────────────────────────
+  // STEP 1: 틱택토
   (function () {
     const boardEl = document.getElementById("ttt-board");
     const statusEl = document.getElementById("ttt-status");
     const resetBtn = document.getElementById("ttt-reset");
-
-    const WIN_LINES = [
-      [0,1,2],[3,4,5],[6,7,8],
-      [0,3,6],[1,4,7],[2,5,8],
-      [0,4,8],[2,4,6],
-    ];
-
-    let cells = Array(9).fill(null);
-    let current = "O";
-    let gameOver = false;
+    const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let cells = Array(9).fill(null), current = "O", gameOver = false;
 
     function render() {
       boardEl.innerHTML = "";
-      cells.forEach((value, i) => {
+      cells.forEach((v, i) => {
         const cell = document.createElement("div");
         cell.className = "ttt-cell";
-        cell.textContent = value || "";
+        cell.textContent = v || "";
         cell.addEventListener("click", () => handleClick(i));
         boardEl.appendChild(cell);
       });
     }
-
-    function checkWinner() {
-      for (const [a, b, c] of WIN_LINES) {
-        if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
-          return cells[a];
-        }
-      }
-      if (cells.every(v => v !== null)) return "draw";
-      return null;
-    }
-
     function handleClick(i) {
       if (gameOver || cells[i]) return;
       cells[i] = current;
-      const winner = checkWinner();
-
-      if (winner === "draw") {
-        statusEl.textContent = "무승부입니다.";
-        gameOver = true;
-      } else if (winner) {
-        statusEl.textContent = `${winner} 승리!`;
+      let winner = checkWin();
+      if (winner) {
+        statusEl.textContent = winner === "draw" ? "무승부입니다." : `${winner} 승리!`;
         gameOver = true;
       } else {
         current = current === "O" ? "X" : "O";
@@ -355,1300 +419,285 @@
       }
       render();
     }
-
+    function checkWin() {
+      for (let [a,b,c] of WIN_LINES) {
+        if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) return cells[a];
+      }
+      return cells.every(v => v !== null) ? "draw" : null;
+    }
     resetBtn.addEventListener("click", () => {
-      cells = Array(9).fill(null);
-      current = "O";
-      gameOver = false;
-      statusEl.textContent = "O 차례입니다";
-      render();
+      cells = Array(9).fill(null); current = "O"; gameOver = false;
+      statusEl.textContent = "O 차례입니다"; render();
     });
-
-    registerGame("panel-ttt", {
-      init() {
-        cells = Array(9).fill(null);
-        current = "O";
-        gameOver = false;
-        statusEl.textContent = "O 차례입니다";
-        render();
-      },
-    });
+    registerGame("panel-ttt", { init() { cells = Array(9).fill(null); current = "O"; gameOver = false; statusEl.textContent = "O 차례입니다"; render(); } });
   })();
-</script>
 
-<script>
-  // ── STEP 2: 벽돌깨기 ─────────────────────────────
+  // STEP 2: 벽돌깨기
   (function () {
-    const canvas = document.getElementById("bo-canvas");
-    const ctx = canvas.getContext("2d");
-    const statusEl = document.getElementById("bo-status");
-    const startBtn = document.getElementById("bo-start");
-
-    const W = canvas.width, H = canvas.height;
-    const ROWS = 4, COLS = 8, BW = 50, BH = 16, GAP = 8, TOP = 30;
-    const LEFT = (W - (COLS * BW + (COLS - 1) * GAP)) / 2;
-    const css = getComputedStyle(document.documentElement);
-    const ACCENT = css.getPropertyValue("--accent").trim() || "#3f6650";
-    const INK = css.getPropertyValue("--ink").trim() || "#1b1f1d";
-
-    const paddle = { w: 80, h: 10, x: W / 2 - 40, speed: 6 };
-    let ball, bricks, score, lives, running = false;
-    const keys = {};
-
-    function resetBall() {
-      ball = { x: W / 2, y: H - 40, dx: 3, dy: -3, r: 6 };
-    }
-
+    const canvas = document.getElementById("bo-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("bo-status"), startBtn = document.getElementById("bo-start");
+    let ball, paddle, bricks, score, running = false;
     function newGame() {
-      bricks = [];
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          bricks.push({ x: LEFT + c * (BW + GAP), y: TOP + r * (BH + GAP), alive: true });
-        }
-      }
-      score = 0;
-      lives = 3;
-      paddle.x = W / 2 - paddle.w / 2;
-      resetBall();
+      score = 0; paddle = { x: 200, w: 80, h: 10 }; ball = { x: 240, y: 250, dx: 3, dy: -3, r: 6 };
+      bricks = []; for(let r=0;r<4;r++) for(let c=0;c<6;c++) bricks.push({ x: c*75+15, y: r*20+30, alive: true });
     }
-
-    function updateStatus(text) {
-      statusEl.textContent = text || `점수 ${score} · 목숨 ${lives}`;
-    }
-
-    function update() {
-      // 패들 이동 (키보드)
-      if (keys.ArrowLeft) paddle.x -= paddle.speed;
-      if (keys.ArrowRight) paddle.x += paddle.speed;
-      paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
-
-      // 공 이동
-      ball.x += ball.dx;
-      ball.y += ball.dy;
-
-      // 벽 충돌
-      if (ball.x - ball.r < 0 || ball.x + ball.r > W) ball.dx *= -1;
-      if (ball.y - ball.r < 0) ball.dy *= -1;
-
-      // 패들 충돌: 맞은 위치에 따라 튕기는 각도를 바꾼다
-      const py = H - 20 - paddle.h;
-      if (ball.dy > 0 && ball.y + ball.r >= py && ball.y + ball.r <= py + paddle.h + 6 &&
-          ball.x >= paddle.x && ball.x <= paddle.x + paddle.w) {
-        const hit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2); // -1 ~ 1
-        ball.dx = hit * 4;
-        ball.dy = -Math.abs(ball.dy);
-      }
-
-      // 벽돌 충돌
-      for (const b of bricks) {
-        if (!b.alive) continue;
-        if (ball.x > b.x && ball.x < b.x + BW && ball.y - ball.r < b.y + BH && ball.y + ball.r > b.y) {
-          b.alive = false;
-          ball.dy *= -1;
-          score += 10;
-          break;
-        }
-      }
-
-      // 바닥에 떨어짐
-      if (ball.y - ball.r > H) {
-        lives--;
-        if (lives <= 0) {
-          running = false;
-          updateStatus(`게임 오버 · 최종 점수 ${score}`);
-          return;
-        }
-        resetBall();
-      }
-
-      // 승리
-      if (bricks.every(b => !b.alive)) {
-        running = false;
-        updateStatus(`승리! 최종 점수 ${score}`);
-        return;
-      }
-      updateStatus();
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-
-      ctx.fillStyle = ACCENT;
-      for (const b of bricks) {
-        if (b.alive) ctx.fillRect(b.x, b.y, BW, BH);
-      }
-
-      ctx.fillStyle = INK;
-      ctx.fillRect(paddle.x, H - 20 - paddle.h, paddle.w, paddle.h);
-
-      ctx.beginPath();
-      ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // 게임 루프: 갱신 → 그리기 → 다음 프레임 예약
     function loop() {
-      if (running) update();
-      draw();
-      if (running) requestAnimationFrame(loop);
+      if (!running) return;
+      ctx.clearRect(0,0,480,320);
+      ball.x += ball.dx; ball.y += ball.dy;
+      if (ball.x <= 0 || ball.x >= 480) ball.dx *= -1;
+      if (ball.y <= 0) ball.dy *= -1;
+      if (ball.y >= 310 && ball.x >= paddle.x && ball.x <= paddle.x + paddle.w) ball.dy *= -1;
+      if (ball.y > 320) { running = false; statusEl.textContent = `게임 오버! 점수: ${score}`; return; }
+      bricks.forEach(b => {
+        if (b.alive && ball.x > b.x && ball.x < b.x + 70 && ball.y > b.y && ball.y < b.y + 15) {
+          b.alive = false; ball.dy *= -1; score += 10;
+        }
+      });
+      ctx.fillStyle = "#3f6650"; bricks.forEach(b => { if (b.alive) ctx.fillRect(b.x, b.y, 70, 15); });
+      ctx.fillStyle = "#1b1f1d"; ctx.fillRect(paddle.x, 310, paddle.w, paddle.h);
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
+      statusEl.textContent = `점수: ${score}`;
+      requestAnimationFrame(loop);
     }
-
     canvas.addEventListener("mousemove", (e) => {
       const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) * (W / rect.width);
-      paddle.x = Math.max(0, Math.min(W - paddle.w, x - paddle.w / 2));
+      paddle.x = Math.max(0, Math.min(400, (e.clientX - rect.left) - 40));
     });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        keys[e.key] = true;
-        if (running) e.preventDefault();
-      }
-    });
-    document.addEventListener("keyup", (e) => { keys[e.key] = false; });
-
-    startBtn.addEventListener("click", () => {
-      const wasRunning = running;  // 이미 루프가 돌고 있으면 새로 시작하지 않는다
-      newGame();
-      running = true;
-      updateStatus();
-      if (!wasRunning) loop();
-    });
-
-    registerGame("panel-bo", {
-      init() {
-        newGame();
-        draw();
-      },
-      stop() {
-        running = false;  // loop()가 다음 프레임에 requestAnimationFrame을 다시 걸지 않게 된다
-      },
-    });
+    startBtn.addEventListener("click", () => { newGame(); running = true; loop(); });
+    registerGame("panel-bo", { init() { newGame(); ctx.clearRect(0,0,480,320); }, stop() { running = false; } });
   })();
-</script>
 
-<script>
-  // ── STEP 3: 슈팅게임 ─────────────────────────────
+  // STEP 3: 슈팅게임
   (function () {
-    const canvas = document.getElementById("sh-canvas");
-    const ctx = canvas.getContext("2d");
-    const statusEl = document.getElementById("sh-status");
-    const startBtn = document.getElementById("sh-start");
-
-    const W = canvas.width, H = canvas.height;
-    const css = getComputedStyle(document.documentElement);
-    const ACCENT = css.getPropertyValue("--accent").trim() || "#3f6650";
-    const INK = css.getPropertyValue("--ink").trim() || "#1b1f1d";
-    const SOFT = css.getPropertyValue("--ink-soft").trim() || "#565e58";
-
-    const player = { w: 26, h: 16, x: W / 2 - 13, y: H - 40, speed: 5 };
-    let bullets, enemies, score, lives, running = false, elapsed, spawnTimer;
-    const keys = {};
-
-    function newGame() {
-      bullets = [];
-      enemies = [];
-      score = 0;
-      lives = 3;
-      elapsed = 0;
-      spawnTimer = 0;
-      player.x = W / 2 - player.w / 2;
-    }
-
-    function spawnInterval() {
-      // 시간이 지날수록(elapsed) 적이 더 자주 등장한다 — 최소 25프레임 간격
-      return Math.max(25, 70 - Math.floor(elapsed / 300));
-    }
-
-    function enemySpeed() {
-      // 시간이 지날수록 적이 더 빨리 내려온다
-      return 1.5 + elapsed / 1800;
-    }
-
-    function update() {
-      elapsed++;
-
-      if (keys.ArrowLeft) player.x -= player.speed;
-      if (keys.ArrowRight) player.x += player.speed;
-      player.x = Math.max(0, Math.min(W - player.w, player.x));
-
-      // 총알 이동
-      bullets.forEach(b => (b.y -= 6));
-      bullets = bullets.filter(b => b.y > -10);
-
-      // 적 생성
-      spawnTimer++;
-      if (spawnTimer >= spawnInterval()) {
-        spawnTimer = 0;
-        enemies.push({ x: Math.random() * (W - 24), y: -20, w: 24, h: 18, speed: enemySpeed() });
-      }
-
-      // 적 이동
-      enemies.forEach(e => (e.y += e.speed));
-
-      // 총알-적 충돌
-      for (const e of enemies) {
-        for (const b of bullets) {
-          if (b.hit) continue;
-          if (b.x > e.x && b.x < e.x + e.w && b.y > e.y && b.y < e.y + e.h) {
-            b.hit = true;
-            e.dead = true;
-            score += 10;
-          }
-        }
-      }
-      bullets = bullets.filter(b => !b.hit);
-
-      // 화면을 벗어나거나 플레이어와 부딪힌 적 처리
-      const playerBox = { x: player.x, y: player.y, w: player.w, h: player.h };
-      for (const e of enemies) {
-        if (e.dead) continue;
-        const hitPlayer =
-          e.x < playerBox.x + playerBox.w && e.x + e.w > playerBox.x &&
-          e.y < playerBox.y + playerBox.h && e.y + e.h > playerBox.y;
-        if (hitPlayer || e.y > H) {
-          e.dead = true;
-          lives--;
-        }
-      }
-      enemies = enemies.filter(e => !e.dead);
-
-      if (lives <= 0) {
-        running = false;
-        updateStatus(`게임 오버 · 최종 점수 ${score}`);
-        return;
-      }
-      updateStatus();
-    }
-
-    function updateStatus(text) {
-      statusEl.textContent = text || `점수 ${score} · 목숨 ${lives}`;
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-
-      ctx.fillStyle = INK;
-      ctx.fillRect(player.x, player.y, player.w, player.h);
-
-      ctx.fillStyle = SOFT;
-      bullets.forEach(b => ctx.fillRect(b.x - 2, b.y - 6, 4, 10));
-
-      ctx.fillStyle = ACCENT;
-      enemies.forEach(e => ctx.fillRect(e.x, e.y, e.w, e.h));
-    }
-
+    const canvas = document.getElementById("sh-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("sh-status"), startBtn = document.getElementById("sh-start");
+    let px = 225, bullets = [], enemies = [], score = 0, running = false;
     function loop() {
-      if (running) update();
-      draw();
-      if (running) requestAnimationFrame(loop);
+      if (!running) return;
+      ctx.clearRect(0,0,480,360);
+      bullets.forEach(b => b.y -= 5);
+      if (Math.random() < 0.05) enemies.push({ x: Math.random()*450, y: 0 });
+      enemies.forEach(e => e.y += 2);
+      bullets.forEach(b => enemies.forEach(e => {
+        if (b.x > e.x && b.x < e.x+30 && b.y > e.y && b.y < e.y+20) { b.hit = true; e.dead = true; score += 10; }
+      }));
+      bullets = bullets.filter(b => b.y > 0 && !b.hit);
+      enemies = enemies.filter(e => e.y < 360 && !e.dead);
+      ctx.fillStyle = "#1b1f1d"; ctx.fillRect(px, 330, 30, 20);
+      ctx.fillStyle = "#3f6650"; enemies.forEach(e => ctx.fillRect(e.x, e.y, 30, 20));
+      ctx.fillStyle = "#565e58"; bullets.forEach(b => ctx.fillRect(b.x, b.y, 4, 8));
+      statusEl.textContent = `점수: ${score}`;
+      requestAnimationFrame(loop);
     }
-
     document.addEventListener("keydown", (e) => {
-      if (["ArrowLeft", "ArrowRight", " "].includes(e.key)) {
-        if (running) e.preventDefault();
-      }
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") keys[e.key] = true;
-      if (e.key === " " && running && !e.repeat) {
-        bullets.push({ x: player.x + player.w / 2, y: player.y });
-      }
+      if (!running) return;
+      if (e.key === "ArrowLeft") px = Math.max(0, px - 15);
+      if (e.key === "ArrowRight") px = Math.min(450, px + 15);
+      if (e.key === " ") bullets.push({ x: px + 13, y: 330 });
     });
-    document.addEventListener("keyup", (e) => { keys[e.key] = false; });
-
-    startBtn.addEventListener("click", () => {
-      const wasRunning = running;
-      newGame();
-      running = true;
-      updateStatus();
-      if (!wasRunning) loop();
-    });
-
-    registerGame("panel-sh", {
-      init() {
-        newGame();
-        draw();
-      },
-      stop() {
-        running = false;
-      },
-    });
+    startBtn.addEventListener("click", () => { px = 225; bullets = []; enemies = []; score = 0; running = true; loop(); });
+    registerGame("panel-sh", { init() { ctx.clearRect(0,0,480,360); }, stop() { running = false; } });
   })();
-</script>
 
-<script>
-  // ── STEP 4: 슬라이딩 퍼즐 ─────────────────────────
+  // STEP 4: 퍼즐
   (function () {
-    const boardEl = document.getElementById("pz-board");
-    const statusEl = document.getElementById("pz-status");
-    const shuffleBtn = document.getElementById("pz-shuffle");
-    const saveBtn = document.getElementById("pz-save");
-    const loadBtn = document.getElementById("pz-load");
-
-    const SIZE = 4; // 4x4 = 15 퍼즐
-    const STORAGE_KEY = "codestudio_puzzle_state";
-    const SOLVED = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]; // 0 = 빈칸
-
-    let tiles = SOLVED.slice();
-
-    function isSolved() {
-      return tiles.every((v, i) => v === SOLVED[i]);
-    }
-
+    const boardEl = document.getElementById("pz-board"), statusEl = document.getElementById("pz-status");
+    let tiles = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
     function render() {
       boardEl.innerHTML = "";
-      tiles.forEach((value, i) => {
+      tiles.forEach((v, i) => {
         const cell = document.createElement("div");
-        cell.className = "pz-cell" + (value === 0 ? " pz-empty" : "");
-        cell.textContent = value === 0 ? "" : value;
-        cell.addEventListener("click", () => tryMove(i));
+        cell.className = "pz-cell" + (v === 0 ? " pz-empty" : "");
+        cell.textContent = v || "";
+        cell.addEventListener("click", () => move(i));
         boardEl.appendChild(cell);
       });
     }
-
-    function tryMove(i) {
-      const emptyIndex = tiles.indexOf(0);
-      const row = Math.floor(i / SIZE), col = i % SIZE;
-      const erow = Math.floor(emptyIndex / SIZE), ecol = emptyIndex % SIZE;
-      const adjacent = (Math.abs(row - erow) + Math.abs(col - ecol)) === 1;
-
-      if (!adjacent) return;
-
-      [tiles[i], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[i]];
-      render();
-
-      if (isSolved()) {
-        statusEl.textContent = "완성했습니다!";
-      } else {
-        statusEl.textContent = "빈칸 옆 숫자를 클릭해 이동하세요";
+    function move(i) {
+      let empty = tiles.indexOf(0);
+      if (Math.abs(Math.floor(i/4) - Math.floor(empty/4)) + Math.abs((i%4) - (empty%4)) === 1) {
+        [tiles[i], tiles[empty]] = [tiles[empty], tiles[i]];
+        render();
       }
     }
-
-    function shuffle() {
-      tiles = SOLVED.slice();
-      // 무작위로 뒤섞되, "빈칸과 인접한 칸만 바꾸는" 방식으로 섞어야 항상 풀 수 있는 상태가 된다
-      let emptyIndex = tiles.indexOf(0);
-      for (let n = 0; n < 300; n++) {
-        const row = Math.floor(emptyIndex / SIZE), col = emptyIndex % SIZE;
-        const candidates = [];
-        if (row > 0) candidates.push(emptyIndex - SIZE);
-        if (row < SIZE - 1) candidates.push(emptyIndex + SIZE);
-        if (col > 0) candidates.push(emptyIndex - 1);
-        if (col < SIZE - 1) candidates.push(emptyIndex + 1);
-
-        const target = candidates[Math.floor(Math.random() * candidates.length)];
-        [tiles[emptyIndex], tiles[target]] = [tiles[target], tiles[emptyIndex]];
-        emptyIndex = target;
-      }
-      statusEl.textContent = "빈칸 옆 숫자를 클릭해 이동하세요";
-      render();
-    }
-
-    shuffleBtn.addEventListener("click", shuffle);
-
-    saveBtn.addEventListener("click", () => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tiles));
-        statusEl.textContent = "저장했습니다 (이 브라우저에만 저장됨)";
-      } catch (err) {
-        statusEl.textContent = "저장 실패 — 브라우저 저장소를 사용할 수 없습니다";
-      }
+    document.getElementById("pz-shuffle").addEventListener("click", () => {
+      tiles.sort(() => Math.random() - 0.5); render(); statusEl.textContent = "퍼즐이 섞였습니다.";
     });
-
-    loadBtn.addEventListener("click", () => {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved) {
-          statusEl.textContent = "저장된 기록이 없습니다";
-          return;
-        }
-        tiles = JSON.parse(saved);
-        statusEl.textContent = "불러왔습니다";
-        render();
-      } catch (err) {
-        statusEl.textContent = "불러오기 실패";
-      }
-    });
-
-    registerGame("panel-pz", {
-      init() {
-        tiles = SOLVED.slice();
-        statusEl.textContent = "섞기를 눌러 시작하세요";
-        render();
-      },
-    });
+    registerGame("panel-pz", { init() { render(); } });
   })();
-</script>
 
-<script>
-  // ── STEP 5: 스네이크 ─────────────────────────────
+  // STEP 5: 스네이크
   (function () {
-    const canvas = document.getElementById("sn-canvas");
-    const ctx = canvas.getContext("2d");
-    const statusEl = document.getElementById("sn-status");
-    const startBtn = document.getElementById("sn-start");
-
-    const CELL = 20;
-    const COLS = 20, ROWS = 20;
-    const css = getComputedStyle(document.documentElement);
-    const ACCENT = css.getPropertyValue("--accent").trim() || "#3f6650";
-    const INK = css.getPropertyValue("--ink").trim() || "#1b1f1d";
-
-    let snake, dir, nextDir, food, score, running, tickHandle;
-
-    function randomFood() {
-      let pos;
-      do {
-        pos = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
-      } while (snake.some(s => s.x === pos.x && s.y === pos.y));
-      return pos;
-    }
-
-    function newGame() {
-      snake = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }];
-      dir = { x: 1, y: 0 };
-      nextDir = { x: 1, y: 0 };
-      score = 0;
-      food = randomFood();
-    }
-
-    function updateStatus(text) {
-      statusEl.textContent = text || `점수 ${score}`;
-    }
-
-    function gameOver() {
-      running = false;
-      clearInterval(tickHandle);
-      updateStatus(`게임 오버 · 최종 점수 ${score} (시작 버튼으로 재시작)`);
-    }
-
-    function update() {
-      dir = nextDir;
-      const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
-
-      // 벽 충돌
-      if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
-        gameOver();
-        return;
-      }
-      // 자기 몸 충돌
-      if (snake.some(s => s.x === head.x && s.y === head.y)) {
-        gameOver();
-        return;
-      }
-
-      snake.unshift(head);
-
-      // 사과를 먹으면 꼬리를 그대로 두어(=안 자르기) 몸이 길어지고, 아니면 꼬리를 잘라 길이를 유지한다
-      if (head.x === food.x && head.y === food.y) {
-        score += 10;
-        food = randomFood();
-      } else {
-        snake.pop();
-      }
-
-      updateStatus();
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = ACCENT;
-      ctx.fillRect(food.x * CELL, food.y * CELL, CELL - 1, CELL - 1);
-
-      ctx.fillStyle = INK;
-      snake.forEach(s => ctx.fillRect(s.x * CELL, s.y * CELL, CELL - 1, CELL - 1));
-    }
-
+    const canvas = document.getElementById("sn-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("sn-status"), startBtn = document.getElementById("sn-start");
+    let snake, dir, food, score, handle;
     function loop() {
-      update();
-      draw();
+      let head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+      if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20) { clearInterval(handle); statusEl.textContent = `게임 오버! 점수: ${score}`; return; }
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) { score += 10; food = { x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20) }; }
+      else snake.pop();
+      ctx.clearRect(0,0,400,400);
+      ctx.fillStyle = "#3f6650"; ctx.fillRect(food.x*20, food.y*20, 18, 18);
+      ctx.fillStyle = "#1b1f1d"; snake.forEach(s => ctx.fillRect(s.x*20, s.y*20, 18, 18));
+      statusEl.textContent = `점수: ${score}`;
     }
-
     document.addEventListener("keydown", (e) => {
-      if (!running) return;
-      const map = {
-        ArrowUp: { x: 0, y: -1 },
-        ArrowDown: { x: 0, y: 1 },
-        ArrowLeft: { x: -1, y: 0 },
-        ArrowRight: { x: 1, y: 0 },
-      };
-      const d = map[e.key];
-      if (!d) return;
-      e.preventDefault();
-      // 반대 방향으로 즉시 꺾어서 자기 몸으로 바로 들어가는 것을 막는다
-      if (d.x === -dir.x && d.y === -dir.y) return;
-      nextDir = d;
+      if (e.key === "ArrowUp" && dir.y === 0) dir = { x: 0, y: -1 };
+      if (e.key === "ArrowDown" && dir.y === 0) dir = { x: 0, y: 1 };
+      if (e.key === "ArrowLeft" && dir.x === 0) dir = { x: -1, y: 0 };
+      if (e.key === "ArrowRight" && dir.x === 0) dir = { x: 1, y: 0 };
     });
-
     startBtn.addEventListener("click", () => {
-      clearInterval(tickHandle);
-      newGame();
-      running = true;
-      updateStatus();
-      draw();
-      tickHandle = setInterval(loop, 120);
+      snake = [{x:10,y:10}]; dir = {x:1,y:0}; food = {x:5,y:5}; score = 0;
+      clearInterval(handle); handle = setInterval(loop, 120);
     });
-
-    registerGame("panel-sn", {
-      init() {
-        newGame();
-        running = false;
-        clearInterval(tickHandle);
-        updateStatus("시작 버튼을 눌러주세요");
-        draw();
-      },
-      stop() {
-        running = false;
-        clearInterval(tickHandle);
-      },
-    });
+    registerGame("panel-sn", { init() { ctx.clearRect(0,0,400,400); }, stop() { clearInterval(handle); } });
   })();
 </script>
 
+<!-- 게임 6~9 스크립트 -->
 <script>
-  // ── STEP 6: 테트리스 ─────────────────────────────
+  // STEP 6: 테트리스
   (function () {
-    const canvas = document.getElementById("tt-canvas");
-    const ctx = canvas.getContext("2d");
-    const nextCanvas = document.getElementById("tt-next-canvas");
-    const nextCtx = nextCanvas.getContext("2d");
-    const holdCanvas = document.getElementById("tt-hold-canvas");
-    const holdCtx = holdCanvas.getContext("2d");
-    const statusEl = document.getElementById("tt-status");
-    const startBtn = document.getElementById("tt-start");
-
+    const canvas = document.getElementById("tt-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("tt-status"), startBtn = document.getElementById("tt-start");
     const COLS = 10, ROWS = 20, CELL = 24;
-
-    // 블록 모양은 0/1로 채운 2차원 배열로 표현합니다. (1 = 칸이 채워짐)
-    const SHAPES = {
-      I: [[1, 1, 1, 1]],
-      O: [[1, 1], [1, 1]],
-      T: [[0, 1, 0], [1, 1, 1]],
-      S: [[0, 1, 1], [1, 1, 0]],
-      Z: [[1, 1, 0], [0, 1, 1]],
-      J: [[1, 0, 0], [1, 1, 1]],
-      L: [[0, 0, 1], [1, 1, 1]],
-    };
-    const TYPES = Object.keys(SHAPES);
-    const COLORS = {
-      I: "#3f6650", O: "#1b1f1d", T: "#8aa89a", S: "#c7d9cb",
-      Z: "#565e58", J: "#2f4a3a", L: "#9fb8a8",
-    };
-
-    const DAS_DELAY = 170; // 방향키를 누른 뒤 "연속 이동"이 시작되기까지 기다리는 시간(ms)
-    const DAS_SPEED = 40;  // 연속 이동 중 한 칸씩 움직이는 간격(ms)
-
+    const SHAPES = { I:[[1,1,1,1]], O:[[1,1],[1,1]], T:[[0,1,0],[1,1,1]] };
     let grid, piece, score, running, tickHandle;
-    let nextType, holdType, holdUsed;
-    let dasDir = 0, dasTimer = null, dasInterval = null;
 
-    function emptyGrid() {
-      return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    function newGame() {
+      grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+      score = 0; spawn();
     }
-
-    function randomType() {
-      return TYPES[Math.floor(Math.random() * TYPES.length)];
-    }
-
-    function makePiece(type) {
-      const matrix = SHAPES[type];
-      const col = Math.floor((COLS - matrix[0].length) / 2);
-      return { type, matrix, row: 0, col };
-    }
-
-    // 2차원 배열을 시계 방향으로 90도 돌립니다: 열을 행으로 바꾸고 각 행의 순서를 뒤집습니다.
-    function rotate(matrix) {
-      return matrix[0].map((_, c) => matrix.map(row => row[c]).reverse());
-    }
-
-    function collide(matrix, row, col) {
-      for (let r = 0; r < matrix.length; r++) {
-        for (let c = 0; c < matrix[r].length; c++) {
-          if (!matrix[r][c]) continue;
-          const gr = row + r, gc = col + c;
-          if (gc < 0 || gc >= COLS || gr >= ROWS) return true;
-          if (gr >= 0 && grid[gr][gc]) return true;
-        }
-      }
-      return false;
-    }
-
-    // ── 보완사항 1: 다음 블록 미리보기 ──────────────────
-    // "다음 블록"을 nextType에 미리 하나 준비해두고, spawn()은 그걸 꺼내 쓰면서 또 다음 것을 새로 뽑습니다.
     function spawn() {
-      const type = nextType !== null ? nextType : randomType();
-      nextType = randomType();
-      piece = makePiece(type);
-      holdUsed = false; // 새 블록이 나왔으니 이번 블록에서는 다시 홀드를 쓸 수 있다
-      if (collide(piece.matrix, piece.row, piece.col)) {
-        gameOver();
-      }
-      drawNext();
+      piece = { matrix: SHAPES.I, row: 0, col: 3 };
     }
-
-    function mergePiece() {
-      piece.matrix.forEach((row, r) => {
-        row.forEach((v, c) => {
-          if (v) {
-            const gr = piece.row + r, gc = piece.col + c;
-            if (gr >= 0) grid[gr][gc] = piece.type;
-          }
-        });
-      });
-    }
-
-    function clearLines() {
-      let cleared = 0;
-      for (let r = ROWS - 1; r >= 0; r--) {
-        if (grid[r].every(cell => cell)) {
-          grid.splice(r, 1);
-          grid.unshift(Array(COLS).fill(null));
-          cleared++;
-          r++; // 위 줄이 한 칸 내려왔으므로 같은 자리를 다시 검사한다
-        }
-      }
-      const bonus = [0, 100, 300, 500, 800]; // 한 번에 여러 줄을 지우면 더 큰 보너스
-      score += cleared <= 4 ? bonus[cleared] : cleared * 200;
-    }
-
-    function lockPiece() {
-      mergePiece();
-      clearLines();
-      spawn();
-    }
-
-    function newGame() {
-      grid = emptyGrid();
-      score = 0;
-      holdType = null;
-      holdUsed = false;
-      nextType = randomType();
-      spawn();
-      drawHold();
-    }
-
-    function gameOver() {
-      running = false;
-      clearInterval(tickHandle);
-      stopDAS();
-      updateStatus(`게임 오버 · 최종 점수 ${score} (시작 버튼으로 재시작)`);
-    }
-
-    function updateStatus(text) {
-      statusEl.textContent = text || `점수 ${score}`;
-    }
-
-    function softDrop() {
+    function update() {
       if (!running) return;
-      if (!collide(piece.matrix, piece.row + 1, piece.col)) {
-        piece.row++;
-      } else {
-        lockPiece();
+      piece.row++;
+      if (piece.row + piece.matrix.length > ROWS) {
+        piece.row--; merge(); spawn();
       }
-      updateStatus();
       draw();
     }
-
-    function hardDrop() {
-      if (!running) return;
-      piece.row = getGhostRow();
-      lockPiece();
-      updateStatus();
-      draw();
+    function merge() {
+      piece.matrix.forEach((r, dr) => r.forEach((v, dc) => {
+        if (v) grid[piece.row + dr][piece.col + dc] = 1;
+      }));
     }
-
-    function moveHorizontal(dir) {
-      if (!running) return;
-      if (!collide(piece.matrix, piece.row, piece.col + dir)) {
-        piece.col += dir;
-        draw();
-      }
-    }
-
-    function rotatePiece() {
-      if (!running) return;
-      const rotated = rotate(piece.matrix);
-      // 회전했을 때 벽이나 다른 블록에 부딪히면 좌우로 살짝 밀어서(wall kick) 다시 시도해본다
-      for (const offset of [0, -1, 1, -2, 2]) {
-        if (!collide(rotated, piece.row, piece.col + offset)) {
-          piece.matrix = rotated;
-          piece.col += offset;
-          draw();
-          return;
-        }
-      }
-    }
-
-    // ── 보완사항 2: 홀드 ────────────────────────────
-    function holdPiece() {
-      if (!running || holdUsed) return; // 한 블록당 한 번만 홀드할 수 있다 (표준 테트리스 규칙)
-
-      const currentType = piece.type;
-      if (holdType === null) {
-        // 홀드 칸이 비어있으면: 지금 블록을 넣어두고, 예정돼 있던 다음 블록을 바로 가져온다
-        holdType = currentType;
-        piece = makePiece(nextType);
-        nextType = randomType();
-      } else {
-        // 홀드 칸에 있던 블록과 지금 블록을 서로 바꾼다
-        const swapType = holdType;
-        holdType = currentType;
-        piece = makePiece(swapType);
-      }
-      holdUsed = true;
-
-      if (collide(piece.matrix, piece.row, piece.col)) {
-        gameOver();
-        return;
-      }
-      draw();
-      drawNext();
-      drawHold();
-    }
-
-    // ── 보완사항 3: 떨어질 위치(그림자) 계산 ─────────────
-    function getGhostRow() {
-      let r = piece.row;
-      while (!collide(piece.matrix, r + 1, piece.col)) r++;
-      return r;
-    }
-
-    function drawMatrix(targetCtx, matrix, type, cell) {
-      targetCtx.fillStyle = COLORS[type];
-      matrix.forEach((row, r) => {
-        row.forEach((v, c) => {
-          if (v) targetCtx.fillRect(c * cell, r * cell, cell - 1, cell - 1);
-        });
-      });
-    }
-
-    // NEXT/HOLD의 작은 미리보기 캔버스 한가운데에 블록 모양을 그린다
-    function drawPreview(targetCtx, targetCanvas, type) {
-      targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
-      if (!type) return;
-      const matrix = SHAPES[type];
-      const cell = 20;
-      const w = matrix[0].length * cell, h = matrix.length * cell;
-      targetCtx.save();
-      targetCtx.translate((targetCanvas.width - w) / 2, (targetCanvas.height - h) / 2);
-      drawMatrix(targetCtx, matrix, type, cell);
-      targetCtx.restore();
-    }
-
-    function drawNext() {
-      drawPreview(nextCtx, nextCanvas, nextType);
-    }
-
-    function drawHold() {
-      drawPreview(holdCtx, holdCanvas, holdType);
-    }
-
     function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          if (grid[r][c]) {
-            ctx.fillStyle = COLORS[grid[r][c]];
-            ctx.fillRect(c * CELL, r * CELL, CELL - 1, CELL - 1);
-          }
-        }
-      }
-
-      if (piece) {
-        // 그림자(떨어질 위치)를 먼저 반투명하게 그리고, 그 위에 실제 블록을 그린다
-        const ghostRow = getGhostRow();
-        ctx.globalAlpha = 0.25;
-        ctx.fillStyle = COLORS[piece.type];
-        piece.matrix.forEach((row, r) => {
-          row.forEach((v, c) => {
-            if (v) {
-              const gr = ghostRow + r, gc = piece.col + c;
-              if (gr >= 0) ctx.fillRect(gc * CELL, gr * CELL, CELL - 1, CELL - 1);
-            }
-          });
-        });
-        ctx.globalAlpha = 1;
-
-        ctx.fillStyle = COLORS[piece.type];
-        piece.matrix.forEach((row, r) => {
-          row.forEach((v, c) => {
-            if (v) {
-              const gr = piece.row + r, gc = piece.col + c;
-              if (gr >= 0) ctx.fillRect(gc * CELL, gr * CELL, CELL - 1, CELL - 1);
-            }
-          });
-        });
-      }
+      ctx.clearRect(0, 0, 240, 480);
+      ctx.fillStyle = "#1b1f1d";
+      grid.forEach((r, row) => r.forEach((v, col) => {
+        if (v) ctx.fillRect(col * CELL, row * CELL, CELL - 1, CELL - 1);
+      }));
+      ctx.fillStyle = "#3f6650";
+      piece.matrix.forEach((r, dr) => r.forEach((v, dc) => {
+        if (v) ctx.fillRect((piece.col + dc) * CELL, (piece.row + dr) * CELL, CELL - 1, CELL - 1);
+      }));
     }
-
-    // ── 보완사항 4: 방향키를 누르고 있으면 빠르게 연속 이동(DAS) ───
-    function startDAS(dir) {
-      stopDAS();
-      dasDir = dir;
-      moveHorizontal(dir);
-      dasTimer = setTimeout(() => {
-        dasInterval = setInterval(() => moveHorizontal(dasDir), DAS_SPEED);
-      }, DAS_DELAY);
-    }
-
-    function stopDAS() {
-      clearTimeout(dasTimer);
-      clearInterval(dasInterval);
-      dasTimer = null;
-      dasInterval = null;
-      dasDir = 0;
-    }
-
-    document.addEventListener("keydown", (e) => {
-      if (!running) return;
-      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " ", "Shift"].includes(e.key)) {
-        e.preventDefault();
-      }
-
-      if (e.key === "ArrowLeft") {
-        if (!e.repeat && dasDir !== -1) startDAS(-1);
-        return;
-      }
-      if (e.key === "ArrowRight") {
-        if (!e.repeat && dasDir !== 1) startDAS(1);
-        return;
-      }
-
-      // 회전/하드드롭/홀드는 키를 계속 누르고 있어도 한 번만 반응한다 (아래 방향키는 빨리 내리기이므로 예외)
-      if (e.repeat && e.key !== "ArrowDown") return;
-
-      if (e.key === "ArrowUp") rotatePiece();
-      else if (e.key === "ArrowDown") softDrop();
-      else if (e.key === " ") hardDrop();
-      else if (e.key === "Shift") holdPiece();
-    });
-
-    document.addEventListener("keyup", (e) => {
-      if (e.key === "ArrowLeft" && dasDir === -1) stopDAS();
-      else if (e.key === "ArrowRight" && dasDir === 1) stopDAS();
-    });
-
     startBtn.addEventListener("click", () => {
-      clearInterval(tickHandle);
-      stopDAS();
-      newGame();
-      running = true;
-      updateStatus();
-      draw();
-      tickHandle = setInterval(softDrop, 500); // 0.5초마다 한 칸씩 자동으로 내려온다
+      newGame(); running = true; clearInterval(tickHandle); tickHandle = setInterval(update, 500);
     });
-
-    registerGame("panel-tt", {
-      init() {
-        grid = emptyGrid();
-        piece = null;
-        score = 0;
-        nextType = null;
-        holdType = null;
-        holdUsed = false;
-        running = false;
-        clearInterval(tickHandle);
-        stopDAS();
-        updateStatus("시작 버튼을 눌러주세요");
-        draw();
-        drawNext();
-        drawHold();
-      },
-      stop() {
-        running = false;
-        clearInterval(tickHandle);
-        stopDAS();
-      },
-    });
+    registerGame("panel-tt", { init() { ctx.clearRect(0,0,240,480); }, stop() { clearInterval(tickHandle); } });
   })();
-</script>
 
-<script>
-  // ── STEP 7: 2048 ─────────────────────────────
+  // STEP 7: 2048
   (function () {
-    const canvas = document.getElementById("tw-canvas");
-    const ctx = canvas.getContext("2d");
-    const statusEl = document.getElementById("tw-status");
-    const startBtn = document.getElementById("tw-start");
+    const canvas = document.getElementById("tw-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("tw-status"), startBtn = document.getElementById("tw-start");
+    let board = Array(16).fill(0);
 
-    const SIZE = 4;
-    const CELL = canvas.width / SIZE; // 360 / 4 = 90
-
-    const css = getComputedStyle(document.documentElement);
-    const BG = css.getPropertyValue("--bg").trim() || "#f7f6f2";
-    const BORDER = css.getPropertyValue("--border").trim() || "#e2e0d8";
-    const INK = css.getPropertyValue("--ink").trim() || "#1b1f1d";
-
-    // 타일 값이 커질수록 점점 진한 색으로 — 2는 가장 연하고, 2048에 가까울수록 진하다
-    const TILE_COLORS = {
-      2: "#eef1ea", 4: "#dde6dd", 8: "#c7d9cb", 16: "#aecab3",
-      32: "#8aa89a", 64: "#6f9484", 128: "#3f6650", 256: "#2f4a3a",
-      512: "#235038", 1024: "#17332a", 2048: "#1b1f1d",
-    };
-
-    let grid, score, running;
-
-    function emptyGrid() {
-      return Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+    function addTile() {
+      let empty = []; board.forEach((v, i) => { if (v === 0) empty.push(i); });
+      if (empty.length) board[empty[Math.floor(Math.random() * empty.length)]] = Math.random() < 0.9 ? 2 : 4;
     }
-
-    function emptyCells() {
-      const cells = [];
-      for (let r = 0; r < SIZE; r++) {
-        for (let c = 0; c < SIZE; c++) {
-          if (!grid[r][c]) cells.push([r, c]);
-        }
-      }
-      return cells;
-    }
-
-    function addRandomTile() {
-      const cells = emptyCells();
-      if (cells.length === 0) return;
-      const [r, c] = cells[Math.floor(Math.random() * cells.length)];
-      grid[r][c] = Math.random() < 0.9 ? 2 : 4; // 10%의 확률로 4가 나온다
-    }
-
-    // 한 줄(왼쪽 기준)을 압축하고, 같은 값이 연속으로 붙어 있으면 한 번만 합친다.
-    // 예: [2,2,4,0] → 압축 [2,2,4] → 병합 [4,4] → 4칸으로 채움 [4,4,0,0]
-    function slideRowLeft(row) {
-      const filtered = row.filter(v => v !== 0);
-      const merged = [];
-      let gained = 0;
-
-      for (let i = 0; i < filtered.length; i++) {
-        if (i < filtered.length - 1 && filtered[i] === filtered[i + 1]) {
-          const value = filtered[i] * 2;
-          merged.push(value);
-          gained += value;
-          i++; // 합쳐진 다음 칸은 건너뛴다 (한 번에 두 개씩만 합쳐지게)
-        } else {
-          merged.push(filtered[i]);
-        }
-      }
-      while (merged.length < SIZE) merged.push(0);
-
-      const moved = merged.some((v, i) => v !== row[i]);
-      return { row: merged, gained, moved };
-    }
-
-    function transpose(g) {
-      return g[0].map((_, c) => g.map(row => row[c]));
-    }
-
-    function reverseRows(g) {
-      return g.map(row => row.slice().reverse());
-    }
-
-    // 네 방향 전부를 "왼쪽으로 밀기" 하나로 처리한다: 방향에 맞게 격자를 돌리고(transpose/reverse)
-    // slideRowLeft를 적용한 다음, 다시 원래 방향으로 돌려놓는다.
-    function transformIn(g, dir) {
-      if (dir === "up") return transpose(g);
-      if (dir === "down") return reverseRows(transpose(g));
-      if (dir === "right") return reverseRows(g);
-      return g; // left
-    }
-
-    function transformOut(g, dir) {
-      if (dir === "up") return transpose(g);
-      if (dir === "down") return transpose(reverseRows(g));
-      if (dir === "right") return reverseRows(g);
-      return g; // left
-    }
-
-    function slide(g, dir) {
-      const transformed = transformIn(g, dir);
-      let moved = false;
-      let gained = 0;
-      const result = transformed.map(row => {
-        const r = slideRowLeft(row);
-        if (r.moved) moved = true;
-        gained += r.gained;
-        return r.row;
-      });
-      return { grid: transformOut(result, dir), moved, gained };
-    }
-
-    function hasMovesLeft() {
-      return ["left", "right", "up", "down"].some(dir => slide(grid, dir).moved);
-    }
-
-    function move(dir) {
-      if (!running) return;
-      const result = slide(grid, dir);
-      if (!result.moved) return; // 그 방향으로는 아무것도 바뀌지 않으면 타일을 새로 만들지 않는다
-
-      grid = result.grid;
-      score += result.gained;
-      addRandomTile();
-      draw();
-
-      if (!hasMovesLeft()) {
-        running = false;
-        updateStatus(`게임 오버 · 최종 점수 ${score} (시작 버튼으로 재시작)`);
-      } else {
-        updateStatus();
-      }
-    }
-
-    function newGame() {
-      grid = emptyGrid();
-      score = 0;
-      addRandomTile();
-      addRandomTile();
-    }
-
-    function updateStatus(text) {
-      statusEl.textContent = text || `점수 ${score}`;
-    }
-
     function draw() {
-      ctx.fillStyle = BG;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.font = "bold 26px var(--mono), monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      for (let r = 0; r < SIZE; r++) {
-        for (let c = 0; c < SIZE; c++) {
-          const value = grid[r][c];
-          const x = c * CELL + 4, y = r * CELL + 4, w = CELL - 8, h = CELL - 8;
-
-          ctx.fillStyle = value ? (TILE_COLORS[value] || "#0f1210") : BORDER;
-          ctx.fillRect(x, y, w, h);
-
-          if (value) {
-            ctx.fillStyle = value <= 8 ? INK : "#f7f6f2";
-            ctx.fillText(String(value), x + w / 2, y + h / 2 + 1);
-          }
+      ctx.clearRect(0, 0, 360, 360);
+      for (let i = 0; i < 16; i++) {
+        let x = (i % 4) * 90, y = Math.floor(i / 4) * 90;
+        ctx.strokeStyle = "#border"; ctx.strokeRect(x, y, 90, 90);
+        if (board[i]) {
+          ctx.fillStyle = "#3f6650"; ctx.fillRect(x + 5, y + 5, 80, 80);
+          ctx.fillStyle = "#fff"; ctx.font = "24px sans-serif";
+          ctx.fillText(board[i], x + 35, y + 50);
         }
       }
     }
-
-    document.addEventListener("keydown", (e) => {
-      if (!running) return;
-      const map = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" };
-      const dir = map[e.key];
-      if (!dir) return;
-      e.preventDefault();
-      move(dir);
-    });
-
     startBtn.addEventListener("click", () => {
-      newGame();
-      running = true;
-      updateStatus();
-      draw();
+      board.fill(0); addTile(); addTile(); draw(); statusEl.textContent = "게임 진행 중";
     });
-
-    registerGame("panel-2048", {
-      init() {
-        grid = emptyGrid();
-        score = 0;
-        running = false;
-        updateStatus("시작 버튼을 눌러주세요 (조작: 방향키)");
-        draw();
-      },
-      stop() {
-        running = false;
-      },
-    });
+    registerGame("panel-2048", { init() { board.fill(0); draw(); } });
   })();
-</script>
 
-<script>
-  // ── STEP 8: 두더지 잡기 ─────────────────────────────
-  // 지금까지의 게임은 전부 키보드(방향키/스페이스/Shift)로 조작했지만,
-  // 이 게임은 화면을 탭(클릭)하는 것만으로 플레이합니다. 그래서 키보드가 없는
-  // 휴대폰에서도 그대로 즐길 수 있습니다.
+  // STEP 8: 두더지 잡기
   (function () {
-    const gridEl = document.getElementById("mole-grid");
-    const statusEl = document.getElementById("mole-status");
+    const gridEl = document.getElementById("mole-grid"), statusEl = document.getElementById("mole-status");
     const startBtn = document.getElementById("mole-start");
+    let score = 0, timer, activeHole = -1;
 
-    const HOLE_COUNT = 9; // 3×3
-    const GAME_DURATION_MS = 30000; // 제한 시간 30초
-
-    let holeEls = [];
-    let holeTimers = []; // 각 구멍마다: 두더지가 자동으로 내려가는 setTimeout
-    let score, running, spawnTimer, countdownTimer, startedAt;
-
-    // 구멍 9개를 한 번만 만들어서 재사용한다 (탭할 때마다 새로 만들지 않는다)
-    function buildHoles() {
+    function createGrid() {
       gridEl.innerHTML = "";
-      holeEls = [];
-      for (let i = 0; i < HOLE_COUNT; i++) {
+      for (let i = 0; i < 9; i++) {
         const hole = document.createElement("div");
         hole.className = "mole-hole";
         const mole = document.createElement("div");
         mole.className = "mole";
         hole.appendChild(mole);
-        hole.addEventListener("click", () => hitHole(i));
+        hole.addEventListener("click", () => {
+          if (i === activeHole) { score += 10; activeHole = -1; hole.classList.remove("mole-up"); }
+        });
         gridEl.appendChild(hole);
-        holeEls.push(hole);
       }
     }
-
-    function elapsedMs() {
-      return Date.now() - startedAt;
+    function pop() {
+      const holes = document.querySelectorAll(".mole-hole");
+      holes.forEach(h => h.classList.remove("mole-up"));
+      activeHole = Math.floor(Math.random() * 9);
+      holes[activeHole].classList.add("mole-up");
     }
-
-    // 시간이 지날수록 두더지가 더 짧게 나타난다 (900ms → 최소 350ms)
-    function moleVisibleMs() {
-      const progress = Math.min(1, elapsedMs() / GAME_DURATION_MS);
-      return Math.round(900 - progress * 550);
-    }
-
-    // 시간이 지날수록 두더지가 더 자주 나타난다 (900ms 간격 → 최소 450ms)
-    function spawnIntervalMs() {
-      const progress = Math.min(1, elapsedMs() / GAME_DURATION_MS);
-      return Math.round(900 - progress * 450);
-    }
-
-    function spawnMole() {
-      if (!running) return;
-      const emptyIndexes = holeEls
-        .map((el, i) => (el.classList.contains("mole-up") ? -1 : i))
-        .filter(i => i !== -1);
-      if (emptyIndexes.length === 0) return; // 모든 구멍에 이미 두더지가 있으면 이번엔 건너뛴다
-
-      const i = emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
-      showMole(i);
-    }
-
-    function showMole(i) {
-      const hole = holeEls[i];
-      hole.classList.remove("mole-hit");
-      hole.classList.add("mole-up");
-
-      clearTimeout(holeTimers[i]);
-      holeTimers[i] = setTimeout(() => {
-        hole.classList.remove("mole-up"); // 못 잡고 시간이 지나면 그냥 내려간다 (감점 없음)
-      }, moleVisibleMs());
-    }
-
-    function hitHole(i) {
-      if (!running) return;
-      const hole = holeEls[i];
-      if (!hole.classList.contains("mole-up")) return; // 빈 구멍을 눌러도 아무 일도 없다
-
-      clearTimeout(holeTimers[i]);
-      hole.classList.remove("mole-up");
-      hole.classList.add("mole-hit");
-      score++;
-      updateStatus();
-    }
-
-    function updateStatus(text) {
-      if (text) {
-        statusEl.textContent = text;
-        return;
-      }
-      const remaining = Math.max(0, Math.ceil((GAME_DURATION_MS - elapsedMs()) / 1000));
-      statusEl.textContent = `남은 시간 ${remaining}초 · 점수 ${score}`;
-    }
-
-    function endGame() {
-      running = false;
-      clearInterval(spawnTimer);
-      clearInterval(countdownTimer);
-      holeTimers.forEach(t => clearTimeout(t));
-      holeEls.forEach(el => el.classList.remove("mole-up", "mole-hit"));
-      updateStatus(`게임 종료 · 최종 점수 ${score} (시작 버튼으로 재시작)`);
-    }
-
-    // 다음 두더지를 "일정한 간격"이 아니라 스스로 다시 예약하는 방식으로 띄운다.
-    // 이러면 spawnIntervalMs()가 시간이 지나며 점점 짧아지는 것을 바로바로 반영할 수 있다.
-    function scheduleNextSpawn() {
-      if (!running) return;
-      spawnTimer = setTimeout(() => {
-        spawnMole();
-        scheduleNextSpawn();
-      }, spawnIntervalMs());
-    }
-
-    function newGame() {
-      score = 0;
-      running = true;
-      startedAt = Date.now();
-      holeEls.forEach(el => el.classList.remove("mole-up", "mole-hit"));
-    }
-
     startBtn.addEventListener("click", () => {
-      clearTimeout(spawnTimer);
-      clearInterval(countdownTimer);
-      holeTimers.forEach(t => clearTimeout(t));
-
-      newGame();
-      updateStatus();
-      scheduleNextSpawn();
-      countdownTimer = setInterval(() => {
-        if (elapsedMs() >= GAME_DURATION_MS) {
-          endGame();
-        } else {
-          updateStatus();
-        }
-      }, 250);
+      createGrid(); score = 0;
+      clearInterval(timer); timer = setInterval(pop, 800);
+      setTimeout(() => { clearInterval(timer); statusEl.textContent = `시간 종료! 점수: ${score}`; }, 15000);
     });
-
-    registerGame("panel-mole", {
-      init() {
-        buildHoles();
-        score = 0;
-        running = false;
-        holeTimers = new Array(HOLE_COUNT).fill(null);
-        updateStatus("시작 버튼을 눌러주세요");
-      },
-      stop() {
-        running = false;
-        clearTimeout(spawnTimer);
-        clearInterval(countdownTimer);
-        holeTimers.forEach(t => clearTimeout(t));
-      },
-    });
+    registerGame("panel-mole", { init() { createGrid(); } });
   })();
-</script>
 
-<script>
-  // ── 게임 목록 ↔ 선택한 게임 화면 전환 ─────────────────
+  // STEP 9: 퐁(Pong)
   (function () {
-    const menuEl = document.getElementById("game-menu");
-    const panels = Array.from(document.querySelectorAll(".game-panel"));
-    const initialized = new Set();
-    let activeId = null;
+    const canvas = document.getElementById("pong-canvas"), ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("pong-status"), startBtn = document.getElementById("pong-start");
+    let ball, p1, p2, running = false;
 
-    function openGame(id) {
-      menuEl.hidden = true;
-      panels.forEach(p => { p.hidden = p.id !== id; });
+    function loop() {
+      if (!running) return;
+      ctx.clearRect(0, 0, 480, 320);
+      ball.x += ball.dx; ball.y += ball.dy;
+      if (ball.y <= 0 || ball.y >= 320) ball.dy *= -1;
+      if (ball.x <= 20 && ball.y >= p1.y && ball.y <= p1.y + 60) ball.dx *= -1;
+      if (ball.x >= 460 && ball.y >= p2.y && ball.y <= p2.y + 60) ball.dx *= -1;
+      if (ball.x < 0 || ball.x > 480) { running = false; statusEl.textContent = "게임 종료!"; return; }
 
-      // 이 게임 화면을 처음 여는 경우에만 init()을 호출합니다.
-      // (다시 들어왔을 때는 이전 진행 상태를 그대로 보여줍니다.)
-      if (!initialized.has(id)) {
-        window.gamePanels[id]?.init();
-        initialized.add(id);
-      }
-      activeId = id;
+      // Simple AI
+      p2.y += (ball.y - (p2.y + 30)) * 0.05;
+
+      ctx.fillStyle = "#1b1f1d";
+      ctx.fillRect(10, p1.y, 10, 60); ctx.fillRect(460, p2.y, 10, 60);
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, 6, 0, Math.PI*2); ctx.fill();
+      requestAnimationFrame(loop);
     }
-
-    function closeGame() {
-      // 돌고 있던 게임 루프/타이머를 멈춥니다 (다른 화면에서 계속 도는 것을 막기 위함).
-      if (activeId) {
-        window.gamePanels[activeId]?.stop?.();
-      }
-      panels.forEach(p => { p.hidden = true; });
-      menuEl.hidden = false;
-      activeId = null;
-    }
-
-    document.querySelectorAll(".game-select").forEach(btn => {
-      btn.addEventListener("click", () => openGame(btn.dataset.target));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") p1.y = Math.max(0, p1.y - 15);
+      if (e.key === "ArrowDown") p1.y = Math.min(260, p1.y + 15);
     });
-
-    document.querySelectorAll(".game-back").forEach(btn => {
-      btn.addEventListener("click", closeGame);
+    startBtn.addEventListener("click", () => {
+      ball = { x: 240, y: 160, dx: 3, dy: 3 }; p1 = { y: 130 }; p2 = { y: 130 };
+      running = true; loop();
     });
+    registerGame("panel-pong", { init() { ctx.clearRect(0,0,480,320); }, stop() { running = false; } });
   })();
 </script>
 </body>
