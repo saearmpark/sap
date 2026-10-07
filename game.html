@@ -240,7 +240,7 @@
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 3</span>
       <h3>슈팅게임 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">좌우 방향키로 이동하고 스페이스바로 총알을 발사해 적을 맞추세요.</p>
+      <p style="margin-bottom: 14px;">좌우 방향키로 빠르고 매끄럽게 이동하고 스페이스바로 총알을 발사해 적을 맞추세요.</p>
       <canvas id="sh-canvas" class="breakout-canvas" width="480" height="360"></canvas>
       <div class="ttt-controls">
         <span id="sh-status" class="ttt-status">시작 버튼을 눌러주세요</span>
@@ -336,18 +336,16 @@
   </main>
 </div>
 
-<!-- 글로벌 입력 및 스크롤 방지 이벤트 제어 -->
+<!-- 전역 키 이벤트 관리 -->
 <script>
-  // 키 pressed 플래그 객체 (즉시 반응 및 실시간 유지용)
   window.keysPressed = {};
 
-  // 방향키 입력 시 브라우저 스크롤 완전 방지
   window.addEventListener("keydown", (e) => {
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
       window.keysPressed[e.key] = true;
       const activePanel = document.querySelector(".game-panel:not([hidden])");
       if (activePanel) {
-        e.preventDefault(); // 스크롤 차단
+        e.preventDefault(); // 웹페이지 스크롤 차단
       }
     }
   });
@@ -397,7 +395,7 @@
   });
 </script>
 
-<!-- 게임 스크립트 (STEP 1 ~ STEP 8) -->
+<!-- 게임 구현 스크립트 -->
 <script>
   // STEP 1: 틱택토
   (function () {
@@ -462,36 +460,119 @@
     registerGame("panel-bo", { init() { newGame(); ctx.clearRect(0,0,480,320); }, stop() { running = false; } });
   })();
 
-  // STEP 3: 슈팅게임
+  // STEP 3: 슈팅게임 [개선 및 오류 수정 완료]
   (function () {
     const canvas = document.getElementById("sh-canvas"), ctx = canvas.getContext("2d");
     const statusEl = document.getElementById("sh-status"), startBtn = document.getElementById("sh-start");
-    let px = 225, bullets = [], enemies = [], score = 0, running = false;
+    let px, bullets, enemies, score, lives, running = false, lastShot = 0;
+    const PLAYER_SPEED = 9; // 속도를 기존보다 훨씬 빠르고 부드럽게 증가
+
+    function newGame() {
+      px = 225;
+      bullets = [];
+      enemies = [];
+      score = 0;
+      lives = 3;
+      running = true;
+      lastShot = 0;
+    }
+
     function loop() {
       if (!running) return;
-      ctx.clearRect(0,0,480,360);
-      bullets.forEach(b => b.y -= 5);
-      if (Math.random() < 0.05) enemies.push({ x: Math.random()*450, y: 0 });
-      enemies.forEach(e => e.y += 2);
-      bullets.forEach(b => enemies.forEach(e => {
-        if (b.x > e.x && b.x < e.x+30 && b.y > e.y && b.y < e.y+20) { b.hit = true; e.dead = true; score += 10; }
-      }));
+
+      // 1. 플레이어 좌우 이동 (window.keysPressed로 즉각 연속 이동)
+      if (window.keysPressed["ArrowLeft"]) {
+        px = Math.max(0, px - PLAYER_SPEED);
+      }
+      if (window.keysPressed["ArrowRight"]) {
+        px = Math.min(450, px + PLAYER_SPEED); // 480 - 30(플레이어 너비) = 450
+      }
+
+      // 2. 총알 발사 처리 (연사 간격 150ms 적용)
+      const now = Date.now();
+      if (window.keysPressed[" "] && now - lastShot > 150) {
+        bullets.push({ x: px + 13, y: 330 });
+        lastShot = now;
+      }
+
+      ctx.clearRect(0, 0, 480, 360);
+
+      // 총알 이동
+      bullets.forEach(b => b.y -= 7);
+
+      // 적 생성 (적절한 속도로 고정 생성)
+      if (Math.random() < 0.035) {
+        enemies.push({ x: Math.random() * 450, y: -20, speed: 2 }); 
+      }
+
+      // 적 이동
+      enemies.forEach(e => e.y += e.speed);
+
+      // 총알-적 충돌 판정
+      bullets.forEach(b => {
+        enemies.forEach(e => {
+          if (!b.hit && !e.dead && b.x > e.x && b.x < e.x + 30 && b.y > e.y && b.y < e.y + 20) {
+            b.hit = true;
+            e.dead = true;
+            score += 10;
+          }
+        });
+      });
+
+      // 적과 플레이어 충돌 및 화면 하단 이탈 처리 (목숨 차감)
+      enemies.forEach(e => {
+        if (!e.dead) {
+          // 플레이어 기체와 충돌
+          if (e.x < px + 30 && e.x + 30 > px && e.y < 350 && e.y + 20 > 330) {
+            e.dead = true;
+            lives--;
+          } 
+          // 바닥으로 지나침
+          else if (e.y >= 360) {
+            e.dead = true;
+            lives--;
+          }
+        }
+      });
+
+      // 배열 정리
       bullets = bullets.filter(b => b.y > 0 && !b.hit);
-      enemies = enemies.filter(e => e.y < 360 && !e.dead);
-      ctx.fillStyle = "#1b1f1d"; ctx.fillRect(px, 330, 30, 20);
-      ctx.fillStyle = "#3f6650"; enemies.forEach(e => ctx.fillRect(e.x, e.y, 30, 20));
-      ctx.fillStyle = "#565e58"; bullets.forEach(b => ctx.fillRect(b.x, b.y, 4, 8));
-      statusEl.textContent = `점수: ${score}`;
+      enemies = enemies.filter(e => !e.dead);
+
+      // 게임 오버 판정
+      if (lives <= 0) {
+        running = false;
+        statusEl.textContent = `게임 오버! 최종 점수: ${score}`;
+        return;
+      }
+
+      // 그리기
+      ctx.fillStyle = "#1b1f1d"; 
+      ctx.fillRect(px, 330, 30, 20); // 플레이어
+      
+      ctx.fillStyle = "#3f6650"; 
+      enemies.forEach(e => ctx.fillRect(e.x, e.y, 30, 20)); // 적
+      
+      ctx.fillStyle = "#565e58"; 
+      bullets.forEach(b => ctx.fillRect(b.x, b.y, 4, 8)); // 총알
+
+      statusEl.textContent = `점수: ${score} | 목숨: ${lives}`;
       requestAnimationFrame(loop);
     }
-    document.addEventListener("keydown", (e) => {
-      if (!running) return;
-      if (e.key === "ArrowLeft") px = Math.max(0, px - 15);
-      if (e.key === "ArrowRight") px = Math.min(450, px + 15);
-      if (e.key === " ") bullets.push({ x: px + 13, y: 330 });
+
+    startBtn.addEventListener("click", () => {
+      newGame();
+      loop();
     });
-    startBtn.addEventListener("click", () => { px = 225; bullets = []; enemies = []; score = 0; running = true; loop(); });
-    registerGame("panel-sh", { init() { ctx.clearRect(0,0,480,360); }, stop() { running = false; } });
+
+    registerGame("panel-sh", {
+      init() {
+        ctx.clearRect(0, 0, 480, 360);
+      },
+      stop() {
+        running = false;
+      }
+    });
   })();
 
   // STEP 4: 퍼즐
@@ -649,17 +730,16 @@
     registerGame("panel-mole", { init() { createGrid(); } });
   })();
 
-  // STEP 9: 퐁(Pong) - [빠른 반응속도 및 스크롤 차단 최적화]
+  // STEP 9: 퐁(Pong)
   (function () {
     const canvas = document.getElementById("pong-canvas"), ctx = canvas.getContext("2d");
     const statusEl = document.getElementById("pong-status"), startBtn = document.getElementById("pong-start");
     let ball, p1, p2, running = false;
-    const PADDLE_SPEED = 9; // 이동 속도를 올려 즉각 반응
+    const PADDLE_SPEED = 9;
 
     function loop() {
       if (!running) return;
 
-      // 실시간 키 입력 플래그 감지로 지연 없는 연속 이동
       if (window.keysPressed["ArrowUp"]) {
         p1.y = Math.max(0, p1.y - PADDLE_SPEED);
       }
@@ -670,25 +750,20 @@
       ctx.clearRect(0, 0, 480, 320);
       ball.x += ball.dx; ball.y += ball.dy;
       
-      // 위아래 벽 충돌
       if (ball.y <= 0 || ball.y >= 320) ball.dy *= -1;
       
-      // 패들 충돌
       if (ball.x <= 20 && ball.y >= p1.y && ball.y <= p1.y + 60) ball.dx *= -1;
       if (ball.x >= 460 && ball.y >= p2.y && ball.y <= p2.y + 60) ball.dx *= -1;
       
-      // 승패 판정
       if (ball.x < 0 || ball.x > 480) { 
         running = false; 
         statusEl.textContent = ball.x < 0 ? "AI 승리!" : "플레이어 승리!"; 
         return; 
       }
 
-      // AI 위치 추적
       p2.y += (ball.y - (p2.y + 30)) * 0.08;
       p2.y = Math.max(0, Math.min(260, p2.y));
 
-      // 그리기
       ctx.fillStyle = "#1b1f1d";
       ctx.fillRect(10, p1.y, 10, 60); 
       ctx.fillRect(460, p2.y, 10, 60);
