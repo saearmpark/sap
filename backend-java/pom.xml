@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version>
+        <version>3.5.16</version>
         <relativePath/>
     </parent>
 
@@ -18,8 +18,8 @@
     <description>codestudio 게시판 API 서버 (Spring Boot)</description>
 
     <properties>
-        <!-- 컴퓨터에 설치된 JDK 17과 맞춥니다. 21을 쓰려면 JDK 21을 새로 설치해야 하므로 17로 유지합니다. -->
-        <java.version>17</java.version>
+        <!-- Match the project's runtime to the latest LTS release. -->
+        <java.version>25</java.version>
     </properties>
 
     <dependencies>

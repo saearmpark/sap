@@ -4,7 +4,7 @@ Flask 버전과 동일한 API를 Java(Spring Boot)로 구현한 버전입니다.
 
 ## 준비물
 
-- JDK 17 이상
+- JDK 25 이상
 - VS Code 확장: `Extension Pack for Java`, `Spring Boot Extension Pack` (Maven이 없어도 이 확장이 자동으로 받아줍니다)
 
 ## 실행 방법 (VS Code)
