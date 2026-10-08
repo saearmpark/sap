@@ -27,23 +27,24 @@
   }
   .tt-layout {
     display: flex;
-    gap: 16px;
+    gap: 8px;
     align-items: flex-start;
-    flex-wrap: wrap;
+    flex-wrap: nowrap; /* 좁은 화면에서도 테트리스 판과 HOLD/NEXT가 줄바꿈 없이 한 줄에 나란히 보이도록 */
   }
   .tt-side {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px;
+    flex-shrink: 0;
   }
   .tt-box {
     text-align: center;
   }
   .tt-box-label {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10px;
     color: var(--ink-soft);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     letter-spacing: 0.05em;
   }
   .tt-box canvas {
@@ -87,6 +88,7 @@
   }
   .breakout-canvas {
     touch-action: none; /* 캔버스 위에서 드래그/스와이프할 때 화면 자체가 스크롤되지 않게 한다 */
+    min-width: 0; /* flex 안에서도 화면 폭에 맞게 줄어들 수 있도록 (기본값 auto면 줄어들지 않는다) */
   }
   .mobile-controls {
     display: flex;
@@ -260,14 +262,15 @@
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 4</span>
       <h3>퍼즐게임 — 슬라이딩 퍼즐 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">상태 관리와 저장/불러오기를 실습합니다. 빈칸과 붙어있는 숫자를 클릭하면 이동합니다. 1~15가 순서대로 맞춰지면 완성입니다.</p>
+      <p style="margin-bottom: 14px;">상태 관리를 실습합니다. 빈칸과 붙어있는 숫자를 클릭하면 이동합니다. 1~15가 순서대로 맞춰지면 완성입니다.</p>
+      <div style="font-family: var(--mono); font-size: 13px; margin-bottom: 10px; color: var(--ink-soft);">
+        ⏱️ 경과 시간: <span id="pz-timer">00:00</span>
+      </div>
 
       <div id="pz-board" class="pz-board"></div>
       <div class="ttt-controls">
-        <span id="pz-status" class="ttt-status">섞기를 눌러 시작하세요</span>
-        <button id="pz-shuffle" type="button">섞기</button>
-        <button id="pz-save" type="button">저장</button>
-        <button id="pz-load" type="button">불러오기</button>
+        <span id="pz-status" class="ttt-status">시작 버튼을 눌러주세요</span>
+        <button id="pz-start" type="button">시작</button>
       </div>
     </div>
 
@@ -316,11 +319,11 @@
         <div class="tt-side">
           <div class="tt-box">
             <div class="tt-box-label">HOLD</div>
-            <canvas id="tt-hold-canvas" width="96" height="96"></canvas>
+            <canvas id="tt-hold-canvas" width="56" height="56"></canvas>
           </div>
           <div class="tt-box">
             <div class="tt-box-label">NEXT</div>
-            <canvas id="tt-next-canvas" width="96" height="96"></canvas>
+            <canvas id="tt-next-canvas" width="56" height="56"></canvas>
           </div>
         </div>
       </div>
@@ -427,7 +430,7 @@
       <div style="font-family: var(--mono); font-size: 13px; margin-bottom: 10px; color: var(--ink-soft);">
         ⏱️ 경과 시간: <span id="gyeol-timer">00:00</span> | 찾은 합: <span id="gyeol-score">0</span>개
       </div>
-      <div id="gyeol-board" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 320px; margin-bottom: 14px;"></div>
+      <div id="gyeol-board" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 420px; margin-bottom: 14px;"></div>
       <div class="ttt-controls">
         <span id="gyeol-status" class="ttt-status">시작 버튼을 눌러주세요</span>
         <button id="gyeol-start" type="button">게임 시작</button>
@@ -864,15 +867,20 @@
   (function () {
     const boardEl = document.getElementById("pz-board");
     const statusEl = document.getElementById("pz-status");
-    const shuffleBtn = document.getElementById("pz-shuffle");
-    const saveBtn = document.getElementById("pz-save");
-    const loadBtn = document.getElementById("pz-load");
+    const startBtn = document.getElementById("pz-start");
+    const timerEl = document.getElementById("pz-timer");
 
     const SIZE = 4; // 4x4 = 15 퍼즐
-    const STORAGE_KEY = "codestudio_puzzle_state";
     const SOLVED = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]; // 0 = 빈칸
 
     let tiles = SOLVED.slice();
+    let running = false, timerHandle = null, elapsedSec = 0;
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, "0");
+      const s = (sec % 60).toString().padStart(2, "0");
+      return `${m}:${s}`;
+    }
 
     function isSolved() {
       return tiles.every((v, i) => v === SOLVED[i]);
@@ -890,6 +898,7 @@
     }
 
     function tryMove(i) {
+      if (!running) return;
       const emptyIndex = tiles.indexOf(0);
       const row = Math.floor(i / SIZE), col = i % SIZE;
       const erow = Math.floor(emptyIndex / SIZE), ecol = emptyIndex % SIZE;
@@ -901,7 +910,9 @@
       render();
 
       if (isSolved()) {
-        statusEl.textContent = "완성했습니다!";
+        running = false;
+        clearInterval(timerHandle);
+        statusEl.textContent = `완성했습니다! 소요 시간 ${formatTime(elapsedSec)} (다시 하려면 시작 버튼)`;
       } else {
         statusEl.textContent = "빈칸 옆 숫자를 클릭해 이동하세요";
       }
@@ -923,41 +934,34 @@
         [tiles[emptyIndex], tiles[target]] = [tiles[target], tiles[emptyIndex]];
         emptyIndex = target;
       }
-      statusEl.textContent = "빈칸 옆 숫자를 클릭해 이동하세요";
-      render();
     }
 
-    shuffleBtn.addEventListener("click", shuffle);
-
-    saveBtn.addEventListener("click", () => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tiles));
-        statusEl.textContent = "저장했습니다 (이 브라우저에만 저장됨)";
-      } catch (err) {
-        statusEl.textContent = "저장 실패 — 브라우저 저장소를 사용할 수 없습니다";
-      }
-    });
-
-    loadBtn.addEventListener("click", () => {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved) {
-          statusEl.textContent = "저장된 기록이 없습니다";
-          return;
-        }
-        tiles = JSON.parse(saved);
-        statusEl.textContent = "불러왔습니다";
-        render();
-      } catch (err) {
-        statusEl.textContent = "불러오기 실패";
-      }
+    startBtn.addEventListener("click", () => {
+      shuffle();
+      render();
+      running = true;
+      statusEl.textContent = "빈칸 옆 숫자를 클릭해 이동하세요";
+      elapsedSec = 0;
+      timerEl.textContent = "00:00";
+      clearInterval(timerHandle);
+      timerHandle = setInterval(() => {
+        elapsedSec++;
+        timerEl.textContent = formatTime(elapsedSec);
+      }, 1000);
     });
 
     registerGame("panel-pz", {
       init() {
         tiles = SOLVED.slice();
-        statusEl.textContent = "섞기를 눌러 시작하세요";
+        running = false;
+        clearInterval(timerHandle);
+        timerEl.textContent = "00:00";
+        statusEl.textContent = "시작 버튼을 눌러주세요";
         render();
+      },
+      stop() {
+        running = false;
+        clearInterval(timerHandle);
       },
     });
   })();
@@ -1135,6 +1139,8 @@
       I: "#3f6650", O: "#1b1f1d", T: "#8aa89a", S: "#c7d9cb",
       Z: "#565e58", J: "#2f4a3a", L: "#9fb8a8",
     };
+    const css = getComputedStyle(document.documentElement);
+    const INK = css.getPropertyValue("--ink").trim() || "#1b1f1d";
 
     const DAS_DELAY = 170; // 방향키를 누른 뒤 "연속 이동"이 시작되기까지 기다리는 시간(ms)
     const DAS_SPEED = 40;  // 연속 이동 중 한 칸씩 움직이는 간격(ms)
@@ -1271,11 +1277,21 @@
     function rotatePiece() {
       if (!running) return;
       const rotated = rotate(piece.matrix);
-      // 회전했을 때 벽이나 다른 블록에 부딪히면 좌우로 살짝 밀어서(wall kick) 다시 시도해본다
+
+      // 회전하면 가로/세로 칸 수가 바뀌므로(예: I블록 4x1 → 1x4), 그냥 왼쪽위 기준으로 두면
+      // 블록이 옆으로 훅 튀어서 "반대로 도는 것처럼" 보인다. 가운데 지점이 그대로 유지되도록
+      // 새 가로폭/세로높이 차이의 절반만큼 위치를 보정해준다.
+      const oldW = piece.matrix[0].length, oldH = piece.matrix.length;
+      const newW = rotated[0].length, newH = rotated.length;
+      const baseRow = piece.row + Math.floor((oldH - newH) / 2);
+      const baseCol = piece.col + Math.floor((oldW - newW) / 2);
+
+      // 그래도 벽이나 다른 블록에 부딪히면 좌우로 살짝 밀어서(wall kick) 다시 시도해본다
       for (const offset of [0, -1, 1, -2, 2]) {
-        if (!collide(rotated, piece.row, piece.col + offset)) {
+        if (!collide(rotated, baseRow, baseCol + offset)) {
           piece.matrix = rotated;
-          piece.col += offset;
+          piece.row = baseRow;
+          piece.col = baseCol + offset;
           draw();
           return;
         }
@@ -1330,7 +1346,8 @@
       targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
       if (!type) return;
       const matrix = SHAPES[type];
-      const cell = 20;
+      // 캔버스 크기에 맞춰 칸 크기를 계산한다 (가로로 가장 긴 I블록이 4칸이므로 1/4을 기준으로 삼는다)
+      const cell = Math.floor(targetCanvas.width / 4);
       const w = matrix[0].length * cell, h = matrix.length * cell;
       targetCtx.save();
       targetCtx.translate((targetCanvas.width - w) / 2, (targetCanvas.height - h) / 2);
@@ -1359,15 +1376,23 @@
       }
 
       if (piece) {
-        // 그림자(떨어질 위치)를 먼저 반투명하게 그리고, 그 위에 실제 블록을 그린다
+        // 그림자(떨어질 위치)를 먼저 그리고, 그 위에 실제 블록을 그린다.
+        // 밝은 색 블록(S 등)은 옅은 배경 위에서 반투명으로 칠하면 거의 안 보이므로,
+        // 블록 색 대신 항상 눈에 띄는 잉크색 테두리+옅은 채움으로 그린다.
         const ghostRow = getGhostRow();
-        ctx.globalAlpha = 0.25;
-        ctx.fillStyle = COLORS[piece.type];
+        ctx.fillStyle = INK;
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 2;
         piece.matrix.forEach((row, r) => {
           row.forEach((v, c) => {
             if (v) {
               const gr = ghostRow + r, gc = piece.col + c;
-              if (gr >= 0) ctx.fillRect(gc * CELL, gr * CELL, CELL - 1, CELL - 1);
+              if (gr >= 0) {
+                ctx.globalAlpha = 0.12;
+                ctx.fillRect(gc * CELL, gr * CELL, CELL - 1, CELL - 1);
+                ctx.globalAlpha = 0.5;
+                ctx.strokeRect(gc * CELL + 1, gr * CELL + 1, CELL - 3, CELL - 3);
+              }
             }
           });
         });
@@ -1656,7 +1681,7 @@
       ctx.fillStyle = BG;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.font = "bold 26px var(--mono), monospace";
+      const FONT_FAMILY = "'IBM Plex Mono', 'D2Coding', ui-monospace, Menlo, monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
@@ -1669,6 +1694,11 @@
           ctx.fillRect(x, y, w, h);
 
           if (value) {
+            // 캔버스 font는 CSS 변수(var(--mono))를 이해하지 못해서 적용이 안 되고 작은 기본
+            // 글꼴로 보이는 문제가 있었다. 실제 글꼴 이름을 직접 적어주고 크기도 크게 키운다.
+            // 숫자가 네 자리(1024, 2048)가 되면 칸을 넘지 않도록 글씨를 살짝 줄인다.
+            const fontSize = String(value).length >= 4 ? 26 : 34;
+            ctx.font = `bold ${fontSize}px ${FONT_FAMILY}`;
             ctx.fillStyle = value <= 8 ? INK : "#f7f6f2";
             ctx.fillText(String(value), x + w / 2, y + h / 2 + 1);
           }
@@ -1911,9 +1941,14 @@
       if (keys.ArrowDown) p1.y += PADDLE_SPEED;
       p1.y = Math.max(0, Math.min(H - PADDLE_H, p1.y));
 
-      // AI: 공의 y좌표를 느슨하게 따라간다 (완벽히 반응하지 않도록 일부러 둔다)
-      const target = ball.y - PADDLE_H / 2;
-      p2.y += (target - p2.y) * 0.08;
+      // AI: 플레이어와 같은 최대 속도로 공을 따라간다 (공이 자기 쪽으로 올 때만 반응해서
+      // 너무 완벽하지는 않지만, 속도 자체는 플레이어와 동일하게 맞춘다)
+      if (ball.dx > 0) {
+        const target = ball.y - PADDLE_H / 2;
+        const diff = target - p2.y;
+        if (Math.abs(diff) < PADDLE_SPEED) p2.y = target;
+        else p2.y += Math.sign(diff) * PADDLE_SPEED;
+      }
       p2.y = Math.max(0, Math.min(H - PADDLE_H, p2.y));
 
       ball.x += ball.dx;
@@ -2076,7 +2111,7 @@
         cell.style.cssText = `aspect-ratio:1; background:${BG_COLORS[card.bg]}; border:2px solid ${selected.includes(idx) ? "var(--accent)" : "var(--border)"}; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; -webkit-tap-highlight-color:transparent;`;
 
         const span = document.createElement("span");
-        span.style.cssText = `font-size:32px; color:${COLORS[card.color]}; font-weight:bold; line-height:1;`;
+        span.style.cssText = `font-size:96px; color:${COLORS[card.color]}; font-weight:bold; line-height:1;`;
         span.textContent = SHAPES[card.shape];
         cell.appendChild(span);
 
