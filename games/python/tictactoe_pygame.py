@@ -19,7 +19,7 @@ GRID_SIZE = 3
 WIDTH = HEIGHT = CELL_SIZE * GRID_SIZE
 LINE_WIDTH = 4
 
-BG_COLOR = (247, 246, 242)      # style.css의 --bg 와 동일한 톤
+BG_COLOR = (247, 246, 242)      # assets/style.css의 --bg 와 동일한 톤
 LINE_COLOR = (226, 224, 216)    # --border
 O_COLOR = (63, 102, 80)         # --accent
 X_COLOR = (27, 31, 29)          # --ink

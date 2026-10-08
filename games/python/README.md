@@ -6,7 +6,7 @@ game.html의 "게임제작" 메뉴에 있는 STEP과 같은 순서로, 같은 �
 ## 실행 방법
 
 ```bash
-cd games-python
+cd games/python
 pip install -r requirements.txt
 python tictactoe_pygame.py
 ```
