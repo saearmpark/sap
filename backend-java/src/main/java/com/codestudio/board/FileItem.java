@@ -1,5 +1,6 @@
 package com.codestudio.board;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,18 +19,20 @@ public class FileItem {
     private String storedFileName;
     private long fileSize;
     private String fileType;
+    private String uploadedAt;
 
     // 기본 생성자
     public FileItem() {
     }
 
-    // 5개 필드를 포함하는 생성자 (FileController에서 호출하는 생성자)
-    public FileItem(Long id, String originalFileName, String storedFileName, long fileSize, String fileType) {
+    // 파일 메타데이터를 초기화하는 생성자
+    public FileItem(Long id, String originalFileName, String storedFileName, long fileSize, String fileType, String uploadedAt) {
         this.id = id;
         this.originalFileName = originalFileName;
         this.storedFileName = storedFileName;
         this.fileSize = fileSize;
         this.fileType = fileType;
+        this.uploadedAt = uploadedAt;
     }
 
     // Getter & Setter
@@ -41,6 +44,7 @@ public class FileItem {
         this.id = id;
     }
 
+    @JsonProperty("original_name")
     public String getOriginalFileName() {
         return originalFileName;
     }
@@ -49,6 +53,7 @@ public class FileItem {
         this.originalFileName = originalFileName;
     }
 
+    @JsonProperty("stored_name")
     public String getStoredFileName() {
         return storedFileName;
     }
@@ -57,6 +62,7 @@ public class FileItem {
         this.storedFileName = storedFileName;
     }
 
+    @JsonProperty("size_bytes")
     public long getFileSize() {
         return fileSize;
     }
@@ -71,5 +77,14 @@ public class FileItem {
 
     public void setFileType(String fileType) {
         this.fileType = fileType;
+    }
+
+    @JsonProperty("uploaded_at")
+    public String getUploadedAt() {
+        return uploadedAt;
+    }
+
+    public void setUploadedAt(String uploadedAt) {
+        this.uploadedAt = uploadedAt;
     }
 }

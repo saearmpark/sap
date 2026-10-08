@@ -117,13 +117,20 @@
     statusEl.textContent = "업로드 중...";
     try {
       const res = await fetch(API_BASE, { method: "POST", body: formData });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const message = res.status === 413
+          ? "파일 크기가 서버 허용 용량(20MB)을 초과했습니다."
+          : `업로드 실패 (HTTP ${res.status}) — 서버 응답을 확인하세요.`;
+        throw new Error(message);
+      }
 
       statusEl.textContent = "업로드되었습니다.";
       document.getElementById("upload-form").reset();
       loadFiles();
     } catch (err) {
-      statusEl.textContent = "업로드 실패 — 서버 연결을 확인하세요.";
+      statusEl.textContent = err instanceof TypeError
+        ? "서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요."
+        : err.message || "업로드 중 오류가 발생했습니다.";
     }
   });
 

@@ -14,6 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +25,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/files")
 public class FileController {
+
+    private static final DateTimeFormatter UPLOADED_AT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final Path fileStorageLocation = Paths.get("uploads").toAbsolutePath().normalize();
     private final List<FileItem> fileList = new ArrayList<>();
@@ -40,7 +46,7 @@ public class FileController {
         return fileList;
     }
 
-    @PostMapping("/upload")
+    @PostMapping({"", "/upload"})
     public ResponseEntity<FileItem> uploadFile(@RequestParam("file") MultipartFile file) {
         String originalFileName = file.getOriginalFilename();
         String fileExtension = "";
@@ -60,7 +66,8 @@ public class FileController {
                     originalFileName,
                     storedFileName,
                     file.getSize(),
-                    file.getContentType()
+                    file.getContentType(),
+                    ZonedDateTime.now(KST).format(UPLOADED_AT_FORMAT)
             );
 
             fileList.add(fileItem);
@@ -70,7 +77,7 @@ public class FileController {
         }
     }
 
-    @GetMapping("/download/{id}")
+    @GetMapping({"/download/{id}", "/{id}/download"})
     public ResponseEntity<Resource> downloadFile(@PathVariable Long id) {
         FileItem fileItem = fileList.stream()
                 .filter(f -> f.getId().equals(id))
