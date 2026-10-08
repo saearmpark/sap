@@ -1,7 +1,12 @@
 (() => {
   const root = document.documentElement;
   const button = document.querySelector("[data-theme-toggle]");
-  const savedTheme = localStorage.getItem("sap-theme");
+  let savedTheme = "light";
+  try {
+    savedTheme = localStorage.getItem("sap-theme") || "light";
+  } catch {
+    // Keep the page usable when browser storage is unavailable.
+  }
 
   function applyTheme(theme) {
     root.dataset.theme = theme;
@@ -15,7 +20,11 @@
   applyTheme(savedTheme === "dark" ? "dark" : "light");
   button?.addEventListener("click", () => {
     const nextTheme = root.dataset.theme === "dark" ? "light" : "dark";
-    localStorage.setItem("sap-theme", nextTheme);
+    try {
+      localStorage.setItem("sap-theme", nextTheme);
+    } catch {
+      // The current page still changes even if the preference cannot be saved.
+    }
     applyTheme(nextTheme);
   });
 })();
