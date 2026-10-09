@@ -15,7 +15,8 @@
     localStorage.setItem(tokenKey, data.accessToken);
     localStorage.setItem(userKey, JSON.stringify({
       username: data.username,
-      displayName: data.displayName
+      displayName: data.displayName,
+      isAdmin: data.isAdmin === true
     }));
     updateAuthLink();
   }
@@ -30,7 +31,7 @@
 
   function loginUrl() {
     const next = location.pathname.split("/").pop();
-    const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html"];
+    const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html"];
     return `login.html${allowed.includes(next) ? `?next=${encodeURIComponent(next)}` : ""}`;
   }
 
@@ -66,9 +67,8 @@
 
   function updateAuthLink() {
     const link = document.querySelector("[data-auth-link]");
-    if (!link) return;
     const user = getUser();
-    if (getToken() && user) {
+    if (link && getToken() && user) {
       link.textContent = `${user.displayName || user.username} · 로그아웃`;
       link.href = "#logout";
       link.onclick = async event => {
@@ -77,10 +77,21 @@
         clearSession();
         location.href = "login.html";
       };
-    } else {
+    } else if (link) {
       link.textContent = "로그인 / 회원가입";
       link.href = "login.html";
       link.onclick = null;
+    }
+
+    let adminLink = document.querySelector("[data-admin-link]");
+    if (user?.isAdmin && !adminLink) {
+      adminLink = document.createElement("a");
+      adminLink.href = "admin.html";
+      adminLink.dataset.adminLink = "";
+      adminLink.textContent = "회원가입 승인";
+      link?.insertAdjacentElement("afterend", adminLink);
+    } else if (adminLink) {
+      adminLink.hidden = !user?.isAdmin;
     }
   }
 

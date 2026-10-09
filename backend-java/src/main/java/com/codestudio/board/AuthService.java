@@ -9,6 +9,7 @@ import java.util.Base64;
 import java.util.Locale;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,6 +22,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final SecureRandom secureRandom = new SecureRandom();
 
+    @Value("${sap.admin.username:}")
+    private String configuredAdminUsername;
+
     public AuthService(UserAccountRepository users, AuthSessionRepository sessions, PasswordEncoder passwordEncoder) {
         this.users = users;
         this.sessions = sessions;
@@ -30,6 +34,12 @@ public class AuthService {
     public UserAccount register(String username, String displayName, String password) {
         String normalizedUsername = username == null ? "" : username.trim().toLowerCase(Locale.ROOT);
         String normalizedName = displayName == null ? "" : displayName.trim();
+        if (configuredAdminUsername == null || configuredAdminUsername.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "관리자 계정 설정이 완료된 뒤 회원가입할 수 있습니다.");
+        }
+        if (normalizedUsername.equals(configuredAdminUsername.trim().toLowerCase(Locale.ROOT))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "관리자 전용 아이디입니다.");
+        }
         if (!normalizedUsername.matches("[a-z0-9_]{3,30}")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디는 영문 소문자, 숫자, 밑줄로 3~30자 입력하세요.");
         }
@@ -50,6 +60,12 @@ public class AuthService {
         UserAccount user = users.findByUsername(normalizedUsername)
                 .filter(account -> password != null && passwordEncoder.matches(password, account.getPasswordHash()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호를 확인하세요."));
+        if ("REJECTED".equals(user.getApprovalStatus())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "회원가입 신청이 승인되지 않았습니다. 관리자에게 문의하세요.");
+        }
+        if (!user.isApproved()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자 승인 대기 중입니다. 승인 후 로그인할 수 있습니다.");
+        }
         return user;
     }
 
@@ -61,14 +77,19 @@ public class AuthService {
         return token;
     }
 
-    public Long userIdForToken(String token) {
+    public UserIdentity identityForToken(String token) {
         AuthSession session = sessions.findById(hashToken(token)).orElse(null);
         if (session == null) return null;
         if (session.getExpiresAt().isBefore(Instant.now())) {
             sessions.deleteById(hashToken(token));
             return null;
         }
-        return session.getUserId();
+        UserAccount user = users.findById(session.getUserId()).orElse(null);
+        if (user == null || !user.isApproved()) {
+            sessions.deleteById(hashToken(token));
+            return null;
+        }
+        return new UserIdentity(user.getId(), user.isAdministrator());
     }
 
     public void revokeToken(String token) {
@@ -83,4 +104,6 @@ public class AuthService {
             throw new IllegalStateException("SHA-256을 사용할 수 없습니다.", exception);
         }
     }
+
+    public record UserIdentity(Long userId, boolean administrator) {}
 }

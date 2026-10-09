@@ -24,10 +24,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
-            Long userId = authService.userIdForToken(header.substring(7));
-            if (userId != null) {
+            AuthService.UserIdentity identity = authService.identityForToken(header.substring(7));
+            if (identity != null) {
+                var authorities = identity.administrator()
+                        ? List.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))
+                        : List.of(new SimpleGrantedAuthority("ROLE_USER"));
                 var authentication = new UsernamePasswordAuthenticationToken(
-                        userId, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                        identity.userId(), null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }

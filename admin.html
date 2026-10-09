@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 회원 승인</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=dark-menu-contrast-1">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">SAP</div>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="calendar.html">일정</a>
+      <a href="learn.html">학습</a>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="game.html">게임제작</a>
+      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+      <a href="admin.html" data-admin-link hidden>회원가입 승인</a>
+    </nav>
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+    <div class="sidebar-footer">관리자</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">ADMIN</div>
+    <h1>회원가입 승인</h1>
+    <p class="lead">가입 신청을 확인하고 승인하거나 거절합니다. 승인된 계정만 게시판과 자료실에 로그인할 수 있습니다.</p>
+    <section id="admin-notice" class="card" role="status">관리자 권한을 확인하는 중...</section>
+    <section id="pending-section" hidden>
+      <div class="calendar-form-actions"><h2>승인 대기 회원</h2><button id="refresh-users" type="button">새로고침</button></div>
+      <table>
+        <thead><tr><th>표시 이름</th><th>아이디</th><th>처리</th></tr></thead>
+        <tbody id="pending-list"><tr><td colspan="3">불러오는 중...</td></tr></tbody>
+      </table>
+      <p id="admin-status" class="form-status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+</div>
+<script src="assets/auth.js"></script>
+<script>
+  const API_URL = `${SAPAuth.API_ROOT}/admin/users`;
+  const notice = document.getElementById("admin-notice");
+  const tableBody = document.getElementById("pending-list");
+  const statusEl = document.getElementById("admin-status");
+
+  function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value ?? "";
+    return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  async function loadPending() {
+    tableBody.innerHTML = '<tr><td colspan="3">불러오는 중...</td></tr>';
+    const response = await SAPAuth.apiFetch(`${API_URL}/pending`);
+    if (!response.ok) throw new Error("승인 대기 목록을 불러오지 못했습니다.");
+    const users = await response.json();
+    if (!users.length) {
+      tableBody.innerHTML = '<tr><td colspan="3">승인 대기 중인 회원이 없습니다.</td></tr>';
+      return;
+    }
+    tableBody.innerHTML = users.map(user => `
+      <tr>
+        <td>${escapeHtml(user.displayName)}</td>
+        <td>${escapeHtml(user.username)}</td>
+        <td><button type="button" data-user-id="${user.id}" data-status="APPROVED">승인</button> <button type="button" class="delete-btn" data-user-id="${user.id}" data-status="REJECTED">거절</button></td>
+      </tr>`).join("");
+    tableBody.querySelectorAll("button[data-status]").forEach(button => {
+      button.addEventListener("click", () => decide(button.dataset.userId, button.dataset.status));
+    });
+  }
+
+  async function decide(id, decision) {
+    const label = decision === "APPROVED" ? "승인" : "거절";
+    if (decision === "REJECTED" && !confirm("이 회원가입 신청을 거절할까요?")) return;
+    statusEl.textContent = `${label} 처리 중...`;
+    try {
+      const response = await SAPAuth.apiFetch(`${API_URL}/${id}/approval`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: decision })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.message || `${label} 처리에 실패했습니다.`);
+      statusEl.textContent = `회원가입 신청을 ${label}했습니다.`;
+      await loadPending();
+    } catch (error) {
+      statusEl.textContent = error.message || "요청을 처리하지 못했습니다.";
+    }
+  }
+
+  document.getElementById("refresh-users").addEventListener("click", () => loadPending().catch(error => { statusEl.textContent = error.message; }));
+  SAPAuth.requireSession().then(async user => {
+    if (user?.unavailable) { notice.textContent = "서버에 연결할 수 없습니다."; return; }
+    if (!user) return;
+    if (!user.isAdmin) { notice.textContent = "관리자 계정으로 로그인해야 합니다."; return; }
+    notice.hidden = true;
+    document.getElementById("pending-section").hidden = false;
+    try { await loadPending(); } catch (error) { statusEl.textContent = error.message; }
+  });
+</script>
+<script src="assets/theme.js"></script>
+</body>
+</html>

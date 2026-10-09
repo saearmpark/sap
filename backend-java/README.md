@@ -51,12 +51,23 @@ mvn spring-boot:run
 | POST | `/api/auth/login` | 로그인, Bearer 토큰 발급 |
 | GET | `/api/auth/me` | 현재 계정 확인 |
 | POST | `/api/auth/logout` | 현재 토큰 폐기 |
+| GET | `/api/admin/users/pending` | 관리자: 승인 대기 회원 목록 |
+| PUT | `/api/admin/users/{id}/approval` | 관리자: 회원 승인 또는 거절 (`status`) |
 | GET | `/api/events` | 내 일정 목록 |
 | POST | `/api/events` | 일정 추가 |
 | PUT | `/api/events/{id}` | 내 일정 수정 |
 | DELETE | `/api/events/{id}` | 내 일정 삭제 |
 
-게시판·자료실·일정 API에는 `Authorization: Bearer <token>` 헤더가 필요합니다. 회원가입은 아이디(영문 소문자·숫자·밑줄 3~30자), 표시 이름(1~30자), 비밀번호(8자 이상)를 받습니다. 발급 토큰은 7일 동안 유효합니다.
+게시판·자료실·일정 API에는 `Authorization: Bearer <token>` 헤더가 필요합니다. 회원가입은 아이디(영문 소문자·숫자·밑줄 3~30자), 표시 이름(1~30자), 비밀번호(8자 이상)를 받으며, 관리자가 승인한 뒤 로그인할 수 있습니다. 발급 토큰은 7일 동안 유효합니다.
+
+첫 관리자 계정은 애플리케이션 시작 시 다음 환경변수로 만듭니다. Render에서는 서비스의 **Environment** 설정에 두 값을 입력하고 재배포하세요. 관리자 비밀번호는 12자 이상이어야 하며 코드나 GitHub에 저장하지 마세요.
+
+```text
+SAP_ADMIN_USERNAME=사용할_관리자_아이디
+SAP_ADMIN_PASSWORD=비공개_관리자_비밀번호
+```
+
+이후 사이트의 `로그인 / 회원가입` 화면에서 위 아이디와 비밀번호로 로그인하면 **회원가입 승인** 메뉴가 나타납니다. 관리자 비밀번호를 바꾸려면 환경변수 값을 변경하고 서비스를 재시작하세요. 환경변수가 설정되지 않으면 회원가입은 처리되지 않습니다.
 
 ## 저장 방식과 배포 주의사항
 
