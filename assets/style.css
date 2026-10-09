@@ -28,7 +28,7 @@
   --border: #3b3d41;
 }
 
-:root[data-theme="dark"] button:not(.theme-toggle):not(.game-list-item):not(.game-back):not(.mobile-btn):not(.delete-btn):not(.post-title-btn) {
+:root[data-theme="dark"] button:not(.theme-toggle):not(.game-list-item):not(.game-back):not(.mobile-btn):not(.delete-btn):not(.post-title-btn):not(.calendar-date) {
   color: #17181a !important;
 }
 :root[data-theme="dark"] .nav-group a.active { color: #17181a; }
