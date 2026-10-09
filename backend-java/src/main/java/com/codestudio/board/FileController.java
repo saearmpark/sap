@@ -79,6 +79,15 @@ public class FileController {
 
     @GetMapping({"/download/{id}", "/{id}/download"})
     public ResponseEntity<Resource> downloadFile(@PathVariable Long id) {
+        return serveFile(id, false);
+    }
+
+    @GetMapping("/{id}/preview")
+    public ResponseEntity<Resource> previewFile(@PathVariable Long id) {
+        return serveFile(id, true);
+    }
+
+    private ResponseEntity<Resource> serveFile(Long id, boolean inline) {
         FileItem fileItem = fileList.stream()
                 .filter(f -> f.getId().equals(id))
                 .findFirst()
@@ -97,10 +106,16 @@ public class FileController {
                 if (contentType == null) {
                     contentType = "application/octet-stream";
                 }
+                if (inline && (!contentType.toLowerCase().startsWith("image/")
+                        || contentType.equalsIgnoreCase("image/svg+xml"))) {
+                    return ResponseEntity.status(415).build();
+                }
+
+                String disposition = inline ? "inline" : "attachment";
 
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileItem.getOriginalFileName() + "\"")
+                        .header(HttpHeaders.CONTENT_DISPOSITION, disposition + "; filename=\"" + fileItem.getOriginalFileName() + "\"")
                         .body(resource);
             } else {
                 return ResponseEntity.notFound().build();

@@ -75,14 +75,23 @@
         return;
       }
 
-      listEl.innerHTML = files.map(f => `
-        <tr>
-          <td><a href="${API_BASE}/${f.id}/download">${escapeHtml(f.original_name)}</a></td>
-          <td>${formatSize(f.size_bytes)}</td>
-          <td>${f.uploaded_at}</td>
-          <td><button data-id="${f.id}" class="delete-btn">삭제</button></td>
-        </tr>
-      `).join("");
+      listEl.innerHTML = files.map(f => {
+        const name = escapeHtml(f.original_name || f.originalFileName || "이름 없는 파일");
+        const mimeType = String(f.fileType || f.file_type || f.content_type || "").toLowerCase();
+        const isImage = (mimeType.startsWith("image/") && mimeType !== "image/svg+xml") || /\.(avif|bmp|gif|jpe?g|png|webp)$/i.test(f.original_name || f.originalFileName || "");
+        const fileUrl = `${API_BASE}/${encodeURIComponent(f.id)}`;
+        const preview = isImage
+          ? `<a class="file-preview-link" href="${fileUrl}/preview" target="_blank" rel="noopener" aria-label="이미지 미리보기"><img class="file-preview" src="${fileUrl}/preview" alt="${name}" loading="lazy" onerror="this.hidden=true"></a>`
+          : "";
+        return `
+          <tr>
+            <td class="file-name-cell">${preview}<a href="${fileUrl}/download">${name}</a></td>
+            <td>${formatSize(f.size_bytes ?? f.fileSize ?? 0)}</td>
+            <td>${escapeHtml(f.uploaded_at || f.uploadedAt || "")}</td>
+            <td><button data-id="${escapeHtml(String(f.id))}" class="delete-btn">삭제</button></td>
+          </tr>
+        `;
+      }).join("");
 
       document.querySelectorAll(".delete-btn").forEach(btn => {
         btn.addEventListener("click", () => deleteFile(btn.dataset.id));
