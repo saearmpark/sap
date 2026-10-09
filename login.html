@@ -63,7 +63,7 @@
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
   const status = document.getElementById("auth-status");
-  const passwordPanel = document.getElementById("password-panel");
+  const passwordPanel = document.getElementById("password-change");
   const passwordForm = document.getElementById("password-form");
 
   async function showPasswordPanelForSignedInUser() {
@@ -138,7 +138,12 @@
         return;
       }
       SAPAuth.saveSession(result);
-      const requested = new URLSearchParams(location.search).get("next") || "index.html";
+      const params = new URLSearchParams(location.search);
+      if (params.get("mode") === "password-change") {
+        location.replace("login.html#password-change");
+        return;
+      }
+      const requested = params.get("next") || "index.html";
       const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html"];
       location.replace(allowed.includes(requested) ? requested : "index.html");
     } catch (error) {
