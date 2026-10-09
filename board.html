@@ -54,9 +54,12 @@
     <nav class="nav-group">
       <div class="nav-label">MENU</div>
       <a href="index.html">홈</a>
+      <a href="calendar.html">일정</a>
+      <a href="learn.html">학습</a>
       <a href="board.html" class="active">게시판</a>
       <a href="files.html">자료실</a>
       <a href="game.html">게임제작</a>
+      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
     </nav>
     <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
     <div class="sidebar-footer">v0.1 · local build</div>
@@ -101,6 +104,7 @@
   </div>
 </div>
 
+<script src="assets/auth.js"></script>
 <script>
   const API_BASE = "https://board-backend-nngx.onrender.com/api/posts";
 
@@ -111,7 +115,7 @@
   async function loadPosts() {
     const listEl = document.getElementById("post-list");
     try {
-      const res = await fetch(API_BASE);
+      const res = await SAPAuth.apiFetch(API_BASE);
       if (!res.ok) throw new Error("서버 응답 오류");
       const posts = await res.json();
       postsCache = posts;
@@ -157,7 +161,7 @@
   }
 
   async function deletePost(id) {
-    await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+    await SAPAuth.apiFetch(`${API_BASE}/${id}`, { method: "DELETE" });
     loadPosts();
   }
 
@@ -174,7 +178,7 @@
     const statusEl = document.getElementById("form-status");
 
     try {
-      const res = await fetch(API_BASE, {
+      const res = await SAPAuth.apiFetch(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, content }),
@@ -194,7 +198,13 @@
     if (e.target.id === "post-modal") closePost();
   });
 
-  loadPosts();
+  SAPAuth.requireSession().then(user => {
+    if (user?.unavailable) {
+      document.getElementById("post-list").innerHTML = '<tr><td colspan="4">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>';
+      return;
+    }
+    if (user) loadPosts();
+  });
 </script>
 <script src="assets/theme.js"></script>
 </body>

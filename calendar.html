@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 일정</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=dark-menu-contrast-1">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">SAP</div>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="calendar.html" class="active">일정</a>
+      <a href="learn.html">학습</a>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="game.html">게임제작</a>
+      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+    </nav>
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">MY SCHEDULE</div>
+    <h1>일정</h1>
+    <p class="lead">학습 계획과 작업 일정을 달력에 기록하세요. 일정은 로그인한 계정에 저장됩니다.</p>
+    <section class="card calendar-toolbar" aria-label="달력 이동">
+      <button id="previous-month" type="button" aria-label="이전 달">←</button>
+      <h2 id="month-title" aria-live="polite"></h2>
+      <div class="calendar-toolbar"><button id="today-button" type="button">오늘</button><button id="next-month" type="button" aria-label="다음 달">→</button></div>
+    </section>
+    <section class="card calendar-wrap">
+      <table class="calendar-table">
+        <thead><tr><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
+        <tbody id="calendar-grid"><tr><td colspan="7">일정을 불러오는 중...</td></tr></tbody>
+      </table>
+    </section>
+    <form id="event-form" class="card">
+      <h3 id="form-title">일정 추가</h3>
+      <div class="form-row"><label for="event-name">일정 제목</label><input type="text" id="event-name" maxlength="120" required placeholder="예: HTML 폼 만들기"></div>
+      <div class="calendar-fields">
+        <div class="form-row"><label for="event-start">시작일</label><input type="date" id="event-start" required></div>
+        <div class="form-row"><label for="event-end">종료일</label><input type="date" id="event-end" required></div>
+      </div>
+      <div class="form-row"><label for="event-description">메모</label><textarea id="event-description" maxlength="2000" rows="3" placeholder="학습할 내용이나 준비물을 적어두세요."></textarea></div>
+      <div class="calendar-form-actions">
+        <div><button type="submit" id="save-event">일정 저장</button><button type="button" id="cancel-edit" class="delete-btn" hidden>취소</button><button type="button" id="delete-event" class="delete-btn" hidden>삭제</button></div>
+        <span id="event-status" class="form-status" role="status" aria-live="polite"></span>
+      </div>
+    </form>
+  </main>
+</div>
+<script src="assets/auth.js"></script>
+<script>
+  const API_URL = `${SAPAuth.API_ROOT}/events`;
+  const grid = document.getElementById("calendar-grid");
+  const form = document.getElementById("event-form");
+  const startInput = document.getElementById("event-start");
+  const endInput = document.getElementById("event-end");
+  const statusEl = document.getElementById("event-status");
+  const today = new Date();
+  let displayedMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  let events = [];
+  let editingId = null;
+
+  function localDate(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  }
+
+  function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value ?? "";
+    return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function renderCalendar() {
+    document.getElementById("month-title").textContent = `${displayedMonth.getFullYear()}년 ${displayedMonth.getMonth() + 1}월`;
+    const first = new Date(displayedMonth.getFullYear(), displayedMonth.getMonth(), 1);
+    const offset = (first.getDay() + 6) % 7;
+    const start = new Date(first);
+    start.setDate(first.getDate() - offset);
+    const rows = [];
+
+    for (let week = 0; week < 6; week++) {
+      const cells = [];
+      for (let day = 0; day < 7; day++) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + week * 7 + day);
+        const dateKey = localDate(date);
+        const dayEvents = events.filter(event => event.start_date <= dateKey && event.end_date >= dateKey);
+        const classes = [date.getMonth() !== displayedMonth.getMonth() ? "is-outside" : "", dateKey === localDate(today) ? "is-today" : ""].filter(Boolean).join(" ");
+        const eventButtons = dayEvents.slice(0, 3).map(event =>
+          `<button type="button" class="calendar-event" data-event-id="${event.id}" title="${escapeHtml(event.title)}">${escapeHtml(event.title)}</button>`
+        ).join("");
+        const more = dayEvents.length > 3 ? `<span class="auth-note">+${dayEvents.length - 3}개</span>` : "";
+        cells.push(`<td class="calendar-day ${classes}" data-date="${dateKey}"><button type="button" class="calendar-date ${dateKey === localDate(today) ? "is-today" : ""}" data-date="${dateKey}" aria-label="${dateKey} 일정 추가">${date.getDate()}</button>${eventButtons}${more}</td>`);
+      }
+      rows.push(`<tr>${cells.join("")}</tr>`);
+    }
+    grid.innerHTML = rows.join("");
+    grid.querySelectorAll(".calendar-date").forEach(button => button.addEventListener("click", () => startNewEvent(button.dataset.date)));
+    grid.querySelectorAll(".calendar-event").forEach(button => button.addEventListener("click", () => editEvent(button.dataset.eventId)));
+  }
+
+  async function loadEvents() {
+    const response = await SAPAuth.apiFetch(API_URL);
+    if (!response.ok) throw new Error("일정을 불러오지 못했습니다.");
+    events = await response.json();
+    renderCalendar();
+  }
+
+  function startNewEvent(date = localDate(today)) {
+    editingId = null;
+    form.reset();
+    startInput.value = date;
+    endInput.value = date;
+    document.getElementById("form-title").textContent = "일정 추가";
+    document.getElementById("save-event").textContent = "일정 저장";
+    document.getElementById("cancel-edit").hidden = true;
+    document.getElementById("delete-event").hidden = true;
+    statusEl.textContent = "";
+    document.getElementById("event-name").focus({ preventScroll: true });
+  }
+
+  function editEvent(id) {
+    const event = events.find(item => String(item.id) === String(id));
+    if (!event) return;
+    editingId = event.id;
+    document.getElementById("event-name").value = event.title;
+    document.getElementById("event-description").value = event.description || "";
+    startInput.value = event.start_date;
+    endInput.value = event.end_date;
+    document.getElementById("form-title").textContent = "일정 수정";
+    document.getElementById("save-event").textContent = "수정 저장";
+    document.getElementById("cancel-edit").hidden = false;
+    document.getElementById("delete-event").hidden = false;
+    statusEl.textContent = "";
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.getElementById("previous-month").addEventListener("click", () => {
+    displayedMonth = new Date(displayedMonth.getFullYear(), displayedMonth.getMonth() - 1, 1);
+    renderCalendar();
+  });
+  document.getElementById("next-month").addEventListener("click", () => {
+    displayedMonth = new Date(displayedMonth.getFullYear(), displayedMonth.getMonth() + 1, 1);
+    renderCalendar();
+  });
+  document.getElementById("today-button").addEventListener("click", () => {
+    displayedMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    renderCalendar();
+    startNewEvent(localDate(today));
+  });
+  document.getElementById("cancel-edit").addEventListener("click", () => startNewEvent());
+  document.getElementById("delete-event").addEventListener("click", async () => {
+    if (!editingId || !confirm("이 일정을 삭제할까요?")) return;
+    const response = await SAPAuth.apiFetch(`${API_URL}/${editingId}`, { method: "DELETE" });
+    if (!response.ok) { statusEl.textContent = "일정을 삭제하지 못했습니다."; return; }
+    startNewEvent();
+    await loadEvents();
+  });
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    const payload = {
+      title: document.getElementById("event-name").value.trim(),
+      description: document.getElementById("event-description").value.trim(),
+      startDate: startInput.value,
+      endDate: endInput.value
+    };
+    const url = editingId ? `${API_URL}/${editingId}` : API_URL;
+    const response = await SAPAuth.apiFetch(url, {
+      method: editingId ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) { statusEl.textContent = "저장하지 못했습니다. 날짜와 제목을 확인해주세요."; return; }
+    const monthToShow = new Date(`${payload.startDate}T00:00:00`);
+    displayedMonth = new Date(monthToShow.getFullYear(), monthToShow.getMonth(), 1);
+    startNewEvent(payload.startDate);
+    await loadEvents();
+    statusEl.textContent = "저장했습니다.";
+  });
+
+  SAPAuth.requireSession().then(user => {
+    if (user?.unavailable) { grid.innerHTML = '<tr><td colspan="7">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>'; return; }
+    if (user) loadEvents().catch(error => { grid.innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`; });
+  });
+</script>
+<script src="assets/theme.js"></script>
+</body>
+</html>

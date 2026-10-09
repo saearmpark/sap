@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 웹개발 학습</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=dark-menu-contrast-1">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">SAP</div>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="calendar.html">일정</a>
+      <a href="learn.html" class="active">학습</a>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="game.html">게임제작</a>
+      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+    </nav>
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">LEARNING PATH</div>
+    <h1>웹개발 학습</h1>
+    <p class="lead">기초를 익히고 작은 결과물을 만들며 웹개발을 단계별로 연습합니다. 각 단계의 실습 결과는 게시판에 기록하고, 예제 파일은 자료실에 보관해보세요.</p>
+    <div class="learning-roadmap">
+      <section class="card learning-step">
+        <h3>HTML · 페이지 구조</h3>
+        <p>문서의 의미와 콘텐츠 구조를 만듭니다.</p>
+        <ul><li>제목, 문단, 링크, 이미지, 목록</li><li>폼과 입력 요소, 시맨틱 태그</li><li>실습: 자기소개 페이지 만들기</li></ul>
+      </section>
+      <section class="card learning-step">
+        <h3>CSS · 화면 디자인</h3>
+        <p>글꼴, 색상, 간격과 반응형 레이아웃을 익힙니다.</p>
+        <ul><li>선택자와 박스 모델</li><li>Flexbox, Grid, 미디어 쿼리</li><li>실습: 모바일에서도 읽기 편한 카드형 화면</li></ul>
+      </section>
+      <section class="card learning-step">
+        <h3>JavaScript · 상호작용</h3>
+        <p>사용자 입력에 반응하고 화면을 동적으로 바꿉니다.</p>
+        <ul><li>변수, 조건문, 반복문, 함수</li><li>DOM과 이벤트 처리</li><li>실습: 할 일 목록과 간단한 퀴즈</li></ul>
+      </section>
+      <section class="card learning-step">
+        <h3>데이터와 API</h3>
+        <p>브라우저와 서버 사이에서 데이터를 주고받습니다.</p>
+        <ul><li>JSON, HTTP 요청과 응답</li><li>Fetch와 비동기 처리</li><li>실습: 게시판 목록을 불러오고 새 글 등록하기</li></ul>
+      </section>
+      <section class="card learning-step">
+        <h3>Git · 배포와 프로젝트</h3>
+        <p>변경 이력을 관리하고 웹사이트를 공개합니다.</p>
+        <ul><li>저장소, 커밋, 브랜치</li><li>정적 페이지와 백엔드 배포의 차이</li><li>실습: 작은 웹앱을 완성해 GitHub Pages에 게시하기</li></ul>
+      </section>
+    </div>
+    <section class="card">
+      <h3>공식 학습 자료</h3>
+      <p><a href="https://developer.mozilla.org/ko/docs/Learn_web_development" target="_blank" rel="noopener">MDN 웹 개발 배우기</a> · HTML, CSS, JavaScript와 웹 기초를 다루는 학습 자료입니다.</p>
+    </section>
+  </main>
+</div>
+<script src="assets/auth.js"></script>
+<script src="assets/theme.js"></script>
+</body>
+</html>

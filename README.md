@@ -9,14 +9,15 @@ Java, Python, HTML/CSS를 연습하는 개인 학습 사이트입니다.
 
 ```text
 .
-├── index.html, board.html, files.html, game.html  # GitHub Pages 화면
+├── index.html, calendar.html, learn.html          # 홈, 일정, 학습 화면
+├── board.html, files.html, game.html              # 게시판, 자료실, 게임 화면
 ├── assets/                                        # 공통 CSS와 테마 전환 스크립트
 ├── backend-java/                                  # Spring Boot 게시판 API
 ├── backend-python/                                # Flask 게시판·자료실 학습용 API
 └── games/python/                                  # pygame-ce 게임 실습
 ```
 
-정적 페이지는 GitHub Pages에서 저장소 루트 기준으로 제공하므로 HTML 파일은 루트에 둡니다. 사이트 화면은 `assets/style.css`와 `assets/theme.js`를 공유합니다. 게시판과 자료실의 운영 API 주소는 `board.html`, `files.html`에서 확인할 수 있습니다.
+정적 페이지는 GitHub Pages에서 저장소 루트 기준으로 제공하므로 HTML 파일은 루트에 둡니다. 사이트 화면은 `assets/style.css`와 `assets/theme.js`를 공유합니다. 게시판과 자료실은 회원가입 후 로그인해야 하며, 일정도 로그인한 계정별로 저장됩니다. 인증과 일정 API는 Java 백엔드에 있습니다.
 
 ## 로컬 실행
 
@@ -60,5 +61,6 @@ python app.py
 - GitHub Pages는 루트 HTML과 `assets/`의 정적 파일을 제공합니다.
 - 게시판·자료실 프론트엔드는 Render의 Java API를 사용합니다.
 - 게시글은 JPA 저장소를 사용합니다. Java 자료실은 현재 메타데이터를 메모리에, 파일을 서버의 `uploads/` 폴더에 저장합니다. 따라서 Java 서버 재시작 또는 재배포 후 자료실 데이터가 유지된다고 보장할 수 없습니다.
+- 계정 비밀번호는 BCrypt로 해시해 저장하고, 7일 유효 인증 토큰은 DB에 해시 형태로 저장합니다. 계정과 일정은 JPA 데이터베이스에 저장됩니다.
 - Flask 대안은 SQLite DB와 업로드 파일을 `backend-python/` 아래에 저장합니다. Render의 임시 파일 시스템에서 실행하면 재시작 후 데이터가 유지되지 않을 수 있습니다.
 - `target/`, `uploads/`, Python 캐시와 로컬 DB 파일은 생성되거나 개발 환경에 종속되므로 Git 추적에서 제외합니다.
