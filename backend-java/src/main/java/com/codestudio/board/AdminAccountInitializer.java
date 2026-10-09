@@ -48,9 +48,6 @@ public class AdminAccountInitializer implements CommandLineRunner {
             throw new IllegalStateException("SAP_ADMIN_USERNAME이 기존 일반 계정과 중복됩니다. 사용하지 않은 관리자 아이디를 설정하세요.");
         }
         admin.promoteToAdministrator();
-        if (!passwordEncoder.matches(password, admin.getPasswordHash())) {
-            admin.setPasswordHash(passwordEncoder.encode(password));
-        }
         users.save(admin);
     }
 }
