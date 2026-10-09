@@ -60,7 +60,7 @@ python app.py
 
 - GitHub Pages는 루트 HTML과 `assets/`의 정적 파일을 제공합니다.
 - 게시판·자료실 프론트엔드는 Render의 Java API를 사용합니다.
-- 게시글은 JPA 저장소를 사용합니다. Java 자료실은 현재 메타데이터를 메모리에, 파일을 서버의 `uploads/` 폴더에 저장합니다. 따라서 Java 서버 재시작 또는 재배포 후 자료실 데이터가 유지된다고 보장할 수 없습니다.
+- 게시글과 Java 자료실 파일은 JPA를 통해 설정된 데이터베이스에 저장됩니다. Render 서버가 재시작되거나 재배포되어도 DB에 저장한 파일은 유지됩니다.
 - 계정 비밀번호는 BCrypt로 해시해 저장하고, 7일 유효 인증 토큰은 DB에 해시 형태로 저장합니다. 계정과 일정은 JPA 데이터베이스에 저장됩니다.
 - 첫 관리자 계정은 Render 환경변수 `SAP_ADMIN_USERNAME`, `SAP_ADMIN_PASSWORD`로 설정합니다. 승인 페이지는 관리자로 로그인하면 메뉴에 표시됩니다.
 - Flask 대안은 SQLite DB와 업로드 파일을 `backend-python/` 아래에 저장합니다. Render의 임시 파일 시스템에서 실행하면 재시작 후 데이터가 유지되지 않을 수 있습니다.
