@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>codestudio — 게임제작</title>
+<title>codestudio — 학습(게임)</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=dark-menu-contrast-1">
+<link rel="stylesheet" href="assets/style.css?v=learning-fixed-frame-2">
 <style>
   .game-list {
     display: flex;
@@ -43,6 +43,41 @@
     font-size: 12px;
     margin-bottom: 14px;
   }
+  .sudoku-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .sudoku-controls select, .sudoku-controls button {
+    min-height: 38px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--bg); color: var(--ink); font: inherit;
+  }
+  .sudoku-board {
+    display: grid; grid-template-columns: repeat(9, minmax(0, 1fr));
+    width: min(100%, 450px); aspect-ratio: 1; border: 2px solid var(--ink);
+  }
+  .sudoku-cell-wrap { position: relative; min-width: 0; min-height: 0; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .sudoku-cell-wrap[data-col="2"], .sudoku-cell-wrap[data-col="5"] { border-right: 2px solid var(--ink); }
+  .sudoku-cell-wrap[data-row="2"], .sudoku-cell-wrap[data-row="5"] { border-bottom: 2px solid var(--ink); }
+  input.sudoku-cell {
+    width: 100%; min-width: 0; height: 100%; padding: 0; border: 0;
+    border-radius: 0; background: var(--surface); color: var(--ink); text-align: center;
+    font: 500 clamp(16px, 4vw, 24px)/1 var(--sans); outline-offset: -2px;
+  }
+  .sudoku-cell.is-given { background: var(--accent-soft); font-weight: 700; }
+  .sudoku-cell.is-peer { background: color-mix(in srgb, var(--accent-soft) 58%, var(--surface)); }
+  .sudoku-cell.is-same { background: color-mix(in srgb, var(--accent) 25%, var(--surface)); }
+  .sudoku-cell.is-selected { position: relative; z-index: 1; outline: 2px solid var(--accent); }
+  .sudoku-cell.is-error, .sudoku-cell.is-incorrect { color: #c62828 !important; background: #ffe0e0; }
+  .sudoku-status { min-height: 26px; margin: 8px 0 0; color: var(--ink-soft); }
+  .sudoku-progress { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 8px; color: var(--ink-soft); font-size: 13px; }
+  .sudoku-progress-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .sudoku-progress-digit {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px;
+    padding: 0 5px; border: 1px solid var(--border); border-radius: 6px; color: var(--ink); font-weight: 600;
+  }
+  .sudoku-progress-digit.is-complete { color: #a51d1d; background: #ffe0e0; border-color: #e7a1a1; }
+  .sudoku-number-pad { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 4px; width: min(100%, 450px); margin-top: 10px; }
+  .sudoku-number-pad button { min-height: 36px; padding: 4px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface); color: var(--ink); font: inherit; }
+  .sudoku-notes { position: absolute; inset: 2px; z-index: 2; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); pointer-events: none; color: var(--ink-soft); font-size: clamp(7px, 1.7vw, 10px); line-height: 1; }
+  .sudoku-notes[hidden] { display: none; }
+  .sudoku-notes span { display: flex; align-items: center; justify-content: center; }
   .tt-layout {
     display: flex;
     gap: 8px;
@@ -154,26 +189,32 @@
   }
 </style>
 </head>
-<body>
+<body class="learning-page">
 <div class="layout">
   <aside class="sidebar">
-    <div class="brand">SAP</div>
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
     <nav class="nav-group">
       <div class="nav-label">MENU</div>
       <a href="index.html">홈</a>
       <a href="calendar.html">일정</a>
-      <a href="learn.html">학습</a>
+      <details class="nav-learning" open>
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱제작</a>
+          <a href="game.html" class="active" aria-current="page">게임제작</a>
+          <a href="language.html">외국어 학습</a>
+          <a href="electrical.html">전기 학습</a>
+        </div>
+      </details>
       <a href="board.html">게시판</a>
       <a href="files.html">자료실</a>
-      <a href="game.html" class="active">게임제작</a>
       <a href="login.html" data-auth-link>로그인 / 회원가입</a>
     </nav>
-    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
     <div class="sidebar-footer">v0.1 · local build</div>
   </aside>
   <main class="main">
     <div class="eyebrow">GAME DEV</div>
-    <h1>게임제작</h1>
+    <h1>게임 개발</h1>
 
     <div id="game-menu" class="game-list">
       <button class="game-list-item" type="button" data-target="panel-ttt">틱택토</button>
@@ -187,6 +228,7 @@
       <button class="game-list-item" type="button" data-target="panel-pong">퐁 / 탁구</button>
       <button class="game-list-item" type="button" data-target="panel-gyeol">결합 게임</button>
       <button class="game-list-item" type="button" data-target="panel-dodge">똥피하기</button>
+      <button class="game-list-item" type="button" data-target="panel-sudoku">스도쿠</button>
     </div>
 
     <div id="panel-ttt" class="card game-panel" hidden>
@@ -430,6 +472,34 @@
         <span id="dodge-status" class="ttt-status">시작 버튼을 눌러주세요</span>
         <button id="dodge-start" type="button">시작</button>
       </div>
+    </div>
+
+    <div id="panel-sudoku" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 12</span>
+      <h3>스도쿠 (JavaScript)</h3>
+      <p style="margin-bottom: 14px;">각 가로줄·세로줄·3×3 상자에 1부터 9까지 숫자가 한 번씩만 들어가도록 빈칸을 채우세요.</p>
+      <div class="sudoku-controls">
+        <label for="sudoku-difficulty">난이도</label>
+        <select id="sudoku-difficulty">
+          <option value="easy">쉬움</option>
+          <option value="medium" selected>보통</option>
+          <option value="hard">어려움</option>
+        </select>
+        <button id="sudoku-new" class="sudoku-button" type="button">새 게임</button>
+        <button id="sudoku-check" class="sudoku-button" type="button">정답 확인</button>
+        <button id="sudoku-clear" class="sudoku-button" type="button">선택 칸 지우기</button>
+        <button id="sudoku-notes-toggle" class="sudoku-button" type="button" aria-pressed="false">가상 숫자 모드: 끔</button>
+      </div>
+      <div class="sudoku-progress" aria-label="숫자별 완성 현황">
+        <span>완성된 숫자</span>
+        <div id="sudoku-progress-list" class="sudoku-progress-list"></div>
+      </div>
+      <div id="sudoku-board" class="sudoku-board" role="grid" aria-label="스도쿠 보드"></div>
+      <div id="sudoku-number-pad" class="sudoku-number-pad" aria-label="숫자 입력"></div>
+      <p id="sudoku-timer" class="sudoku-status" role="timer" aria-label="스도쿠 진행 시간">경과 시간: 00:00</p>
+      <p id="sudoku-status" class="sudoku-status" aria-live="polite">새 게임을 눌러 시작하세요.</p>
+      <p class="mobile-hint">빈칸을 선택해 숫자를 입력하세요. 가상 숫자 모드를 켜면 후보 숫자를 기록하거나 다시 눌러 지울 수 있습니다.</p>
     </div>
   </main>
 </div>
@@ -2341,6 +2411,403 @@
       stop() {
         running = false;
       },
+    });
+  })();
+</script>
+
+<script>
+  // ── STEP 12: 스도쿠 ─────────────────────────────
+  (function () {
+    const boardEl = document.getElementById("sudoku-board");
+    const statusEl = document.getElementById("sudoku-status");
+    const difficultyEl = document.getElementById("sudoku-difficulty");
+    const newBtn = document.getElementById("sudoku-new");
+    const checkBtn = document.getElementById("sudoku-check");
+    const clearBtn = document.getElementById("sudoku-clear");
+    const notesToggleBtn = document.getElementById("sudoku-notes-toggle");
+    const numberPadEl = document.getElementById("sudoku-number-pad");
+    const progressListEl = document.getElementById("sudoku-progress-list");
+    const timerEl = document.getElementById("sudoku-timer");
+    const FULL_MASK = 1022; // 비트 1~9를 사용합니다.
+    let solution = [];
+    let puzzle = [];
+    let inputs = [];
+    let noteLayers = [];
+    let notes = [];
+    let progressMarkers = [];
+    let selectedIndex = 40;
+    let incorrect = new Set();
+    let notesMode = false;
+    let startedAt = Date.now();
+    let completedSeconds = null;
+
+    function elapsedSeconds() {
+      return completedSeconds ?? Math.floor((Date.now() - startedAt) / 1000);
+    }
+
+    function formatTime(totalSeconds) {
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const mmss = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      return hours ? `${String(hours).padStart(2, "0")}:${mmss}` : mmss;
+    }
+
+    function updateTimer() {
+      timerEl.textContent = `경과 시간: ${formatTime(elapsedSeconds())}${completedSeconds !== null ? " · 완료" : ""}`;
+    }
+
+    setInterval(updateTimer, 1000);
+
+    function shuffle(items) {
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+      return items;
+    }
+
+    function createSolution() {
+      const bands = shuffle([0, 1, 2]);
+      const stacks = shuffle([0, 1, 2]);
+      const rows = bands.flatMap(band => shuffle([0, 1, 2]).map(row => band * 3 + row));
+      const cols = stacks.flatMap(stack => shuffle([0, 1, 2]).map(col => stack * 3 + col));
+      const digits = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      const pattern = (row, col) => (row * 3 + Math.floor(row / 3) + col) % 9;
+      return rows.map(row => cols.map(col => digits[pattern(row, col)]));
+    }
+
+    function countSolutions(cells, limit = 2) {
+      const rows = Array(9).fill(0);
+      const cols = Array(9).fill(0);
+      const boxes = Array(9).fill(0);
+
+      for (let index = 0; index < 81; index++) {
+        const value = cells[index];
+        if (!value) continue;
+        const row = Math.floor(index / 9), col = index % 9;
+        const box = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+        const bit = 1 << value;
+        if ((rows[row] & bit) || (cols[col] & bit) || (boxes[box] & bit)) return 0;
+        rows[row] |= bit;
+        cols[col] |= bit;
+        boxes[box] |= bit;
+      }
+
+      let solutions = 0;
+      function search() {
+        if (solutions >= limit) return;
+        let bestIndex = -1, bestOptions = 0, bestCount = 10;
+        for (let index = 0; index < 81; index++) {
+          if (cells[index]) continue;
+          const row = Math.floor(index / 9), col = index % 9;
+          const box = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+          const options = FULL_MASK & ~(rows[row] | cols[col] | boxes[box]);
+          let count = 0;
+          for (let bits = options; bits; bits &= bits - 1) count++;
+          if (count === 0) return;
+          if (count < bestCount) {
+            bestIndex = index;
+            bestOptions = options;
+            bestCount = count;
+            if (count === 1) break;
+          }
+        }
+        if (bestIndex === -1) {
+          solutions++;
+          return;
+        }
+
+        const row = Math.floor(bestIndex / 9), col = bestIndex % 9;
+        const box = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+        for (let bits = bestOptions; bits && solutions < limit; bits &= bits - 1) {
+          const bit = bits & -bits;
+          let value = 1;
+          while ((1 << value) !== bit) value++;
+          cells[bestIndex] = value;
+          rows[row] |= bit;
+          cols[col] |= bit;
+          boxes[box] |= bit;
+          search();
+          cells[bestIndex] = 0;
+          rows[row] &= ~bit;
+          cols[col] &= ~bit;
+          boxes[box] &= ~bit;
+        }
+      }
+
+      search();
+      return solutions;
+    }
+
+    function findConflicts(values = inputs.map(input => Number(input.value) || 0)) {
+      const conflicts = new Set();
+      for (let a = 0; a < 81; a++) {
+        if (!values[a]) continue;
+        const rowA = Math.floor(a / 9), colA = a % 9;
+        for (let b = a + 1; b < 81; b++) {
+          if (values[a] !== values[b]) continue;
+          const rowB = Math.floor(b / 9), colB = b % 9;
+          const sameBox = Math.floor(rowA / 3) === Math.floor(rowB / 3)
+            && Math.floor(colA / 3) === Math.floor(colB / 3);
+          if (rowA === rowB || colA === colB || sameBox) {
+            conflicts.add(a);
+            conflicts.add(b);
+          }
+        }
+      }
+      return conflicts;
+    }
+
+    function refreshHighlights() {
+      const values = inputs.map(input => Number(input.value) || 0);
+      const conflicts = findConflicts(values);
+      const selectedRow = Math.floor(selectedIndex / 9), selectedCol = selectedIndex % 9;
+      const selectedValue = inputs[selectedIndex]?.value;
+      progressMarkers.forEach((marker, index) => {
+        const digit = index + 1;
+        const positions = [];
+        values.forEach((value, cellIndex) => { if (value === digit) positions.push(cellIndex); });
+        const complete = positions.length === 9 && positions.every(cellIndex => !conflicts.has(cellIndex));
+        marker.classList.toggle("is-complete", complete);
+        marker.textContent = complete ? `✓ ${digit}` : String(digit);
+        marker.setAttribute("aria-label", `숫자 ${digit} ${complete ? "완료" : "미완료"}`);
+      });
+      inputs.forEach((input, index) => {
+        const row = Math.floor(index / 9), col = index % 9;
+        const sameBox = Math.floor(row / 3) === Math.floor(selectedRow / 3)
+          && Math.floor(col / 3) === Math.floor(selectedCol / 3);
+        input.classList.toggle("is-selected", index === selectedIndex);
+        input.classList.toggle("is-peer", row === selectedRow || col === selectedCol || sameBox);
+        input.classList.toggle("is-same", Boolean(selectedValue) && input.value === selectedValue);
+        input.classList.toggle("is-error", conflicts.has(index));
+        input.classList.toggle("is-incorrect", incorrect.has(index));
+        const noteLayer = noteLayers[index];
+        if (noteLayer) {
+          noteLayer.hidden = Boolean(input.value) || input.readOnly;
+          Array.from(noteLayer.children).forEach((slot, slotIndex) => {
+            slot.textContent = notes[index]?.has(slotIndex + 1) ? String(slotIndex + 1) : "";
+          });
+          const cellLabel = `${Math.floor(index / 9) + 1}행 ${index % 9 + 1}열`;
+          const noteLabel = notes[index]?.size ? `, 가상 숫자 ${Array.from(notes[index]).join(", ")}` : "";
+          input.setAttribute("aria-label", input.readOnly
+            ? `${cellLabel}, 고정 숫자 ${input.value}`
+            : `${cellLabel}${noteLabel}`);
+        }
+      });
+    }
+
+    function renderBoard() {
+      boardEl.replaceChildren();
+      inputs = [];
+      noteLayers = [];
+      for (let index = 0; index < 81; index++) {
+        const row = Math.floor(index / 9), col = index % 9;
+        const cell = document.createElement("div");
+        cell.className = "sudoku-cell-wrap";
+        cell.dataset.row = row;
+        cell.dataset.col = col;
+        if (col === 8) cell.style.borderRight = "0";
+        if (row === 8) cell.style.borderBottom = "0";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.inputMode = "numeric";
+        input.maxLength = 1;
+        input.autocomplete = "off";
+        input.className = "sudoku-cell";
+        input.dataset.row = row;
+        input.dataset.col = col;
+        input.setAttribute("role", "gridcell");
+        input.setAttribute("aria-label", `${row + 1}행 ${col + 1}열`);
+        if (puzzle[index]) {
+          input.value = puzzle[index];
+          input.readOnly = true;
+          input.classList.add("is-given");
+          input.setAttribute("aria-label", `${row + 1}행 ${col + 1}열, 고정 숫자 ${puzzle[index]}`);
+        }
+        input.addEventListener("focus", () => {
+          selectedIndex = index;
+          refreshHighlights();
+        });
+        input.addEventListener("input", () => {
+          const digit = input.value.replace(/[^1-9]/g, "").slice(-1);
+          if (notesMode) {
+            input.value = "";
+            if (digit) toggleNote(index, Number(digit));
+            return;
+          }
+          input.value = digit;
+          notes[index].clear();
+          incorrect.clear();
+          statusEl.textContent = "입력했습니다. 정답 확인을 눌러보세요.";
+          refreshHighlights();
+          finishIfSolved();
+        });
+        input.addEventListener("keydown", event => {
+          if (notesMode && /^[1-9]$/.test(event.key)) {
+            event.preventDefault();
+            toggleNote(index, Number(event.key));
+            return;
+          }
+          const moves = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 };
+          if (!(event.key in moves)) return;
+          event.preventDefault();
+          const next = Math.max(0, Math.min(80, index + moves[event.key]));
+          inputs[next]?.focus();
+        });
+        const noteLayer = document.createElement("span");
+        noteLayer.className = "sudoku-notes";
+        noteLayer.setAttribute("aria-hidden", "true");
+        for (let digit = 1; digit <= 9; digit++) noteLayer.appendChild(document.createElement("span"));
+        inputs.push(input);
+        noteLayers.push(noteLayer);
+        cell.append(input, noteLayer);
+        boardEl.appendChild(cell);
+      }
+      refreshHighlights();
+    }
+
+    function toggleNote(index, digit) {
+      const input = inputs[index];
+      if (!input || input.readOnly || input.value) {
+        statusEl.textContent = "가상 숫자는 비어 있는 칸에만 기록할 수 있습니다.";
+        return;
+      }
+      if (notes[index].has(digit)) notes[index].delete(digit);
+      else notes[index].add(digit);
+      incorrect.clear();
+      statusEl.textContent = `선택한 칸의 가상 숫자 ${digit}을 ${notes[index].has(digit) ? "추가" : "삭제"}했습니다.`;
+      refreshHighlights();
+    }
+
+    function enterDigit(digit) {
+      if (!inputs.length) {
+        statusEl.textContent = "새 게임을 먼저 시작하세요.";
+        return;
+      }
+      if (notesMode) {
+        toggleNote(selectedIndex, digit);
+        return;
+      }
+      const input = inputs[selectedIndex];
+      if (!input || input.readOnly) {
+        statusEl.textContent = "숫자를 입력할 빈칸을 선택해주세요.";
+        return;
+      }
+      input.value = String(digit);
+      notes[selectedIndex].clear();
+      incorrect.clear();
+      statusEl.textContent = "입력했습니다. 정답 확인을 눌러보세요.";
+      refreshHighlights();
+      finishIfSolved();
+    }
+
+    function newPuzzle() {
+      startedAt = Date.now();
+      completedSeconds = null;
+      updateTimer();
+      solution = createSolution();
+      puzzle = solution.flat();
+      notes = Array.from({ length: 81 }, () => new Set());
+      const targets = { easy: 34, medium: 45, hard: 52 };
+      const targetBlanks = targets[difficultyEl.value] || targets.medium;
+      let blanks = 0;
+      for (const index of shuffle(Array.from({ length: 81 }, (_, i) => i))) {
+        if (blanks >= targetBlanks) break;
+        const candidate = puzzle.slice();
+        candidate[index] = 0;
+        if (countSolutions(candidate, 2) === 1) {
+          puzzle = candidate;
+          blanks++;
+        }
+      }
+      selectedIndex = puzzle.findIndex(value => value === 0);
+      if (selectedIndex < 0) selectedIndex = 40;
+      incorrect.clear();
+      notesMode = false;
+      notesToggleBtn.setAttribute("aria-pressed", "false");
+      notesToggleBtn.textContent = "가상 숫자 모드: 끔";
+      renderBoard();
+      statusEl.textContent = `새 스도쿠를 시작합니다. 빈칸 ${blanks}개 · 난이도 ${difficultyEl.options[difficultyEl.selectedIndex].text}`;
+    }
+
+    function checkPuzzle() {
+      const conflicts = findConflicts();
+      if (conflicts.size) {
+        incorrect.clear();
+        statusEl.textContent = "같은 행·열·3×3 상자에 중복된 숫자가 있습니다.";
+        refreshHighlights();
+        return;
+      }
+      incorrect = new Set(inputs.reduce((found, input, index) => {
+        if (input.value && Number(input.value) !== solution[index]) found.push(index);
+        return found;
+      }, []));
+      const emptyCount = inputs.filter(input => !input.value).length;
+      if (incorrect.size) {
+        statusEl.textContent = `정답과 다른 숫자가 ${incorrect.size}개 있습니다. 표시된 칸을 확인하세요.`;
+      } else if (emptyCount) {
+        statusEl.textContent = `좋습니다! 빈칸 ${emptyCount}개가 남았습니다.`;
+      } else {
+        completedSeconds = elapsedSeconds();
+        statusEl.textContent = `축하합니다! ${formatTime(completedSeconds)} 만에 스도쿠를 완성했습니다.`;
+        updateTimer();
+      }
+      refreshHighlights();
+    }
+
+    function finishIfSolved() {
+      if (completedSeconds !== null || inputs.some(input => !input.value)) return;
+      if (!inputs.every((input, index) => Number(input.value) === solution[index])) return;
+      completedSeconds = elapsedSeconds();
+      statusEl.textContent = `축하합니다! ${formatTime(completedSeconds)} 만에 스도쿠를 완성했습니다.`;
+      updateTimer();
+    }
+
+    newBtn.addEventListener("click", newPuzzle);
+    checkBtn.addEventListener("click", checkPuzzle);
+    clearBtn.addEventListener("click", () => {
+      const input = inputs[selectedIndex];
+      if (!input || input.readOnly) {
+        statusEl.textContent = "숫자가 입력된 빈칸을 선택해주세요.";
+        return;
+      }
+      input.value = "";
+      notes[selectedIndex].clear();
+      incorrect.clear();
+      statusEl.textContent = "선택한 칸을 비웠습니다.";
+      refreshHighlights();
+      input.focus({ preventScroll: true });
+    });
+
+    notesToggleBtn.addEventListener("click", () => {
+      notesMode = !notesMode;
+      notesToggleBtn.setAttribute("aria-pressed", String(notesMode));
+      notesToggleBtn.textContent = `가상 숫자 모드: ${notesMode ? "켬" : "끔"}`;
+      statusEl.textContent = notesMode
+        ? "가상 숫자 모드입니다. 빈 칸을 선택한 뒤 숫자를 입력해 후보를 기록하세요."
+        : "일반 입력 모드입니다. 숫자를 입력해 답을 채우세요.";
+    });
+
+    for (let digit = 1; digit <= 9; digit++) {
+      const marker = document.createElement("span");
+      marker.className = "sudoku-progress-digit";
+      marker.textContent = String(digit);
+      progressMarkers.push(marker);
+      progressListEl.appendChild(marker);
+
+      const key = document.createElement("button");
+      key.className = "sudoku-button";
+      key.type = "button";
+      key.textContent = String(digit);
+      key.setAttribute("aria-label", `숫자 ${digit} 입력`);
+      key.addEventListener("click", () => enterDigit(digit));
+      numberPadEl.appendChild(key);
+    }
+
+    registerGame("panel-sudoku", {
+      init: newPuzzle,
+      stop() {},
     });
   })();
 </script>

@@ -18,7 +18,7 @@
     <description>codestudio 게시판 API 서버 (Spring Boot)</description>
 
     <properties>
-        <!-- 컴퓨터에 설치된 JDK 17과 맞춥니다. 21을 쓰려면 JDK 21을 새로 설치해야 하므로 17로 유지합니다. -->
+        <!-- JDK 27로 실행하되 Java 17과의 소스/바이트코드 호환성을 유지합니다. -->
         <java.version>17</java.version>
     </properties>
 

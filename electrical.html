@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 학습(전기)</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=learning-fixed-frame-2">
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="calendar.html">일정</a>
+      <details class="nav-learning" open>
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱제작</a>
+          <a href="game.html">게임제작</a>
+          <a href="language.html">외국어 학습</a>
+          <a href="electrical.html" class="active" aria-current="page">전기 학습</a>
+        </div>
+      </details>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">ELECTRICAL LEARNING</div>
+    <h1>전기학습</h1>
+    <p class="lead">기초 개념과 회로 읽기부터 시작합니다. 실습은 안전한 저전압 환경에서 진행하세요.</p>
+    <div class="learning-roadmap">
+      <section class="card learning-step"><h3>전기량과 단위</h3><p>전압, 전류, 저항, 전력의 뜻과 단위를 익힙니다.</p><ul><li>전압(V), 전류(A), 저항(Ω), 전력(W)</li><li>각 값이 회로에서 의미하는 것 정리</li></ul></section>
+      <section class="card learning-step"><h3>기본 법칙</h3><p>옴의 법칙과 직렬·병렬 회로의 관계를 살펴봅니다.</p><ul><li>전압 = 전류 × 저항</li><li>직렬과 병렬 연결의 차이</li></ul></section>
+      <section class="card learning-step"><h3>회로도 읽기</h3><p>기본 부품 기호와 연결 관계를 읽는 연습을 합니다.</p><ul><li>전원, 저항, 스위치, LED 기호</li><li>간단한 회로도에서 전류 경로 찾기</li></ul></section>
+      <section class="card learning-step"><h3>측정 기초</h3><p>멀티미터의 측정 모드와 기본 연결 원리를 익힙니다.</p><ul><li>전압·저항 측정 모드 구분</li><li>측정 전 기기와 회로 상태 확인</li></ul></section>
+      <section class="card learning-step"><h3>안전한 실습</h3><p>실습 전 전원과 부품의 정격을 확인하고 안전 수칙을 지킵니다.</p><ul><li>처음에는 배터리 등 저전압 회로 사용</li><li>가정용 전원 설비 작업은 전문가 지도 없이 하지 않기</li></ul></section>
+    </div>
+    <section class="card">
+      <h3>학습 기록</h3>
+      <p>회로 그림, 측정값, 관찰한 점을 함께 기록하면 개념과 실제 동작을 비교하기 좋습니다.</p>
+    </section>
+  </main>
+</div>
+<script src="assets/auth.js?v=password-change-redirect-1"></script>
+<script src="assets/theme.js"></script>
+</body>
+</html>

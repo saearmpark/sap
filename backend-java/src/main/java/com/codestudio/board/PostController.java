@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,16 +54,25 @@ public class PostController {
             return ResponseEntity.badRequest().body(Map.of("error", "제목과 내용을 모두 입력하세요."));
         }
 
-        String authorName = users.findById((Long) authentication.getPrincipal())
-                .map(UserAccount::getUsername)
+        String authorName = users.findById((long) authentication.getPrincipal())
+                .map(user -> user.getUsername())
                 .orElseThrow(() -> new IllegalStateException("로그인 사용자 정보를 찾을 수 없습니다."));
         Post saved = repository.save(new Post(title, content, ZonedDateTime.now(KST).format(FORMATTER), authorName));
         return ResponseEntity.status(201).body(Map.of("id", saved.getId(), "message", "게시글이 등록되었습니다."));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable long id) {
-        repository.deleteById(id);
+    public ResponseEntity<?> delete(@PathVariable long id, Authentication authentication) {
+        Post post = repository.findById(id).orElse(null);
+        if (post == null) return ResponseEntity.notFound().build();
+        long userId = (Long) authentication.getPrincipal();
+        boolean administrator = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        String username = users.findById(userId).map(user -> user.getUsername()).orElse("");
+        if (!administrator && !username.equals(post.getAuthorName())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        repository.delete(post);
         return ResponseEntity.ok(Map.of("message", "삭제되었습니다."));
     }
 }

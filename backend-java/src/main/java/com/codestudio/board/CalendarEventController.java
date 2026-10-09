@@ -1,8 +1,10 @@
 package com.codestudio.board;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,9 +36,13 @@ public class CalendarEventController {
     public List<EventView> list(Authentication authentication) {
         Long viewerId = userId(authentication);
         List<CalendarEvent> visibleEvents = events.findAllByOwnerIdOrPublicEventTrueOrderByStartDateAscIdAsc(viewerId);
-        Set<Long> ownerIds = visibleEvents.stream().map(CalendarEvent::getOwnerId).collect(Collectors.toSet());
-        Map<Long, String> displayNames = users.findAllById(ownerIds).stream()
-                .collect(Collectors.toMap(UserAccount::getId, UserAccount::getDisplayName));
+        Set<Long> ownerIds = visibleEvents.stream()
+                .map(event -> Objects.requireNonNull(event.getOwnerId())).collect(Collectors.toSet());
+        Map<Long, String> displayNames = new HashMap<>();
+        for (Long ownerId : ownerIds) {
+            users.findById(Objects.requireNonNull(ownerId)).ifPresent(user ->
+                    displayNames.put(Objects.requireNonNull(user.getId()), Objects.requireNonNull(user.getDisplayName())));
+        }
         return visibleEvents.stream().map(event -> new EventView(
                 event.getId(), event.getTitle(), event.getDescription(), event.getStartDate(), event.getEndDate(),
                 event.getPublicEvent(), event.getOwnerId().equals(viewerId), displayNames.getOrDefault(event.getOwnerId(), "사용자")
@@ -46,7 +52,7 @@ public class CalendarEventController {
     @PostMapping
     public ResponseEntity<CalendarEvent> create(Authentication authentication, @RequestBody EventRequest request) {
         CalendarEvent event = toEvent(userId(authentication), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(events.save(event));
+        return ResponseEntity.status(HttpStatus.CREATED).body(events.save(Objects.requireNonNull(event)));
     }
 
     @PutMapping("/{id}")
@@ -56,14 +62,14 @@ public class CalendarEventController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "일정을 찾을 수 없습니다."));
         CalendarEvent updated = toEvent(ownerId, request);
         event.update(updated.getTitle(), updated.getDescription(), updated.getStartDate(), updated.getEndDate(), updated.getPublicEvent());
-        return ResponseEntity.ok(events.save(event));
+        return ResponseEntity.ok(events.save(Objects.requireNonNull(event)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(Authentication authentication, @PathVariable Long id) {
         CalendarEvent event = events.findByIdAndOwnerId(id, userId(authentication))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "일정을 찾을 수 없습니다."));
-        events.delete(event);
+        events.delete(Objects.requireNonNull(event));
         return ResponseEntity.ok(Map.of("message", "일정을 삭제했습니다."));
     }
 

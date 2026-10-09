@@ -34,7 +34,7 @@ public class AdminUserController {
     }
 
     @PutMapping("/{id}/approval")
-    public ResponseEntity<?> decide(@PathVariable Long id, @RequestBody ApprovalRequest request) {
+    public ResponseEntity<?> decide(@PathVariable long id, @RequestBody ApprovalRequest request) {
         if (!"APPROVED".equals(request.status()) && !"REJECTED".equals(request.status())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "승인 상태는 APPROVED 또는 REJECTED여야 합니다.");
         }

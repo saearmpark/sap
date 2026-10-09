@@ -3,64 +3,215 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>codestudio — 웹개발 학습</title>
+<title>codestudio — 학습(앱)</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=dark-menu-contrast-1">
+<link rel="stylesheet" href="assets/style.css?v=learning-fixed-frame-2">
+<style>
+  .app-list { display:flex; flex-direction:column; max-width:520px; margin:18px 0 24px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .app-list button { width:100%; text-align:left; color:var(--ink); background:var(--surface); border:0; border-bottom:1px solid var(--border); border-radius:0; padding:14px 16px; }
+  .app-list button:last-child { border-bottom:0; }
+  .app-list button:hover { background:var(--accent-soft); }
+  .app-panel[hidden] { display:none; }
+  .app-back { margin-bottom:14px; background:transparent; color:var(--ink-soft); border:1px solid var(--border); padding:5px 10px; }
+  .app-form { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:12px 0; }
+  .app-form input, .app-form select, .app-panel textarea { min-height:40px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:inherit; }
+  .app-form input[type="text"] { flex:1 1 200px; width:auto; }
+  .app-form input[type="number"] { width:130px; }
+  .app-panel textarea { width:100%; min-height:220px; resize:vertical; }
+  .app-items { display:grid; gap:8px; padding:0; list-style:none; }
+  .app-items li { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--surface); }
+  .app-items li span { flex:1; overflow-wrap:anywhere; }
+  .app-items li.is-done span { color:var(--ink-soft); text-decoration:line-through; }
+  .app-items button { padding:5px 9px; background:transparent; color:var(--ink-soft); border:1px solid var(--border); }
+  .app-total { font-size:20px; font-weight:700; }
+  .app-muted { color:var(--ink-soft); font-size:13px; }
+  :root[data-theme="dark"] .app-list button, :root[data-theme="dark"] .app-back { color:var(--ink) !important; }
+  :root[data-theme="dark"] .app-items button { color:var(--ink-soft) !important; }
+</style>
 </head>
-<body>
+<body class="learning-page">
 <div class="layout">
   <aside class="sidebar">
-    <div class="brand">SAP</div>
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
     <nav class="nav-group">
       <div class="nav-label">MENU</div>
       <a href="index.html">홈</a>
       <a href="calendar.html">일정</a>
-      <a href="learn.html" class="active">학습</a>
+      <details class="nav-learning" open>
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="learn.html" class="active" aria-current="page">앱제작</a>
+          <a href="game.html">게임제작</a>
+          <a href="language.html">외국어 학습</a>
+          <a href="electrical.html">전기 학습</a>
+        </div>
+      </details>
       <a href="board.html">게시판</a>
       <a href="files.html">자료실</a>
-      <a href="game.html">게임제작</a>
       <a href="login.html" data-auth-link>로그인 / 회원가입</a>
     </nav>
-    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
     <div class="sidebar-footer">v0.1 · local build</div>
   </aside>
   <main class="main">
-    <div class="eyebrow">LEARNING PATH</div>
-    <h1>웹개발 학습</h1>
-    <p class="lead">기초를 익히고 작은 결과물을 만들며 웹개발을 단계별로 연습합니다. 각 단계의 실습 결과는 게시판에 기록하고, 예제 파일은 자료실에 보관해보세요.</p>
-    <div class="learning-roadmap">
-      <section class="card learning-step">
-        <h3>HTML · 페이지 구조</h3>
-        <p>문서의 의미와 콘텐츠 구조를 만듭니다.</p>
-        <ul><li>제목, 문단, 링크, 이미지, 목록</li><li>폼과 입력 요소, 시맨틱 태그</li><li>실습: 자기소개 페이지 만들기</li></ul>
-      </section>
-      <section class="card learning-step">
-        <h3>CSS · 화면 디자인</h3>
-        <p>글꼴, 색상, 간격과 반응형 레이아웃을 익힙니다.</p>
-        <ul><li>선택자와 박스 모델</li><li>Flexbox, Grid, 미디어 쿼리</li><li>실습: 모바일에서도 읽기 편한 카드형 화면</li></ul>
-      </section>
-      <section class="card learning-step">
-        <h3>JavaScript · 상호작용</h3>
-        <p>사용자 입력에 반응하고 화면을 동적으로 바꿉니다.</p>
-        <ul><li>변수, 조건문, 반복문, 함수</li><li>DOM과 이벤트 처리</li><li>실습: 할 일 목록과 간단한 퀴즈</li></ul>
-      </section>
-      <section class="card learning-step">
-        <h3>데이터와 API</h3>
-        <p>브라우저와 서버 사이에서 데이터를 주고받습니다.</p>
-        <ul><li>JSON, HTTP 요청과 응답</li><li>Fetch와 비동기 처리</li><li>실습: 게시판 목록을 불러오고 새 글 등록하기</li></ul>
-      </section>
-      <section class="card learning-step">
-        <h3>Git · 배포와 프로젝트</h3>
-        <p>변경 이력을 관리하고 웹사이트를 공개합니다.</p>
-        <ul><li>저장소, 커밋, 브랜치</li><li>정적 페이지와 백엔드 배포의 차이</li><li>실습: 작은 웹앱을 완성해 GitHub Pages에 게시하기</li></ul>
-      </section>
+    <div class="eyebrow">APP MAKING</div>
+    <h1>앱제작</h1>
+    <div id="app-menu" class="app-list">
+      <button type="button" data-app="todo">할 일 관리</button>
+      <button type="button" data-app="notes">메모장</button>
+      <button type="button" data-app="expenses">지출 관리</button>
     </div>
-    <section class="card">
-      <h3>공식 학습 자료</h3>
-      <p><a href="https://developer.mozilla.org/ko/docs/Learn_web_development" target="_blank" rel="noopener">MDN 웹 개발 배우기</a> · HTML, CSS, JavaScript와 웹 기초를 다루는 학습 자료입니다.</p>
+    <section id="app-todo" class="card app-panel" hidden>
+      <button class="app-back" type="button">← 앱 목록</button>
+      <h3>할 일 관리</h3>
+      <form id="todo-form" class="app-form"><input id="todo-input" type="text" maxlength="160" placeholder="할 일을 입력하세요" required><button type="submit">추가</button></form>
+      <ul id="todo-list" class="app-items"></ul>
+      <p class="app-muted">내용은 이 브라우저에 저장됩니다.</p>
+    </section>
+    <section id="app-notes" class="card app-panel" hidden>
+      <button class="app-back" type="button">← 앱 목록</button>
+      <h3>메모장</h3>
+      <textarea id="notes-input" maxlength="10000" placeholder="메모를 입력하세요. 입력하면 자동 저장됩니다."></textarea>
+      <p id="notes-status" class="app-muted" aria-live="polite">이 브라우저에 자동 저장됩니다.</p>
+    </section>
+    <section id="app-expenses" class="card app-panel" hidden>
+      <button class="app-back" type="button">← 앱 목록</button>
+      <h3>지출 관리</h3>
+      <form id="expense-form" class="app-form">
+        <input id="expense-name" type="text" maxlength="100" placeholder="지출 내용" required>
+        <input id="expense-amount" type="number" min="1" step="1" placeholder="금액(원)" required>
+        <input id="expense-date" type="date" required>
+        <button type="submit">기록</button>
+      </form>
+      <p class="app-total">합계: <span id="expense-total">0원</span></p>
+      <ul id="expense-list" class="app-items"></ul>
+      <p class="app-muted">내역은 이 브라우저에 저장됩니다.</p>
     </section>
   </main>
 </div>
+<script>
+  (() => {
+    const menu = document.getElementById("app-menu");
+    const panels = Array.from(document.querySelectorAll(".app-panel"));
+    const storage = {
+      read(key, fallback) {
+        try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+      },
+      write(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { return false; }
+      },
+    };
+    function openApp(name) {
+      menu.hidden = true;
+      panels.forEach(panel => { panel.hidden = panel.id !== `app-${name}`; });
+    }
+    function showMenu() {
+      panels.forEach(panel => { panel.hidden = true; });
+      menu.hidden = false;
+    }
+    menu.addEventListener("click", event => {
+      const button = event.target.closest("[data-app]");
+      if (button) openApp(button.dataset.app);
+    });
+    document.querySelectorAll(".app-back").forEach(button => button.addEventListener("click", showMenu));
+
+    const todoForm = document.getElementById("todo-form");
+    const todoInput = document.getElementById("todo-input");
+    const todoList = document.getElementById("todo-list");
+    let todos = storage.read("sap-app-todos", []);
+    function renderTodos() {
+      todoList.replaceChildren();
+      todos.forEach(todo => {
+        const item = document.createElement("li");
+        item.classList.toggle("is-done", todo.done);
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = todo.done;
+        checkbox.setAttribute("aria-label", `${todo.text} 완료 여부`);
+        checkbox.addEventListener("change", () => {
+          todo.done = checkbox.checked;
+          storage.write("sap-app-todos", todos);
+          renderTodos();
+        });
+        const text = document.createElement("span");
+        text.textContent = todo.text;
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "삭제";
+        remove.setAttribute("aria-label", `${todo.text} 삭제`);
+        remove.addEventListener("click", () => {
+          todos = todos.filter(entry => entry.id !== todo.id);
+          storage.write("sap-app-todos", todos);
+          renderTodos();
+        });
+        item.append(checkbox, text, remove);
+        todoList.appendChild(item);
+      });
+    }
+    todoForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const text = todoInput.value.trim();
+      if (!text) return;
+      todos.unshift({ id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`, text, done: false });
+      storage.write("sap-app-todos", todos);
+      todoInput.value = "";
+      renderTodos();
+      todoInput.focus();
+    });
+    renderTodos();
+
+    const notesInput = document.getElementById("notes-input");
+    const notesStatus = document.getElementById("notes-status");
+    notesInput.value = storage.read("sap-app-notes", "");
+    notesInput.addEventListener("input", () => {
+      notesStatus.textContent = storage.write("sap-app-notes", notesInput.value)
+        ? "저장했습니다. 이 브라우저에서 다시 열어도 메모가 남습니다."
+        : "저장하지 못했습니다. 브라우저 저장 공간을 확인해주세요.";
+    });
+
+    const expenseForm = document.getElementById("expense-form");
+    const expenseName = document.getElementById("expense-name");
+    const expenseAmount = document.getElementById("expense-amount");
+    const expenseDate = document.getElementById("expense-date");
+    const expenseList = document.getElementById("expense-list");
+    const expenseTotal = document.getElementById("expense-total");
+    let expenses = storage.read("sap-app-expenses", []);
+    expenseDate.value = new Date().toLocaleDateString("sv-SE");
+    function renderExpenses() {
+      expenseList.replaceChildren();
+      const total = expenses.reduce((sum, entry) => sum + entry.amount, 0);
+      expenseTotal.textContent = `${total.toLocaleString("ko-KR")}원`;
+      expenses.forEach(expense => {
+        const item = document.createElement("li");
+        const text = document.createElement("span");
+        text.textContent = `${expense.date} · ${expense.name} · ${expense.amount.toLocaleString("ko-KR")}원`;
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "삭제";
+        remove.setAttribute("aria-label", `${expense.name} 지출 삭제`);
+        remove.addEventListener("click", () => {
+          expenses = expenses.filter(entry => entry.id !== expense.id);
+          storage.write("sap-app-expenses", expenses);
+          renderExpenses();
+        });
+        item.append(text, remove);
+        expenseList.appendChild(item);
+      });
+    }
+    expenseForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const amount = Number(expenseAmount.value);
+      const name = expenseName.value.trim();
+      if (!name || !Number.isSafeInteger(amount) || amount < 1) return;
+      expenses.unshift({ id: `${Date.now()}-${Math.random()}`, name, amount, date: expenseDate.value });
+      storage.write("sap-app-expenses", expenses);
+      expenseName.value = "";
+      expenseAmount.value = "";
+      renderExpenses();
+      expenseName.focus();
+    });
+    renderExpenses();
+  })();
+</script>
 <script src="assets/auth.js?v=password-change-redirect-1"></script>
 <script src="assets/theme.js"></script>
 </body>

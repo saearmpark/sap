@@ -4,6 +4,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -97,9 +98,18 @@ public class FileController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteFile(@PathVariable Long id) {
-        if (!files.existsById(id)) return ResponseEntity.notFound().build();
-        files.deleteById(id);
+    public ResponseEntity<Void> deleteFile(@PathVariable Long id, Authentication authentication) {
+        Optional<FileItem> found = files.findById(id);
+        if (found.isEmpty()) return ResponseEntity.notFound().build();
+        FileItem file = found.get();
+        Long userId = (Long) authentication.getPrincipal();
+        boolean administrator = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        String username = users.findById(userId).map(UserAccount::getUsername).orElse("");
+        if (!administrator && !username.equals(file.getAuthorName())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        files.delete(file);
         return ResponseEntity.ok().build();
     }
 }

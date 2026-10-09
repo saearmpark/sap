@@ -9,5 +9,6 @@ oracleJdk-27/
 *.py[cod]
 
 # 로컬 개발용 DB 파일은 소스 저장소에 포함하지 않습니다.
+**/*.db
 *.mv.db
 *.lock.db

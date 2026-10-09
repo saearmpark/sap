@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 학습(외국어)</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=learning-fixed-frame-2">
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="calendar.html">일정</a>
+      <details class="nav-learning" open>
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱제작</a>
+          <a href="game.html">게임제작</a>
+          <a href="language.html" class="active" aria-current="page">외국어 학습</a>
+          <a href="electrical.html">전기 학습</a>
+        </div>
+      </details>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">LANGUAGE LEARNING</div>
+    <h1>외국어학습</h1>
+    <p class="lead">배우려는 언어를 정하고, 듣기·말하기·읽기·쓰기를 짧은 루틴으로 꾸준히 연습해보세요.</p>
+    <div class="learning-roadmap">
+      <section class="card learning-step"><h3>발음과 문자</h3><p>문자 체계와 기본 발음을 익히고 소리 내어 따라 읽습니다.</p><ul><li>기본 문자와 발음 규칙 정리</li><li>짧은 단어를 듣고 따라 말하기</li></ul></section>
+      <section class="card learning-step"><h3>기초 표현</h3><p>일상에서 자주 만나는 상황을 문장으로 익힙니다.</p><ul><li>인사와 자기소개</li><li>시간, 장소, 주문과 길 묻기</li></ul></section>
+      <section class="card learning-step"><h3>어휘와 문법</h3><p>단어를 예문과 함께 정리하고 짧은 문장을 직접 만들어봅니다.</p><ul><li>하루에 새 단어 5개 복습</li><li>배운 문법으로 예문 3개 만들기</li></ul></section>
+      <section class="card learning-step"><h3>듣기와 읽기</h3><p>짧은 음성이나 글을 반복해서 접하고 핵심 내용을 요약합니다.</p><ul><li>짧은 자료를 여러 번 듣기</li><li>모르는 표현을 문맥과 함께 정리</li></ul></section>
+      <section class="card learning-step"><h3>말하기와 쓰기</h3><p>배운 표현을 실제 문장으로 사용해 기억에 남깁니다.</p><ul><li>하루 한 가지 주제로 말하기</li><li>짧은 일기나 학습 기록 쓰기</li></ul></section>
+    </div>
+    <section class="card">
+      <h3>나만의 학습 루틴</h3>
+      <p>오늘 배운 표현과 복습할 단어를 일정에 적어두고, 게시판에 짧은 학습 기록을 남기면 꾸준히 이어가기 쉽습니다.</p>
+    </section>
+  </main>
+</div>
+<script src="assets/auth.js?v=password-change-redirect-1"></script>
+<script src="assets/theme.js"></script>
+</body>
+</html>

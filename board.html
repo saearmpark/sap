@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codestudio — 게시판</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=dark-menu-contrast-1">
+<link rel="stylesheet" href="assets/style.css?v=learning-sidebar-menu-1">
 <style>
   .post-title-btn {
     background: none;
@@ -50,18 +50,24 @@
 <body>
 <div class="layout">
   <aside class="sidebar">
-    <div class="brand">SAP</div>
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
     <nav class="nav-group">
       <div class="nav-label">MENU</div>
       <a href="index.html">홈</a>
       <a href="calendar.html">일정</a>
-      <a href="learn.html">학습</a>
+      <details class="nav-learning">
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱제작</a>
+          <a href="game.html">게임제작</a>
+          <a href="language.html">외국어 학습</a>
+          <a href="electrical.html">전기 학습</a>
+        </div>
+      </details>
       <a href="board.html" class="active">게시판</a>
       <a href="files.html">자료실</a>
-      <a href="game.html">게임제작</a>
       <a href="login.html" data-auth-link>로그인 / 회원가입</a>
     </nav>
-    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
     <div class="sidebar-footer">v0.1 · local build</div>
   </aside>
   <main class="main">
@@ -131,7 +137,7 @@
           <td><button type="button" class="post-title-btn" data-id="${p.id}">${escapeHtml(p.title)}</button></td>
           <td>${escapeHtml(p.author_name || "-")}</td>
           <td>${escapeHtml(p.created_at || "")}</td>
-          <td><button data-id="${p.id}" class="delete-btn">삭제</button></td>
+          <td>${canDelete(p.author_name) ? `<button data-id="${p.id}" class="delete-btn">삭제</button>` : ""}</td>
         </tr>
       `).join("");
 
@@ -170,6 +176,11 @@
     const div = document.createElement("div");
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  function canDelete(authorName) {
+    const user = SAPAuth.getUser();
+    return Boolean(user && (user.isAdmin || user.username === authorName));
   }
 
   document.getElementById("post-form").addEventListener("submit", async (e) => {

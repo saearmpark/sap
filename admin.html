@@ -5,24 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codestudio — 회원 승인</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=dark-menu-contrast-1">
+<link rel="stylesheet" href="assets/style.css?v=learning-sidebar-menu-1">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
-    <div class="brand">SAP</div>
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
     <nav class="nav-group">
       <div class="nav-label">MENU</div>
       <a href="index.html">홈</a>
       <a href="calendar.html">일정</a>
-      <a href="learn.html">학습</a>
+      <details class="nav-learning">
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱제작</a>
+          <a href="game.html">게임제작</a>
+          <a href="language.html">외국어 학습</a>
+          <a href="electrical.html">전기 학습</a>
+        </div>
+      </details>
       <a href="board.html">게시판</a>
       <a href="files.html">자료실</a>
-      <a href="game.html">게임제작</a>
       <a href="login.html" data-auth-link>로그인 / 회원가입</a>
       <a href="admin.html" data-admin-link hidden>회원가입 승인</a>
     </nav>
-    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
     <div class="sidebar-footer">관리자</div>
   </aside>
   <main class="main">

@@ -37,14 +37,14 @@ public class AuthController {
 
     @PostMapping("/password")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest request, Authentication authentication) {
-        Long userId = (Long) authentication.getPrincipal();
+        long userId = (Long) authentication.getPrincipal();
         authService.changePassword(userId, request.currentPassword(), request.newPassword());
         return ResponseEntity.ok(Map.of("message", "비밀번호가 변경되었습니다. 다시 로그인해주세요."));
     }
 
     @GetMapping("/me")
     public ResponseEntity<?> me(Authentication authentication) {
-        Long userId = (Long) authentication.getPrincipal();
+        long userId = (Long) authentication.getPrincipal();
         return users.findById(userId)
                 .<ResponseEntity<?>>map(user -> ResponseEntity.ok(Map.of(
                         "id", user.getId(), "username", user.getUsername(), "displayName", user.getDisplayName(),
@@ -61,7 +61,7 @@ public class AuthController {
     }
 
     private Map<String, Object> sessionResponse(UserAccount user) {
-        return Map.of("accessToken", authService.createToken(user.getId()),
+        return Map.of("accessToken", authService.createToken(java.util.Objects.requireNonNull(user.getId())),
                 "id", user.getId(), "username", user.getUsername(), "displayName", user.getDisplayName(),
                 "isAdmin", user.isAdministrator());
     }

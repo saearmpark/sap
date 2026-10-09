@@ -9,6 +9,7 @@ import java.util.Base64;
 import java.util.Locale;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -69,7 +70,7 @@ public class AuthService {
         return user;
     }
 
-    public void changePassword(Long userId, String currentPassword, String newPassword) {
+    public void changePassword(@NonNull Long userId, String currentPassword, String newPassword) {
         UserAccount user = users.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."));
         if (currentPassword == null || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
@@ -87,22 +88,23 @@ public class AuthService {
         sessions.deleteAllByUserId(userId);
     }
 
-    public String createToken(Long userId) {
+    public String createToken(@NonNull Long userId) {
         byte[] bytes = new byte[32];
         secureRandom.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        sessions.save(new AuthSession(hashToken(token), userId, Instant.now().plusSeconds(TOKEN_LIFETIME_SECONDS)));
+        sessions.save(new AuthSession(hashToken(java.util.Objects.requireNonNull(token)), userId,
+                Instant.now().plusSeconds(TOKEN_LIFETIME_SECONDS)));
         return token;
     }
 
-    public UserIdentity identityForToken(String token) {
+    public UserIdentity identityForToken(@NonNull String token) {
         AuthSession session = sessions.findById(hashToken(token)).orElse(null);
         if (session == null) return null;
         if (session.getExpiresAt().isBefore(Instant.now())) {
             sessions.deleteById(hashToken(token));
             return null;
         }
-        UserAccount user = users.findById(session.getUserId()).orElse(null);
+        UserAccount user = users.findById(java.util.Objects.requireNonNull(session.getUserId())).orElse(null);
         if (user == null || !user.isApproved()) {
             sessions.deleteById(hashToken(token));
             return null;
@@ -114,10 +116,10 @@ public class AuthService {
         if (token != null) sessions.deleteById(hashToken(token));
     }
 
-    private String hashToken(String token) {
+    private @NonNull String hashToken(@NonNull String token) {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.US_ASCII));
-            return java.util.HexFormat.of().formatHex(digest);
+            return java.util.Objects.requireNonNull(java.util.HexFormat.of().formatHex(digest));
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256을 사용할 수 없습니다.", exception);
         }
