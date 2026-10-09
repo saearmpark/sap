@@ -3,6 +3,8 @@ package com.codestudio.board;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +23,24 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/events")
 public class CalendarEventController {
     private final CalendarEventRepository events;
+    private final UserAccountRepository users;
 
-    public CalendarEventController(CalendarEventRepository events) {
+    public CalendarEventController(CalendarEventRepository events, UserAccountRepository users) {
         this.events = events;
+        this.users = users;
     }
 
     @GetMapping
-    public List<CalendarEvent> list(Authentication authentication) {
-        return events.findAllByOwnerIdOrderByStartDateAscIdAsc(userId(authentication));
+    public List<EventView> list(Authentication authentication) {
+        Long viewerId = userId(authentication);
+        List<CalendarEvent> visibleEvents = events.findAllByOwnerIdOrPublicEventTrueOrderByStartDateAscIdAsc(viewerId);
+        Set<Long> ownerIds = visibleEvents.stream().map(CalendarEvent::getOwnerId).collect(Collectors.toSet());
+        Map<Long, String> displayNames = users.findAllById(ownerIds).stream()
+                .collect(Collectors.toMap(UserAccount::getId, UserAccount::getDisplayName));
+        return visibleEvents.stream().map(event -> new EventView(
+                event.getId(), event.getTitle(), event.getDescription(), event.getStartDate(), event.getEndDate(),
+                event.getPublicEvent(), event.getOwnerId().equals(viewerId), displayNames.getOrDefault(event.getOwnerId(), "사용자")
+        )).toList();
     }
 
     @PostMapping
@@ -43,7 +55,7 @@ public class CalendarEventController {
         CalendarEvent event = events.findByIdAndOwnerId(id, ownerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "일정을 찾을 수 없습니다."));
         CalendarEvent updated = toEvent(ownerId, request);
-        event.update(updated.getTitle(), updated.getDescription(), updated.getStartDate(), updated.getEndDate());
+        event.update(updated.getTitle(), updated.getDescription(), updated.getStartDate(), updated.getEndDate(), updated.getPublicEvent());
         return ResponseEntity.ok(events.save(event));
     }
 
@@ -67,12 +79,15 @@ public class CalendarEventController {
         if (request.startDate() == null || request.endDate() == null || request.endDate().isBefore(request.startDate())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "종료일은 시작일과 같거나 그 이후여야 합니다.");
         }
-        return new CalendarEvent(ownerId, title, description, request.startDate(), request.endDate());
+        return new CalendarEvent(ownerId, title, description, request.startDate(), request.endDate(), request.publicEvent());
     }
 
     private Long userId(Authentication authentication) {
         return (Long) authentication.getPrincipal();
     }
 
-    public record EventRequest(String title, String description, LocalDate startDate, LocalDate endDate) {}
+    public record EventRequest(String title, String description, LocalDate startDate, LocalDate endDate, boolean publicEvent) {}
+    @com.fasterxml.jackson.databind.annotation.JsonNaming(com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
+    public record EventView(Long id, String title, String description, LocalDate startDate, LocalDate endDate,
+            boolean publicEvent, boolean mine, String ownerDisplayName) {}
 }

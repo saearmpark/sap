@@ -34,14 +34,19 @@ public class CalendarEvent {
     @Column(nullable = false)
     private LocalDate endDate;
 
+    // Nullable for existing rows created before public sharing was added; null means private.
+    @Column(name = "is_public")
+    private Boolean publicEvent = false;
+
     protected CalendarEvent() {}
 
-    public CalendarEvent(Long ownerId, String title, String description, LocalDate startDate, LocalDate endDate) {
+    public CalendarEvent(Long ownerId, String title, String description, LocalDate startDate, LocalDate endDate, boolean publicEvent) {
         this.ownerId = ownerId;
         this.title = title;
         this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.publicEvent = publicEvent;
     }
 
     public Long getId() { return id; }
@@ -50,11 +55,13 @@ public class CalendarEvent {
     public String getDescription() { return description; }
     public LocalDate getStartDate() { return startDate; }
     public LocalDate getEndDate() { return endDate; }
+    public boolean getPublicEvent() { return Boolean.TRUE.equals(publicEvent); }
 
-    public void update(String title, String description, LocalDate startDate, LocalDate endDate) {
+    public void update(String title, String description, LocalDate startDate, LocalDate endDate, boolean publicEvent) {
         this.title = title;
         this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.publicEvent = publicEvent;
     }
 }

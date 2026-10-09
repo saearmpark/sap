@@ -254,6 +254,7 @@ th {
 .calendar-wrap { overflow-x: auto; }
 .calendar-table { min-width: 680px; table-layout: fixed; }
 .calendar-table th { text-align: center; }
+.calendar-table th:nth-child(6), .calendar-table th:nth-child(7) { color: #b42318; }
 .calendar-table td { height: 118px; padding: 6px; vertical-align: top; }
 .calendar-date {
   display: block;
@@ -263,6 +264,12 @@ th {
 }
 .calendar-date.is-today { outline: 1px solid var(--accent); border-radius: 50%; }
 .calendar-day.is-outside { color: var(--ink-soft); opacity: .55; }
+.calendar-day.is-saturday .calendar-date,
+.calendar-day.is-sunday .calendar-date,
+.calendar-day.is-holiday .calendar-date { color: #b42318 !important; }
+.calendar-holiday-name { display: block; color: #b42318; font-size: 10px; line-height: 1.3; }
+.calendar-legend { margin: 10px 2px 0; color: var(--ink-soft); font-size: 12px; }
+.calendar-legend-holiday { color: #b42318; font-weight: 700; }
 .calendar-event {
   display: block;
   width: 100%;
@@ -274,7 +281,18 @@ th {
   white-space: nowrap;
   font-size: 11px;
 }
+.calendar-event.is-shared { height: auto; background: var(--accent-soft); color: var(--ink-soft); cursor: default; }
+.calendar-event.is-shared small { display: block; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+.calendar-public-option { display: flex; align-items: center; gap: 8px; margin: 10px 0 2px; color: var(--ink); }
+.calendar-public-option input { width: auto; accent-color: var(--accent); }
 :root[data-theme="dark"] .calendar-date { color: var(--ink) !important; }
+:root[data-theme="dark"] .calendar-table th:nth-child(6),
+:root[data-theme="dark"] .calendar-table th:nth-child(7),
+:root[data-theme="dark"] .calendar-day.is-saturday .calendar-date,
+:root[data-theme="dark"] .calendar-day.is-sunday .calendar-date,
+:root[data-theme="dark"] .calendar-day.is-holiday .calendar-date,
+:root[data-theme="dark"] .calendar-holiday-name,
+:root[data-theme="dark"] .calendar-legend-holiday { color: #ff8585 !important; }
 .calendar-form-actions { justify-content: space-between; flex-wrap: wrap; }
 .calendar-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .calendar-fields .form-row { min-width: 0; }

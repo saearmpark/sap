@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codestudio — 일정</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=dark-menu-contrast-1">
+<link rel="stylesheet" href="assets/style.css?v=calendar-share-weekends-1">
 </head>
 <body>
 <div class="layout">
@@ -27,7 +27,7 @@
   <main class="main">
     <div class="eyebrow">MY SCHEDULE</div>
     <h1>일정</h1>
-    <p class="lead">학습 계획과 작업 일정을 달력에 기록하세요. 일정은 로그인한 계정에 저장됩니다.</p>
+    <p class="lead">학습 계획과 작업 일정을 달력에 기록하세요. 공개 일정은 로그인한 다른 사용자도 볼 수 있습니다.</p>
     <section class="card calendar-toolbar" aria-label="달력 이동">
       <button id="previous-month" type="button" aria-label="이전 달">←</button>
       <h2 id="month-title" aria-live="polite"></h2>
@@ -38,6 +38,7 @@
         <thead><tr><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th></tr></thead>
         <tbody id="calendar-grid"><tr><td colspan="7">일정을 불러오는 중...</td></tr></tbody>
       </table>
+      <p class="calendar-legend"><span class="calendar-legend-holiday">빨간색 날짜</span> 공휴일 · 토요일 · 일요일</p>
     </section>
     <form id="event-form" class="card">
       <h3 id="form-title">일정 추가</h3>
@@ -47,6 +48,8 @@
         <div class="form-row"><label for="event-end">종료일</label><input type="date" id="event-end" required></div>
       </div>
       <div class="form-row"><label for="event-description">메모</label><textarea id="event-description" maxlength="2000" rows="3" placeholder="학습할 내용이나 준비물을 적어두세요."></textarea></div>
+      <label class="calendar-public-option"><input type="checkbox" id="event-public"> 공개 일정으로 설정</label>
+      <p class="auth-note">공개하면 로그인한 다른 사용자도 일정 제목, 메모, 기간, 작성자 이름을 볼 수 있습니다. 수정과 삭제는 작성자만 할 수 있습니다.</p>
       <div class="calendar-form-actions">
         <div><button type="submit" id="save-event">일정 저장</button><button type="button" id="cancel-edit" class="delete-btn" hidden>취소</button><button type="button" id="delete-event" class="delete-btn" hidden>삭제</button></div>
         <span id="event-status" class="form-status" role="status" aria-live="polite"></span>
@@ -65,6 +68,7 @@
   const today = new Date();
   let displayedMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   let events = [];
+  let holidayNames = {};
   let editingId = null;
 
   function localDate(date) {
@@ -92,12 +96,21 @@
         date.setDate(start.getDate() + week * 7 + day);
         const dateKey = localDate(date);
         const dayEvents = events.filter(event => event.start_date <= dateKey && event.end_date >= dateKey);
-        const classes = [date.getMonth() !== displayedMonth.getMonth() ? "is-outside" : "", dateKey === localDate(today) ? "is-today" : ""].filter(Boolean).join(" ");
-        const eventButtons = dayEvents.slice(0, 3).map(event =>
-          `<button type="button" class="calendar-event" data-event-id="${event.id}" title="${escapeHtml(event.title)}">${escapeHtml(event.title)}</button>`
+        const holidayName = holidayNames[dateKey];
+        const classes = [
+          date.getMonth() !== displayedMonth.getMonth() ? "is-outside" : "",
+          dateKey === localDate(today) ? "is-today" : "",
+          day === 5 ? "is-saturday" : "",
+          day === 6 ? "is-sunday" : "",
+          holidayName ? "is-holiday" : ""
+        ].filter(Boolean).join(" ");
+        const eventButtons = dayEvents.slice(0, 3).map(event => event.mine
+          ? `<button type="button" class="calendar-event" data-event-id="${event.id}" title="${escapeHtml(event.title)}">${event.public_event ? "공개 · " : ""}${escapeHtml(event.title)}</button>`
+          : `<div class="calendar-event is-shared" title="${escapeHtml(event.title)} · ${escapeHtml(event.owner_display_name)}">${escapeHtml(event.title)}<small>${escapeHtml(event.owner_display_name)} 일정</small></div>`
         ).join("");
         const more = dayEvents.length > 3 ? `<span class="auth-note">+${dayEvents.length - 3}개</span>` : "";
-        cells.push(`<td class="calendar-day ${classes}" data-date="${dateKey}"><button type="button" class="calendar-date ${dateKey === localDate(today) ? "is-today" : ""}" data-date="${dateKey}" aria-label="${dateKey} 일정 추가">${date.getDate()}</button>${eventButtons}${more}</td>`);
+        const holidayLabel = holidayName ? `<span class="calendar-holiday-name">${escapeHtml(holidayName)}</span>` : "";
+        cells.push(`<td class="calendar-day ${classes}" data-date="${dateKey}"><button type="button" class="calendar-date ${dateKey === localDate(today) ? "is-today" : ""}" data-date="${dateKey}" aria-label="${dateKey}${holidayName ? ` ${escapeHtml(holidayName)}` : ""} 일정 추가">${date.getDate()}</button>${holidayLabel}${eventButtons}${more}</td>`);
       }
       rows.push(`<tr>${cells.join("")}</tr>`);
     }
@@ -113,6 +126,32 @@
     renderCalendar();
   }
 
+  async function loadHolidays(year) {
+    if (displayedMonth.getFullYear() === year) holidayNames = {};
+    const cacheKey = `sap-holidays-kr-${year}`;
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+      if (cached && Date.now() - cached.savedAt < 7 * 24 * 60 * 60 * 1000) {
+        holidayNames = cached.holidays;
+        renderCalendar();
+        return;
+      }
+    } catch {}
+    try {
+      const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/KR`);
+      if (!response.ok) return;
+      const records = await response.json();
+      const names = Object.fromEntries(records.map(holiday => [holiday.date, holiday.localName || holiday.name]));
+      try { localStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), holidays: names })); } catch {}
+      if (displayedMonth.getFullYear() === year) {
+        holidayNames = names;
+        renderCalendar();
+      }
+    } catch {
+      // Weekend colors remain available when the holiday service cannot be reached.
+    }
+  }
+
   function startNewEvent(date = localDate(today)) {
     editingId = null;
     form.reset();
@@ -122,6 +161,7 @@
     document.getElementById("save-event").textContent = "일정 저장";
     document.getElementById("cancel-edit").hidden = true;
     document.getElementById("delete-event").hidden = true;
+    document.getElementById("event-public").checked = false;
     statusEl.textContent = "";
     document.getElementById("event-name").focus({ preventScroll: true });
   }
@@ -134,6 +174,7 @@
     document.getElementById("event-description").value = event.description || "";
     startInput.value = event.start_date;
     endInput.value = event.end_date;
+    document.getElementById("event-public").checked = event.public_event;
     document.getElementById("form-title").textContent = "일정 수정";
     document.getElementById("save-event").textContent = "수정 저장";
     document.getElementById("cancel-edit").hidden = false;
@@ -144,14 +185,17 @@
 
   document.getElementById("previous-month").addEventListener("click", () => {
     displayedMonth = new Date(displayedMonth.getFullYear(), displayedMonth.getMonth() - 1, 1);
+    loadHolidays(displayedMonth.getFullYear());
     renderCalendar();
   });
   document.getElementById("next-month").addEventListener("click", () => {
     displayedMonth = new Date(displayedMonth.getFullYear(), displayedMonth.getMonth() + 1, 1);
+    loadHolidays(displayedMonth.getFullYear());
     renderCalendar();
   });
   document.getElementById("today-button").addEventListener("click", () => {
     displayedMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    loadHolidays(displayedMonth.getFullYear());
     renderCalendar();
     startNewEvent(localDate(today));
   });
@@ -169,7 +213,8 @@
       title: document.getElementById("event-name").value.trim(),
       description: document.getElementById("event-description").value.trim(),
       startDate: startInput.value,
-      endDate: endInput.value
+      endDate: endInput.value,
+      publicEvent: document.getElementById("event-public").checked
     };
     const url = editingId ? `${API_URL}/${editingId}` : API_URL;
     const response = await SAPAuth.apiFetch(url, {
@@ -187,7 +232,10 @@
 
   SAPAuth.requireSession().then(user => {
     if (user?.unavailable) { grid.innerHTML = '<tr><td colspan="7">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>'; return; }
-    if (user) loadEvents().catch(error => { grid.innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`; });
+    if (user) {
+      loadEvents().catch(error => { grid.innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`; });
+      loadHolidays(displayedMonth.getFullYear());
+    }
   });
 </script>
 <script src="assets/theme.js"></script>
