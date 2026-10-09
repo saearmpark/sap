@@ -26,16 +26,20 @@ public class Post {
     @Column(nullable = false, length = 4000)
     private String content;
 
+    @Column(length = 30)
+    private String authorName;
+
     @Column(name = "created_at", nullable = false)
     private String createdAt;
 
     public Post() {
     }
 
-    public Post(String title, String content, String createdAt) {
+    public Post(String title, String content, String createdAt, String authorName) {
         this.title = title;
         this.content = content;
         this.createdAt = createdAt;
+        this.authorName = authorName;
     }
 
     public Long getId() {
@@ -61,6 +65,9 @@ public class Post {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public String getAuthorName() { return authorName; }
+    public void setAuthorName(String authorName) { this.authorName = authorName; }
 
     public String getCreatedAt() {
         return createdAt;

@@ -2,6 +2,7 @@ package com.codestudio.board;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +33,10 @@ public class FileController {
     private final Path fileStorageLocation = Paths.get("uploads").toAbsolutePath().normalize();
     private final List<FileItem> fileList = new ArrayList<>();
     private long idSequence = 1;
+    private final UserAccountRepository users;
 
-    public FileController() {
+    public FileController(UserAccountRepository users) {
+        this.users = users;
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception ex) {
@@ -47,7 +50,10 @@ public class FileController {
     }
 
     @PostMapping({"", "/upload"})
-    public ResponseEntity<FileItem> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<FileItem> uploadFile(@RequestParam("file") MultipartFile file, Authentication authentication) {
+        String authorName = users.findById((Long) authentication.getPrincipal())
+                .map(UserAccount::getUsername)
+                .orElseThrow(() -> new IllegalStateException("로그인 사용자 정보를 찾을 수 없습니다."));
         String originalFileName = file.getOriginalFilename();
         String fileExtension = "";
         
@@ -67,7 +73,8 @@ public class FileController {
                     storedFileName,
                     file.getSize(),
                     file.getContentType(),
-                    ZonedDateTime.now(KST).format(UPLOADED_AT_FORMAT)
+                    ZonedDateTime.now(KST).format(UPLOADED_AT_FORMAT),
+                    authorName
             );
 
             fileList.add(fileItem);

@@ -20,19 +20,21 @@ public class FileItem {
     private long fileSize;
     private String fileType;
     private String uploadedAt;
+    private String authorName;
 
     // 기본 생성자
     public FileItem() {
     }
 
     // 파일 메타데이터를 초기화하는 생성자
-    public FileItem(Long id, String originalFileName, String storedFileName, long fileSize, String fileType, String uploadedAt) {
+    public FileItem(Long id, String originalFileName, String storedFileName, long fileSize, String fileType, String uploadedAt, String authorName) {
         this.id = id;
         this.originalFileName = originalFileName;
         this.storedFileName = storedFileName;
         this.fileSize = fileSize;
         this.fileType = fileType;
         this.uploadedAt = uploadedAt;
+        this.authorName = authorName;
     }
 
     // Getter & Setter
@@ -87,4 +89,9 @@ public class FileItem {
     public void setUploadedAt(String uploadedAt) {
         this.uploadedAt = uploadedAt;
     }
+
+    @JsonProperty("author_name")
+    public String getAuthorName() { return authorName; }
+
+    public void setAuthorName(String authorName) { this.authorName = authorName; }
 }

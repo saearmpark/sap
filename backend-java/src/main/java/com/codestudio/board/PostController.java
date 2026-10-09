@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,9 +25,11 @@ public class PostController {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final PostRepository repository;
+    private final UserAccountRepository users;
 
-    public PostController(PostRepository repository) {
+    public PostController(PostRepository repository, UserAccountRepository users) {
         this.repository = repository;
+        this.users = users;
     }
 
     @GetMapping
@@ -42,7 +45,7 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> create(Authentication authentication, @RequestBody Map<String, String> body) {
         String title = (body.getOrDefault("title", "")).trim();
         String content = (body.getOrDefault("content", "")).trim();
 
@@ -50,7 +53,10 @@ public class PostController {
             return ResponseEntity.badRequest().body(Map.of("error", "제목과 내용을 모두 입력하세요."));
         }
 
-        Post saved = repository.save(new Post(title, content, ZonedDateTime.now(KST).format(FORMATTER)));
+        String authorName = users.findById((Long) authentication.getPrincipal())
+                .map(UserAccount::getUsername)
+                .orElseThrow(() -> new IllegalStateException("로그인 사용자 정보를 찾을 수 없습니다."));
+        Post saved = repository.save(new Post(title, content, ZonedDateTime.now(KST).format(FORMATTER), authorName));
         return ResponseEntity.status(201).body(Map.of("id", saved.getId(), "message", "게시글이 등록되었습니다."));
     }
 

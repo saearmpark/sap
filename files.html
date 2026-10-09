@@ -42,10 +42,10 @@
 
     <table>
       <thead>
-        <tr><th>파일명</th><th>크기</th><th>업로드일</th><th></th></tr>
+        <tr><th>파일명</th><th>크기</th><th>작성자</th><th>업로드일</th><th></th></tr>
       </thead>
       <tbody id="file-list">
-        <tr><td colspan="4">불러오는 중...</td></tr>
+        <tr><td colspan="5">불러오는 중...</td></tr>
       </tbody>
     </table>
   </main>
@@ -74,7 +74,7 @@
       const files = await res.json();
 
       if (files.length === 0) {
-        listEl.innerHTML = '<tr><td colspan="4">아직 업로드된 자료가 없습니다.</td></tr>';
+        listEl.innerHTML = '<tr><td colspan="5">아직 업로드된 자료가 없습니다.</td></tr>';
         return;
       }
 
@@ -90,6 +90,7 @@
           <tr>
             <td class="file-name-cell">${preview}<a class="download-link" href="#download" data-id="${escapeHtml(String(f.id))}" data-name="${name}">${name}</a></td>
             <td>${formatSize(f.size_bytes ?? f.fileSize ?? 0)}</td>
+            <td>${escapeHtml(f.author_name || "-")}</td>
             <td>${escapeHtml(f.uploaded_at || f.uploadedAt || "")}</td>
             <td><button data-id="${escapeHtml(String(f.id))}" class="delete-btn">삭제</button></td>
           </tr>
@@ -117,7 +118,7 @@
       });
     } catch (err) {
       listEl.innerHTML =
-        '<tr><td colspan="4">서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요 (무료 서버는 깨어나는 데 최대 1분 정도 걸릴 수 있습니다).</td></tr>';
+        '<tr><td colspan="5">서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요 (무료 서버는 깨어나는 데 최대 1분 정도 걸릴 수 있습니다).</td></tr>';
     }
   }
 
@@ -175,7 +176,7 @@
 
   SAPAuth.requireSession().then(user => {
     if (user?.unavailable) {
-      document.getElementById("file-list").innerHTML = '<tr><td colspan="4">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>';
+      document.getElementById("file-list").innerHTML = '<tr><td colspan="5">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>';
       return;
     }
     if (user) loadFiles();
