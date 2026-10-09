@@ -69,6 +69,24 @@ public class AuthService {
         return user;
     }
 
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        UserAccount user = users.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."));
+        if (currentPassword == null || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
+        }
+        if (newPassword == null || newPassword.length() < 8
+                || newPassword.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "새 비밀번호는 8자 이상, UTF-8 기준 72바이트 이하로 입력하세요.");
+        }
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "현재 비밀번호와 다른 비밀번호를 입력하세요.");
+        }
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        users.save(user);
+        sessions.deleteAllByUserId(userId);
+    }
+
     public String createToken(Long userId) {
         byte[] bytes = new byte[32];
         secureRandom.nextBytes(bytes);

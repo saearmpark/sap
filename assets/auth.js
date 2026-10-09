@@ -83,6 +83,17 @@
       link.onclick = null;
     }
 
+    let passwordLink = document.querySelector("[data-password-link]");
+    if (user && getToken() && !passwordLink) {
+      passwordLink = document.createElement("a");
+      passwordLink.href = "login.html#password-change";
+      passwordLink.dataset.passwordLink = "";
+      passwordLink.textContent = "비밀번호 변경";
+      link?.insertAdjacentElement("afterend", passwordLink);
+    } else if (passwordLink) {
+      passwordLink.hidden = !(user && getToken());
+    }
+
     let adminLink = document.querySelector("[data-admin-link]");
     if (user?.isAdmin && !adminLink) {
       adminLink = document.createElement("a");

@@ -35,6 +35,13 @@ public class AuthController {
         return sessionResponse(authService.authenticate(request.username(), request.password()));
     }
 
+    @PostMapping("/password")
+    public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest request, Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        authService.changePassword(userId, request.currentPassword(), request.newPassword());
+        return ResponseEntity.ok(Map.of("message", "비밀번호가 변경되었습니다. 다시 로그인해주세요."));
+    }
+
     @GetMapping("/me")
     public ResponseEntity<?> me(Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
@@ -60,4 +67,5 @@ public class AuthController {
     }
 
     public record AuthRequest(String username, String password, String displayName) {}
+    public record PasswordChangeRequest(String currentPassword, String newPassword) {}
 }

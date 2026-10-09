@@ -44,6 +44,16 @@
         <div class="form-row"><label for="register-password">비밀번호</label><input id="register-password" name="password" type="password" autocomplete="new-password" required minlength="8" aria-describedby="password-help"><div id="password-help" class="auth-note">8자 이상 입력하세요.</div></div>
         <button type="submit">회원가입</button>
       </form>
+      <section id="password-change" class="password-panel" hidden aria-labelledby="password-title">
+        <h2 id="password-title">비밀번호 변경</h2>
+        <p class="auth-note">현재 비밀번호를 확인한 뒤 새 비밀번호를 설정합니다. 변경 후에는 모든 기기에서 로그아웃되므로 새 비밀번호로 다시 로그인하세요.</p>
+        <form id="password-form">
+          <div class="form-row"><label for="current-password">현재 비밀번호</label><input id="current-password" name="currentPassword" type="password" autocomplete="current-password" required></div>
+          <div class="form-row"><label for="new-password">새 비밀번호</label><input id="new-password" name="newPassword" type="password" autocomplete="new-password" required minlength="8" aria-describedby="new-password-help"><div id="new-password-help" class="auth-note">8자 이상 입력하세요.</div></div>
+          <div class="form-row"><label for="confirm-password">새 비밀번호 확인</label><input id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" required minlength="8"></div>
+          <button type="submit">비밀번호 변경</button>
+        </form>
+      </section>
       <p id="auth-status" class="form-status" role="status" aria-live="polite"></p>
     </section>
   </main>
@@ -53,6 +63,52 @@
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
   const status = document.getElementById("auth-status");
+  const passwordPanel = document.getElementById("password-panel");
+  const passwordForm = document.getElementById("password-form");
+
+  async function showPasswordPanelForSignedInUser() {
+    const token = SAPAuth.getToken();
+    if (!token) return;
+    try {
+      const response = await fetch(`${SAPAuth.API_ROOT}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+      if (response.ok) {
+        passwordPanel.hidden = false;
+        document.querySelector(".auth-tabs").hidden = true;
+        loginForm.hidden = true;
+        registerForm.hidden = true;
+        if (location.hash === "#password-change") passwordPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      else SAPAuth.clearSession();
+    } catch {
+      // Keep the login page usable when the backend is temporarily unavailable.
+    }
+  }
+
+  passwordForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    const fields = Object.fromEntries(new FormData(passwordForm).entries());
+    if (fields.newPassword !== fields.confirmPassword) {
+      status.textContent = "새 비밀번호와 확인 값이 일치하지 않습니다.";
+      return;
+    }
+    status.textContent = "비밀번호 변경 중...";
+    try {
+      const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/auth/password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: fields.currentPassword, newPassword: fields.newPassword })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.message || result.detail || "비밀번호를 변경하지 못했습니다.");
+      SAPAuth.clearSession();
+      status.textContent = `${result.message || "비밀번호가 변경되었습니다."} 로그인 화면으로 이동합니다.`;
+      setTimeout(() => location.replace("login.html"), 1200);
+    } catch (error) {
+      status.textContent = error instanceof TypeError
+        ? "인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요."
+        : error.message;
+    }
+  });
 
   function selectForm(mode) {
     const isLogin = mode === "login";
@@ -97,6 +153,7 @@
   loginForm.addEventListener("submit", event => submitAuth(event, "login"));
   registerForm.addEventListener("submit", event => submitAuth(event, "register"));
   if (new URLSearchParams(location.search).get("mode") === "register") selectForm("register");
+  showPasswordPanelForSignedInUser();
 </script>
 <script src="assets/theme.js"></script>
 </body>

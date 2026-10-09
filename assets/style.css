@@ -286,6 +286,9 @@ th {
 .calendar-fields textarea { min-height: 88px; }
 .calendar-delete { margin-left: 4px; padding: 1px 5px; font-size: 10px; }
 .auth-card { max-width: 500px; }
+.password-panel { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.password-panel h2 { margin: 0 0 8px; font-size: 20px; }
+.password-panel[hidden] { display: none; }
 .auth-tabs { margin-bottom: 18px; }
 .auth-tabs button[aria-selected="true"] { outline: 2px solid var(--ink-soft); }
 .auth-card .form-row { margin-bottom: 14px; }
