@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 학습(웹제작)</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=web-making-manual-2">
+<style>
+  .web-intro { max-width:760px; }
+  .web-progress { margin:18px 0; color:var(--ink-soft); font-size:14px; }
+  .web-step { margin:14px 0; }
+  .web-step h2 { margin:8px 0; font-size:20px; }
+  .web-step p, .web-step li { line-height:1.7; }
+  .web-step ol, .web-step ul { padding-left:22px; }
+  .web-contents { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
+  .web-contents a { padding:7px 10px; border:1px solid var(--border); border-radius:6px; color:var(--ink); text-decoration:none; }
+  .web-contents a:hover { background:var(--accent-soft); }
+  .web-step pre { overflow:auto; padding:14px; border:1px solid var(--border); border-radius:7px; background:var(--bg); color:var(--ink); font:13px/1.6 var(--mono); }
+  .web-step code, .web-inline-code { font-family:var(--mono); }
+  .web-step pre code { white-space:pre; }
+  .web-check { display:flex; align-items:center; gap:9px; margin-top:14px; color:var(--ink-soft); font-size:14px; }
+  .web-check input { width:18px; height:18px; }
+  .web-note { padding:12px 14px; border-left:3px solid var(--accent); background:var(--accent-soft); }
+  .web-warning { padding:12px 14px; border-left:3px solid #d48716; background:color-mix(in srgb, #d48716 12%, var(--surface)); }
+</style>
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="calendar.html">일정</a>
+      <details class="nav-learning" open>
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱제작</a>
+          <a href="game.html">게임제작</a>
+          <a href="concepts.html">개념학습</a>
+          <a href="web.html" class="active" aria-current="page">웹제작</a>
+        </div>
+      </details>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">WEB MAKING</div>
+    <h1>웹제작</h1>
+    <p class="lead web-intro">이 안내를 위에서부터 따라 하면 VS Code에서 자기소개 웹사이트를 만들고 GitHub Pages에 공개할 수 있습니다. 각 단계의 예제를 빠짐없이 복사하고, 파일 이름과 저장소 설정을 그대로 맞춰주세요.</p>
+    <p class="web-progress" id="web-progress" aria-live="polite">학습 진행: 0 / 10 단계</p>
+    <p class="web-note"><strong>완성 결과:</strong> 버튼을 누르면 인사말이 나타나는 반응형 웹사이트가 인터넷 주소로 공개됩니다. GitHub Pages는 HTML·CSS·JavaScript 정적 웹사이트용이며, 로그인·데이터베이스·Java/Python 서버는 이 안내의 배포 대상이 아닙니다.</p>
+    <nav class="web-contents" aria-label="웹제작 단계">
+      <a href="#step-1">준비</a><a href="#step-2">저장소 만들기</a><a href="#step-3">VS Code 연결</a><a href="#step-4">파일 만들기</a><a href="#step-5">로컬 확인</a><a href="#step-6">GitHub 업로드</a><a href="#step-7">Pages 배포</a><a href="#step-8">주소 확인</a><a href="#step-9">수정·재배포</a><a href="#step-10">문제 해결</a>
+    </nav>
+
+    <section id="step-1" class="card web-step">
+      <h2>1단계. 준비물 설치 및 확인</h2>
+      <ol>
+        <li>GitHub 계정이 없으면 <a href="https://github.com/signup" target="_blank" rel="noopener">GitHub 가입 페이지</a>에서 계정을 만들고 이메일 인증을 마칩니다. 기존 계정이 있으면 로그인합니다.</li>
+        <li><a href="https://code.visualstudio.com/" target="_blank" rel="noopener">Visual Studio Code</a>를 설치합니다.</li>
+        <li><a href="https://git-scm.com/download/win" target="_blank" rel="noopener">Git for Windows</a>를 설치합니다. 설치 중 별도 변경이 필요하지 않으면 기본 선택값을 그대로 사용해도 됩니다.</li>
+        <li>VS Code를 열고 위쪽 메뉴에서 <strong>Terminal → New Terminal</strong>을 누릅니다. 터미널에 <span class="web-inline-code">git --version</span>을 입력하고 Enter를 누릅니다. <span class="web-inline-code">git version 2...</span>처럼 버전이 출력되면 준비된 것입니다.</li>
+      </ol>
+      <p>“git을 찾을 수 없습니다”라는 오류가 나오면 Git 설치를 마친 뒤 VS Code를 완전히 닫았다 다시 열어 확인합니다.</p>
+      <label class="web-check"><input type="checkbox" data-web-step="1"> 완료 — Git 버전이 표시됩니다</label>
+    </section>
+
+    <section id="step-2" class="card web-step">
+      <h2>2단계. GitHub에 새 저장소 만들기</h2>
+      <ol>
+        <li>GitHub에 로그인한 다음 오른쪽 위 <strong>+</strong> 버튼을 누르고 <strong>New repository</strong>를 선택합니다.</li>
+        <li><strong>Repository name</strong>에 <span class="web-inline-code">first-website-practice</span>를 입력합니다. 이 이름은 사이트 주소에도 포함되므로 영문 소문자와 하이픈을 권장합니다.</li>
+        <li><strong>Description</strong>은 비워도 됩니다. <strong>Public</strong>을 선택합니다. GitHub Free에서 공개 저장소로 Pages를 사용할 수 있습니다.</li>
+        <li><strong>Add a README file</strong>을 체크합니다. README가 기본 <span class="web-inline-code">main</span> 브랜치를 만들어 이후 업로드가 쉬워집니다.</li>
+        <li><strong>Add .gitignore</strong>와 <strong>Choose a license</strong>는 처음에는 <strong>None</strong> 그대로 둡니다. <strong>Create repository</strong>를 누릅니다.</li>
+      </ol>
+      <p>저장소 화면이 열리고 <span class="web-inline-code">first-website-practice</span>라는 제목과 README 파일이 보이면 성공입니다. 이 실습 저장소는 공개되므로 비밀번호, API 키, 주소·전화번호 등 공개하면 안 되는 정보를 올리지 마세요.</p>
+      <label class="web-check"><input type="checkbox" data-web-step="2"> 완료 — README가 있는 공개 저장소를 만들었습니다</label>
+    </section>
+
+    <section id="step-3" class="card web-step">
+      <h2>3단계. 저장소를 VS Code로 복사하기(Clone)</h2>
+      <ol>
+        <li>GitHub 저장소 페이지에서 초록색 <strong>Code</strong> 버튼을 누르고 <strong>HTTPS</strong> 탭의 주소 복사 버튼을 누릅니다. 주소는 <span class="web-inline-code">https://github.com/내GitHub이름/first-website-practice.git</span> 형태입니다. 여기서 “내GitHub이름”은 실제 계정 이름으로 표시됩니다.</li>
+        <li>VS Code로 돌아옵니다. <span class="web-inline-code">Ctrl+Shift+P</span>를 눌러 명령 팔레트를 열고 <strong>Git: Clone</strong>을 입력해 선택합니다.</li>
+        <li>복사한 HTTPS 주소를 붙여넣고 Enter를 누릅니다.</li>
+        <li>폴더 선택 창이 나오면 프로젝트를 저장할 위치(예: 문서)를 고르고 <strong>Select as Repository Destination</strong>을 누릅니다. 기존 작업 파일이 없는 위치를 선택하세요.</li>
+        <li>복사가 끝나면 <strong>Open</strong>을 눌러 저장소 폴더를 VS Code에서 엽니다. GitHub 로그인을 요청하면 브라우저 창에서 승인합니다.</li>
+      </ol>
+      <p>VS Code의 Explorer 맨 위에 <span class="web-inline-code">FIRST-WEBSITE-PRACTICE</span> 폴더와 <span class="web-inline-code">README.md</span>가 보이면 올바른 폴더를 연 것입니다. 다음 파일들은 이 폴더의 맨 위(root)에 만듭니다.</p>
+      <label class="web-check"><input type="checkbox" data-web-step="3"> 완료 — VS Code에 README.md가 보입니다</label>
+    </section>
+
+    <section id="step-4" class="card web-step">
+      <h2>4단계. 웹사이트 파일 3개 만들고 예제 붙여넣기</h2>
+      <p>VS Code 왼쪽 Explorer 위의 <strong>New File</strong> 아이콘을 눌러 아래 파일을 하나씩 만듭니다. 이름을 정확히 입력하세요. <span class="web-inline-code">.txt</span>가 뒤에 붙거나 파일을 하위 폴더 안에 만들면 사이트에서 찾지 못합니다.</p>
+      <ul><li><span class="web-inline-code">index.html</span> — 웹페이지 내용</li><li><span class="web-inline-code">style.css</span> — 색상과 배치</li><li><span class="web-inline-code">script.js</span> — 버튼 동작</li></ul>
+      <p>각 파일을 클릭해 아래 코드 블록의 내용을 처음부터 끝까지 해당 파일에 붙여넣고 <span class="web-inline-code">Ctrl+S</span>를 눌러 저장합니다. 복사할 때 코드 블록의 설명이나 이 페이지의 글은 포함하지 않습니다.</p>
+      <h3><span class="web-inline-code">index.html</span>에 붙여넣을 전체 내용</h3>
+      <pre><code>&lt;!doctype html&gt;
+&lt;html lang="ko"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;나의 첫 웹사이트&lt;/title&gt;
+  &lt;link rel="stylesheet" href="style.css"&gt;
+  &lt;script src="script.js" defer&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;main class="card"&gt;
+    &lt;p class="eyebrow"&gt;MY FIRST WEBSITE&lt;/p&gt;
+    &lt;h1&gt;안녕하세요!&lt;/h1&gt;
+    &lt;p&gt;HTML, CSS, JavaScript로 만든 나의 첫 페이지입니다.&lt;/p&gt;
+    &lt;button id="hello-button" type="button"&gt;인사 받기&lt;/button&gt;
+    &lt;p id="message" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+      <h3><span class="web-inline-code">style.css</span>에 붙여넣을 전체 내용</h3>
+      <pre><code>* { box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #f1f5f9;
+  color: #172033;
+  font-family: system-ui, sans-serif;
+}
+.card {
+  width: min(100%, 560px);
+  padding: 32px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 12px 36px #17203318;
+}
+.eyebrow { color: #5265d8; font-size: 13px; font-weight: 700; }
+button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #5265d8;
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+button:hover { background: #3e50bd; }
+#message { min-height: 1.5em; color: #334155; }</code></pre>
+      <h3><span class="web-inline-code">script.js</span>에 붙여넣을 전체 내용</h3>
+      <pre><code>const button = document.querySelector("#hello-button");
+const message = document.querySelector("#message");
+
+button.addEventListener("click", () =&gt; {
+  message.textContent = "방문해주셔서 감사합니다!";
+});</code></pre>
+      <p>Explorer에서 파일 세 개가 README와 같은 들여쓰기 수준에 보여야 합니다. 탭 제목의 흰색 점은 저장되지 않은 변경이 있다는 뜻이므로, 저장한 뒤 점이 사라졌는지 확인하세요.</p>
+      <label class="web-check"><input type="checkbox" data-web-step="4"> 완료 — 파일 3개를 만들고 저장했습니다</label>
+    </section>
+
+    <section id="step-5" class="card web-step">
+      <h2>5단계. 내 컴퓨터에서 먼저 실행하기</h2>
+      <ol>
+        <li>Explorer에서 <span class="web-inline-code">index.html</span>을 마우스 오른쪽 버튼으로 누르고 <strong>Reveal in File Explorer</strong>(파일 탐색기에 표시)를 선택합니다.</li>
+        <li>열린 Windows 폴더에서 <span class="web-inline-code">index.html</span>을 더블 클릭합니다. 또는 VS Code 확장 탭에서 <strong>Live Server</strong>를 검색해 설치한 뒤 파일을 오른쪽 클릭하고 <strong>Open with Live Server</strong>를 선택합니다.</li>
+        <li>브라우저에 “안녕하세요!” 제목과 “인사 받기” 버튼이 보이는지 확인합니다. 버튼을 눌렀을 때 감사 문구가 나타나면 세 파일 연결이 성공한 것입니다.</li>
+        <li>화면이 다르거나 버튼이 동작하지 않으면 파일 이름과 4단계 예제를 다시 확인하고 저장한 뒤 브라우저를 새로고침합니다.</li>
+      </ol>
+      <label class="web-check"><input type="checkbox" data-web-step="5"> 완료 — 브라우저에서 버튼 동작을 확인했습니다</label>
+    </section>
+
+    <section id="step-6" class="card web-step">
+      <h2>6단계. GitHub에 파일 업로드(Push)</h2>
+      <p>저장소를 Clone했기 때문에 원격 저장소 연결은 이미 되어 있습니다. 새 저장소를 다시 만들거나 <span class="web-inline-code">git remote add</span>를 실행하지 마세요. VS Code 메뉴에서 <strong>Terminal → New Terminal</strong>을 누르고, 터미널 경로 끝에 <span class="web-inline-code">first-website-practice</span>가 표시되는지 확인합니다.</p>
+      <p>아래 명령을 한 줄씩 붙여넣고 매번 Enter를 누릅니다.</p>
+      <pre><code>git status
+git add index.html style.css script.js
+git commit -m "Create my first website"
+git push</code></pre>
+      <p><span class="web-inline-code">git status</span>에서 세 파일이 변경 파일로 보이는 것이 정상입니다. 커밋 성공 후 <span class="web-inline-code">git push</span>도 오류 없이 끝나면 GitHub 저장소 페이지를 새로고침해 세 파일이 올라왔는지 확인합니다.</p>
+      <p><strong>“Author identity unknown” 오류가 날 때만</strong> 아래 두 줄에 본인 이름과 GitHub 가입 이메일을 넣고 실행한 뒤, 위의 네 명령을 다시 실행합니다.</p>
+      <pre><code>git config --global user.name "본인 이름"
+git config --global user.email "GitHub 가입 이메일"</code></pre>
+      <p><strong>로그인 창이나 권한 승인 창</strong>이 나오면 같은 GitHub 계정으로 로그인하고 승인합니다. 비밀번호나 토큰을 코드 파일에 적거나 다른 사람과 공유할 필요는 없습니다.</p>
+      <label class="web-check"><input type="checkbox" data-web-step="6"> 완료 — GitHub 저장소에서 세 파일을 확인했습니다</label>
+    </section>
+
+    <section id="step-7" class="card web-step">
+      <h2>7단계. GitHub Pages 켜기</h2>
+      <ol>
+        <li>GitHub에서 <span class="web-inline-code">first-website-practice</span> 저장소를 열고 상단의 <strong>Settings</strong> 탭을 누릅니다. 탭이 안 보이면 저장소 안에 있는지 확인합니다.</li>
+        <li>왼쪽 메뉴의 <strong>Pages</strong>를 선택합니다. 메뉴가 바로 안 보이면 설정 페이지의 왼쪽 목록을 아래로 내려 찾습니다.</li>
+        <li><strong>Build and deployment</strong> 아래 <strong>Source</strong>를 <strong>Deploy from a branch</strong>로 선택합니다.</li>
+        <li><strong>Branch</strong>를 <strong>main</strong>, 폴더를 <strong>/(root)</strong>로 고른 다음 <strong>Save</strong>를 누릅니다.</li>
+        <li><strong>Actions</strong> 탭을 열어 Pages 작업이 진행되는지 봅니다. 노란색 진행 표시가 초록색 성공 표시로 바뀔 때까지 기다립니다. 첫 게시에는 몇 분 걸릴 수 있습니다.</li>
+      </ol>
+      <p class="web-warning">저장소에 로그인 기능이나 데이터베이스 연결이 있다면 공개 저장소에 비밀번호, API 키, 개인 정보를 올리지 마세요. 이 실습은 브라우저에서 실행되는 정적 사이트만 게시합니다.</p>
+      <label class="web-check"><input type="checkbox" data-web-step="7"> 완료 — Pages가 main / (root)에서 배포되도록 설정했습니다</label>
+    </section>
+
+    <section id="step-8" class="card web-step">
+      <h2>8단계. 공개된 웹사이트 주소 열기</h2>
+      <p>Settings → Pages 화면의 상단에 <strong>Your site is live at</strong>라는 문구와 주소가 나타나면 그 주소를 누릅니다. 주소는 다음 모양입니다.</p>
+      <pre><code>https://내GitHub이름.github.io/first-website-practice/</code></pre>
+      <p><span class="web-inline-code">내GitHub이름</span> 부분은 본인의 실제 GitHub 사용자 이름으로 바뀝니다. GitHub 사용자 이름과 저장소 이름을 그대로 확인해 주소에 오타가 없는지 살펴보세요.</p>
+      <p>웹사이트가 열리고 버튼도 작동하면 누구나 접속할 수 있도록 게시된 것입니다. 바로 안 열리면 2~5분 기다린 뒤 새로고침합니다. 브라우저에서 <span class="web-inline-code">Ctrl+F5</span>를 누르면 이전 화면 대신 최신 파일을 다시 불러올 수 있습니다.</p>
+      <label class="web-check"><input type="checkbox" data-web-step="8"> 완료 — 인터넷 주소에서 페이지와 버튼을 확인했습니다</label>
+    </section>
+
+    <section id="step-9" class="card web-step">
+      <h2>9단계. 내용을 수정하고 다시 게시하기</h2>
+      <p>VS Code에서 <span class="web-inline-code">index.html</span>의 “안녕하세요!”를 원하는 문구로 바꾸고 저장합니다. 로컬 브라우저에서 먼저 확인한 다음 VS Code 터미널에서 아래를 실행합니다.</p>
+      <pre><code>git add index.html style.css script.js
+git commit -m "Update my website"
+git push</code></pre>
+      <p>GitHub 저장소의 <strong>Actions</strong> 탭에서 새 배포가 성공하면 같은 사이트 주소를 새로고침합니다. Pages 설정을 다시 할 필요는 없습니다.</p>
+      <label class="web-check"><input type="checkbox" data-web-step="9"> 완료 — 수정한 내용을 다시 게시했습니다</label>
+    </section>
+
+    <section id="step-10" class="card web-step">
+      <h2>10단계. 자주 생기는 문제 해결</h2>
+      <ul>
+        <li><strong>주소에서 404가 나옵니다:</strong> 저장소가 Public인지 확인하고, Settings → Pages가 <span class="web-inline-code">main</span>과 <span class="web-inline-code">/(root)</span>인지 확인합니다. 저장소 맨 위에 <span class="web-inline-code">index.html</span>이 있어야 합니다.</li>
+        <li><strong>Actions가 실패합니다:</strong> Actions 탭에서 실패한 작업을 열어 빨간 오류를 확인합니다. 코드 파일은 저장소 루트에 두고 파일 이름의 철자를 맞춥니다.</li>
+        <li><strong>페이지는 열리는데 디자인이 없습니다:</strong> 파일명이 <span class="web-inline-code">style.css</span>인지, HTML에 <span class="web-inline-code">href="style.css"</span>가 있는지 확인합니다.</li>
+        <li><strong>버튼이 작동하지 않습니다:</strong> 파일명이 <span class="web-inline-code">script.js</span>인지, HTML에 <span class="web-inline-code">src="script.js"</span>가 있는지 확인합니다. 개발자 도구는 브라우저에서 <span class="web-inline-code">F12</span>를 누른 뒤 Console 탭을 확인합니다.</li>
+        <li><strong>수정한 화면이 안 보입니다:</strong> GitHub 저장소에 새 수정이 올라갔는지, Actions의 배포가 초록색 성공인지 확인한 뒤 <span class="web-inline-code">Ctrl+F5</span>를 누릅니다.</li>
+        <li><strong>“nothing to commit”이 나옵니다:</strong> 파일을 저장했는지, VS Code 터미널이 Clone한 저장소 폴더인지 확인합니다. <span class="web-inline-code">git status</span>가 변경 파일을 보여주는지 확인합니다.</li>
+      </ul>
+      <p class="web-note">GitHub Pages는 공개 웹사이트를 만드는 서비스입니다. 방문자가 입력한 내용을 여러 사람에게 저장·공유하거나 회원 로그인을 처리하려면 서버와 데이터베이스를 별도로 공부해야 합니다.</p>
+      <label class="web-check"><input type="checkbox" data-web-step="10"> 완료 — 첫 웹사이트 제작과 공개 과정을 마쳤습니다</label>
+    </section>
+    <p class="app-muted">완료 체크는 현재 브라우저에만 저장됩니다.</p>
+  </main>
+</div>
+<script>
+  (() => {
+    const checks = Array.from(document.querySelectorAll("[data-web-step]"));
+    const progress = document.getElementById("web-progress");
+    const storageKey = "sap-web-manual-progress";
+    let completed = [];
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      if (Array.isArray(saved)) completed = saved.filter(step => checks.some(check => check.dataset.webStep === step));
+    } catch {}
+    function renderProgress() {
+      const done = checks.filter(check => check.checked).length;
+      progress.textContent = `학습 진행: ${done} / ${checks.length} 단계`;
+    }
+    checks.forEach(check => {
+      check.checked = completed.includes(check.dataset.webStep);
+      check.addEventListener("change", () => {
+        completed = checks.filter(item => item.checked).map(item => item.dataset.webStep);
+        try { localStorage.setItem(storageKey, JSON.stringify(completed)); } catch {}
+        renderProgress();
+      });
+    });
+    renderProgress();
+  })();
+</script>
+<script src="assets/auth.js?v=password-change-redirect-1"></script>
+<script src="assets/theme.js"></script>
+</body>
+</html>
