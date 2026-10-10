@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codestudio — 학습(앱)</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=learning-fixed-frame-2">
+<link rel="stylesheet" href="assets/style.css?v=app-dark-contrast-1">
 <style>
   .app-list { display:flex; flex-direction:column; max-width:520px; margin:18px 0 24px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
   .app-list button { width:100%; text-align:left; color:var(--ink); background:var(--surface); border:0; border-bottom:1px solid var(--border); border-radius:0; padding:14px 16px; }
@@ -56,25 +56,25 @@
     <div class="eyebrow">APP MAKING</div>
     <h1>앱제작</h1>
     <div id="app-menu" class="app-list">
-      <button type="button" data-app="todo">할 일 관리</button>
-      <button type="button" data-app="notes">메모장</button>
-      <button type="button" data-app="expenses">지출 관리</button>
+      <button class="app-surface-button" type="button" data-app="todo">할 일 관리</button>
+      <button class="app-surface-button" type="button" data-app="notes">메모장</button>
+      <button class="app-surface-button" type="button" data-app="expenses">지출 관리</button>
     </div>
     <section id="app-todo" class="card app-panel" hidden>
-      <button class="app-back" type="button">← 앱 목록</button>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
       <h3>할 일 관리</h3>
       <form id="todo-form" class="app-form"><input id="todo-input" type="text" maxlength="160" placeholder="할 일을 입력하세요" required><button type="submit">추가</button></form>
       <ul id="todo-list" class="app-items"></ul>
       <p class="app-muted">내용은 이 브라우저에 저장됩니다.</p>
     </section>
     <section id="app-notes" class="card app-panel" hidden>
-      <button class="app-back" type="button">← 앱 목록</button>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
       <h3>메모장</h3>
       <textarea id="notes-input" maxlength="10000" placeholder="메모를 입력하세요. 입력하면 자동 저장됩니다."></textarea>
       <p id="notes-status" class="app-muted" aria-live="polite">이 브라우저에 자동 저장됩니다.</p>
     </section>
     <section id="app-expenses" class="card app-panel" hidden>
-      <button class="app-back" type="button">← 앱 목록</button>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
       <h3>지출 관리</h3>
       <form id="expense-form" class="app-form">
         <input id="expense-name" type="text" maxlength="100" placeholder="지출 내용" required>
@@ -135,6 +135,7 @@
         const text = document.createElement("span");
         text.textContent = todo.text;
         const remove = document.createElement("button");
+        remove.className = "app-surface-button";
         remove.type = "button";
         remove.textContent = "삭제";
         remove.setAttribute("aria-label", `${todo.text} 삭제`);
@@ -185,6 +186,7 @@
         const text = document.createElement("span");
         text.textContent = `${expense.date} · ${expense.name} · ${expense.amount.toLocaleString("ko-KR")}원`;
         const remove = document.createElement("button");
+        remove.className = "app-surface-button";
         remove.type = "button";
         remove.textContent = "삭제";
         remove.setAttribute("aria-label", `${expense.name} 지출 삭제`);
