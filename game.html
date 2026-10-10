@@ -16,25 +16,31 @@
     max-width: 420px;
     margin-bottom: 14px;
   }
+  .game-list-row { display:flex; align-items:stretch; border-bottom:1px solid var(--border); background:var(--surface); }
+  .game-list-row:last-child { border-bottom:0; }
   .game-list-item {
     display: block;
-    width: 100%;
+    flex:1;
+    min-width:0;
     text-align: left;
     font-family: var(--sans);
     font-size: 15px;
     color: var(--ink);
     background: var(--surface);
     border: none;
-    border-bottom: 1px solid var(--border);
+    border: none;
     padding: 14px 16px;
     cursor: pointer;
-  }
-  .game-list-item:last-child {
-    border-bottom: none;
   }
   .game-list-item:hover {
     background: var(--accent-soft);
   }
+  .game-code-button { flex:none; padding:8px 12px; border:0; border-left:1px solid var(--border); border-radius:0; color:var(--ink-soft); background:transparent; font:13px var(--sans); cursor:pointer; }
+  .game-code-button:hover { background:var(--accent-soft); }
+  .game-code-dialog { width:min(900px, calc(100% - 32px)); max-height:85vh; padding:20px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink); }
+  .game-code-dialog::backdrop { background:rgb(0 0 0 / 55%); }
+  .game-code-dialog pre { max-height:65vh; overflow:auto; padding:14px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:13px/1.55 var(--mono); white-space:pre; }
+  .game-code-dialog button { float:right; }
   .game-back {
     background: transparent;
     color: var(--ink-soft);
@@ -217,18 +223,18 @@
     <h1>게임 개발</h1>
 
     <div id="game-menu" class="game-list">
-      <button class="game-list-item" type="button" data-target="panel-ttt">틱택토</button>
-      <button class="game-list-item" type="button" data-target="panel-bo">벽돌깨기</button>
-      <button class="game-list-item" type="button" data-target="panel-sh">슈팅게임</button>
-      <button class="game-list-item" type="button" data-target="panel-pz">슬라이딩 퍼즐</button>
-      <button class="game-list-item" type="button" data-target="panel-sn">스네이크</button>
-      <button class="game-list-item" type="button" data-target="panel-tt">테트리스</button>
-      <button class="game-list-item" type="button" data-target="panel-2048">2048</button>
-      <button class="game-list-item" type="button" data-target="panel-mole">두더지 잡기</button>
-      <button class="game-list-item" type="button" data-target="panel-pong">퐁 / 탁구</button>
-      <button class="game-list-item" type="button" data-target="panel-gyeol">결합 게임</button>
-      <button class="game-list-item" type="button" data-target="panel-dodge">똥피하기</button>
-      <button class="game-list-item" type="button" data-target="panel-sudoku">스도쿠</button>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-ttt">틱택토</button><button class="game-code-button" type="button" data-game-code-view="panel-ttt">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bo">벽돌깨기</button><button class="game-code-button" type="button" data-game-code-view="panel-bo">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sh">슈팅게임</button><button class="game-code-button" type="button" data-game-code-view="panel-sh">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pz">슬라이딩 퍼즐</button><button class="game-code-button" type="button" data-game-code-view="panel-pz">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sn">스네이크</button><button class="game-code-button" type="button" data-game-code-view="panel-sn">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-tt">테트리스</button><button class="game-code-button" type="button" data-game-code-view="panel-tt">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-2048">2048</button><button class="game-code-button" type="button" data-game-code-view="panel-2048">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-mole">두더지 잡기</button><button class="game-code-button" type="button" data-game-code-view="panel-mole">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pong">퐁 / 탁구</button><button class="game-code-button" type="button" data-game-code-view="panel-pong">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gyeol">결합 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-gyeol">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dodge">똥피하기</button><button class="game-code-button" type="button" data-game-code-view="panel-dodge">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sudoku">스도쿠</button><button class="game-code-button" type="button" data-game-code-view="panel-sudoku">코드 보기</button></div>
     </div>
 
     <div id="panel-ttt" class="card game-panel" hidden>
@@ -501,6 +507,11 @@
       <p id="sudoku-status" class="sudoku-status" aria-live="polite">새 게임을 눌러 시작하세요.</p>
       <p class="mobile-hint">빈칸을 선택해 숫자를 입력하세요. 가상 숫자 모드를 켜면 후보 숫자를 기록하거나 다시 눌러 지울 수 있습니다.</p>
     </div>
+    <dialog id="game-code-dialog" class="game-code-dialog">
+      <button id="game-code-close" type="button">닫기</button>
+      <h3 id="game-code-title">코드 보기</h3>
+      <pre><code id="game-code-content"></code></pre>
+    </dialog>
   </main>
 </div>
 
@@ -514,7 +525,7 @@
   };
 </script>
 
-<script>
+<script data-game-code="panel-ttt">
   // ── STEP 1: 틱택토 ─────────────────────────────
   (function () {
     const boardEl = document.getElementById("ttt-board");
@@ -590,7 +601,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-bo">
   // ── STEP 2: 벽돌깨기 ─────────────────────────────
   (function () {
     const canvas = document.getElementById("bo-canvas");
@@ -771,7 +782,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-sh">
   // ── STEP 3: 슈팅게임 ─────────────────────────────
   (function () {
     const canvas = document.getElementById("sh-canvas");
@@ -944,7 +955,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-pz">
   // ── STEP 4: 슬라이딩 퍼즐 ─────────────────────────
   (function () {
     const boardEl = document.getElementById("pz-board");
@@ -1049,7 +1060,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-sn">
   // ── STEP 5: 스네이크 ─────────────────────────────
   (function () {
     const canvas = document.getElementById("sn-canvas");
@@ -1192,7 +1203,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-tt">
   // ── STEP 6: 테트리스 ─────────────────────────────
   (function () {
     const canvas = document.getElementById("tt-canvas");
@@ -1620,7 +1631,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-2048">
   // ── STEP 7: 2048 ─────────────────────────────
   (function () {
     const canvas = document.getElementById("tw-canvas");
@@ -1831,7 +1842,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-mole">
   // ── STEP 8: 두더지 잡기 ─────────────────────────────
   // 지금까지의 게임은 전부 키보드(방향키/스페이스/Shift)로 조작했지만,
   // 이 게임은 화면을 탭(클릭)하는 것만으로 플레이합니다. 그래서 키보드가 없는
@@ -1984,7 +1995,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-pong">
   // ── STEP 9: 퐁 / 탁구 ─────────────────────────────
   (function () {
     const canvas = document.getElementById("pong-canvas");
@@ -2144,7 +2155,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-gyeol">
   // ── STEP 10: 결합 게임 (속성이 모두 같거나 모두 다른 3장 찾기) ─────────────
   (function () {
     const boardEl = document.getElementById("gyeol-board");
@@ -2289,7 +2300,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-dodge">
   // ── STEP 11: 똥피하기 ─────────────────────────────
   (function () {
     const canvas = document.getElementById("dodge-canvas");
@@ -2415,7 +2426,7 @@
   })();
 </script>
 
-<script>
+<script data-game-code="panel-sudoku">
   // ── STEP 12: 스도쿠 ─────────────────────────────
   (function () {
     const boardEl = document.getElementById("sudoku-board");
@@ -2850,6 +2861,21 @@
     document.querySelectorAll(".game-back").forEach(btn => {
       btn.addEventListener("click", closeGame);
     });
+
+    const codeDialog = document.getElementById("game-code-dialog");
+    const codeTitle = document.getElementById("game-code-title");
+    const codeContent = document.getElementById("game-code-content");
+    document.querySelectorAll(".game-code-button").forEach(button => {
+      button.addEventListener("click", () => {
+        const id = button.dataset.gameCodeView;
+        const source = document.querySelector(`script[data-game-code="${id}"]`);
+        const gameName = button.closest(".game-list-row").querySelector(".game-list-item").textContent;
+        codeTitle.textContent = `${gameName} — 코드`;
+        codeContent.textContent = source?.textContent.trim() || "코드를 찾을 수 없습니다.";
+        codeDialog.showModal();
+      });
+    });
+    document.getElementById("game-code-close").addEventListener("click", () => codeDialog.close());
   })();
 </script>
 <script src="assets/auth.js?v=password-change-redirect-1"></script>

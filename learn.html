@@ -8,15 +8,25 @@
 <link rel="stylesheet" href="assets/style.css?v=app-dark-contrast-1">
 <style>
   .app-list { display:flex; flex-direction:column; max-width:520px; margin:18px 0 24px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
-  .app-list button { width:100%; text-align:left; color:var(--ink); background:var(--surface); border:0; border-bottom:1px solid var(--border); border-radius:0; padding:14px 16px; }
-  .app-list button:last-child { border-bottom:0; }
-  .app-list button:hover { background:var(--accent-soft); }
+  .app-entry { display:flex; align-items:stretch; border-bottom:1px solid var(--border); background:var(--surface); }
+  .app-entry:last-child { border-bottom:0; }
+  .app-list .app-entry button { border:0; border-radius:0; background:transparent; }
+  .app-list .app-entry [data-app] { flex:1; text-align:left; color:var(--ink); padding:14px 16px; }
+  .app-list .app-entry [data-code-range] { flex:none; color:var(--ink-soft); padding:8px 12px; border-left:1px solid var(--border); font-size:13px; }
+  .app-entry button:hover { background:var(--accent-soft) !important; }
+  .app-code-dialog { width:min(900px, calc(100% - 32px)); max-height:85vh; padding:20px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink); }
+  .app-code-dialog::backdrop { background:rgb(0 0 0 / 55%); }
+  .app-code-dialog pre { max-height:65vh; overflow:auto; padding:14px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:13px/1.55 var(--mono); white-space:pre; }
+  .app-code-dialog button { float:right; }
   .app-panel[hidden] { display:none; }
   .app-back { margin-bottom:14px; background:transparent; color:var(--ink-soft); border:1px solid var(--border); padding:5px 10px; }
   .app-form { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:12px 0; }
   .app-form input, .app-form select, .app-panel textarea { min-height:40px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:inherit; }
   .app-form input[type="text"] { flex:1 1 200px; width:auto; }
   .app-form input[type="number"] { width:130px; }
+  .calculator-term { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+  .calculator-term input { flex:1 1 130px; min-width:0; }
+  .calculator-term select { flex:0 1 150px; }
   .app-panel textarea { width:100%; min-height:220px; resize:vertical; }
   .app-items { display:grid; gap:8px; padding:0; list-style:none; }
   .app-items li { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--surface); }
@@ -56,9 +66,11 @@
     <div class="eyebrow">APP MAKING</div>
     <h1>앱제작</h1>
     <div id="app-menu" class="app-list">
-      <button class="app-surface-button" type="button" data-app="todo">할 일 관리</button>
-      <button class="app-surface-button" type="button" data-app="notes">메모장</button>
-      <button class="app-surface-button" type="button" data-app="expenses">지출 관리</button>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="todo">할 일 관리</button><button type="button" data-code-range="todo">코드 보기</button></div>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="notes">메모장</button><button type="button" data-code-range="notes">코드 보기</button></div>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="expenses">지출 관리</button><button type="button" data-code-range="expenses">코드 보기</button></div>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="calculator">간단 계산기</button><button type="button" data-code-range="calculator">코드 보기</button></div>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="timer">타이머</button><button type="button" data-code-range="timer">코드 보기</button></div>
     </div>
     <section id="app-todo" class="card app-panel" hidden>
       <button class="app-back app-surface-button" type="button">← 앱 목록</button>
@@ -86,12 +98,44 @@
       <ul id="expense-list" class="app-items"></ul>
       <p class="app-muted">내역은 이 브라우저에 저장됩니다.</p>
     </section>
+    <section id="app-calculator" class="card app-panel" hidden>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
+      <h3>간단 계산기</h3>
+      <form id="calculator-form">
+        <div id="calculator-terms"></div>
+        <div class="app-form">
+          <button id="calculator-add-term" type="button">+ 계산 항목 추가</button>
+          <button type="submit">계산</button>
+        </div>
+      </form>
+      <p id="calculator-result" class="app-total" aria-live="polite">결과: -</p>
+    </section>
+    <section id="app-timer" class="card app-panel" hidden>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
+      <h3>타이머</h3>
+      <p id="timer-display" class="app-total" role="timer" aria-label="경과 시간">00:00.00</p>
+      <div class="app-form">
+        <button id="timer-start" type="button">시작</button>
+        <button id="timer-pause" type="button">일시 정지</button>
+        <button id="timer-reset" type="button">초기화</button>
+      </div>
+      <p id="timer-status" class="app-muted" aria-live="polite">시작을 눌러 집중 시간을 기록하세요.</p>
+    </section>
+    <dialog id="app-code-dialog" class="app-code-dialog">
+      <button id="app-code-close" type="button">닫기</button>
+      <h3 id="app-code-title">코드 보기</h3>
+      <pre><code id="app-code-content"></code></pre>
+    </dialog>
   </main>
 </div>
 <script>
   (() => {
     const menu = document.getElementById("app-menu");
     const panels = Array.from(document.querySelectorAll(".app-panel"));
+    const appSource = document.currentScript.textContent;
+    const codeDialog = document.getElementById("app-code-dialog");
+    const codeTitle = document.getElementById("app-code-title");
+    const codeContent = document.getElementById("app-code-content");
     const storage = {
       read(key, fallback) {
         try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
@@ -109,11 +153,22 @@
       menu.hidden = false;
     }
     menu.addEventListener("click", event => {
+      const codeButton = event.target.closest("[data-code-range]");
+      if (codeButton) {
+        const name = codeButton.dataset.codeRange;
+        const match = appSource.match(new RegExp(`\\s*// APP_CODE_START: ${name}\\n([\\s\\S]*?)\\n\\s*// APP_CODE_END: ${name}`));
+        codeTitle.textContent = `${codeButton.closest(".app-entry").querySelector("[data-app]").textContent} — 코드`;
+        codeContent.textContent = match ? match[1].trim() : "코드를 찾을 수 없습니다.";
+        codeDialog.showModal();
+        return;
+      }
       const button = event.target.closest("[data-app]");
       if (button) openApp(button.dataset.app);
     });
     document.querySelectorAll(".app-back").forEach(button => button.addEventListener("click", showMenu));
+    document.getElementById("app-code-close").addEventListener("click", () => codeDialog.close());
 
+    // APP_CODE_START: todo
     const todoForm = document.getElementById("todo-form");
     const todoInput = document.getElementById("todo-input");
     const todoList = document.getElementById("todo-list");
@@ -159,7 +214,9 @@
       todoInput.focus();
     });
     renderTodos();
+    // APP_CODE_END: todo
 
+    // APP_CODE_START: notes
     const notesInput = document.getElementById("notes-input");
     const notesStatus = document.getElementById("notes-status");
     notesInput.value = storage.read("sap-app-notes", "");
@@ -168,7 +225,9 @@
         ? "저장했습니다. 이 브라우저에서 다시 열어도 메모가 남습니다."
         : "저장하지 못했습니다. 브라우저 저장 공간을 확인해주세요.";
     });
+    // APP_CODE_END: notes
 
+    // APP_CODE_START: expenses
     const expenseForm = document.getElementById("expense-form");
     const expenseName = document.getElementById("expense-name");
     const expenseAmount = document.getElementById("expense-amount");
@@ -212,6 +271,148 @@
       expenseName.focus();
     });
     renderExpenses();
+    // APP_CODE_END: expenses
+
+    // APP_CODE_START: calculator
+    const calculatorForm = document.getElementById("calculator-form");
+    const calculatorTerms = document.getElementById("calculator-terms");
+    const calculatorAddTerm = document.getElementById("calculator-add-term");
+    const calculatorResult = document.getElementById("calculator-result");
+    const operations = [
+      { value: "add", label: "+ 더하기" },
+      { value: "subtract", label: "− 빼기" },
+      { value: "multiply", label: "× 곱하기" },
+      { value: "divide", label: "÷ 나누기" },
+    ];
+    const terms = [{ operation: null, value: "" }, { operation: "add", value: "" }];
+    function renderCalculatorTerms() {
+      calculatorTerms.replaceChildren();
+      terms.forEach((term, index) => {
+        const row = document.createElement("div");
+        row.className = "calculator-term";
+        if (index > 0) {
+          const operation = document.createElement("select");
+          operation.setAttribute("aria-label", `${index + 1}번째 항목의 연산자`);
+          operations.forEach(option => {
+            const choice = document.createElement("option");
+            choice.value = option.value;
+            choice.textContent = option.label;
+            operation.appendChild(choice);
+          });
+          operation.value = term.operation;
+          operation.addEventListener("change", () => { term.operation = operation.value; });
+          row.appendChild(operation);
+        }
+        const input = document.createElement("input");
+        input.type = "number";
+        input.step = "any";
+        input.required = true;
+        input.value = term.value;
+        input.placeholder = `${index + 1}번째 숫자`;
+        input.setAttribute("aria-label", `${index + 1}번째 숫자`);
+        input.addEventListener("input", () => { term.value = input.value; });
+        row.appendChild(input);
+        if (index > 0) {
+          const remove = document.createElement("button");
+          remove.className = "app-surface-button";
+          remove.type = "button";
+          remove.textContent = "삭제";
+          remove.setAttribute("aria-label", `${index + 1}번째 계산 항목 삭제`);
+          remove.addEventListener("click", () => {
+            terms.splice(index, 1);
+            renderCalculatorTerms();
+          });
+          row.appendChild(remove);
+        }
+        calculatorTerms.appendChild(row);
+      });
+    }
+    calculatorAddTerm.addEventListener("click", () => {
+      terms.push({ operation: "add", value: "" });
+      renderCalculatorTerms();
+      calculatorTerms.lastElementChild.querySelector("input").focus();
+    });
+    renderCalculatorTerms();
+    calculatorForm.addEventListener("submit", event => {
+      event.preventDefault();
+      let sum = 0;
+      let current = Number(terms[0].value);
+      for (let index = 1; index < terms.length; index += 1) {
+        const operand = Number(terms[index].value);
+        switch (terms[index].operation) {
+          case "add":
+            sum += current;
+            current = operand;
+            break;
+          case "subtract":
+            sum += current;
+            current = -operand;
+            break;
+          case "multiply":
+            current *= operand;
+            break;
+          case "divide":
+            if (operand === 0) {
+              calculatorResult.textContent = "0으로 나눌 수 없습니다.";
+              return;
+            }
+            current /= operand;
+            break;
+          default: return;
+        }
+      }
+      const result = sum + current;
+      calculatorResult.textContent = Number.isFinite(result)
+        ? `결과: ${result.toLocaleString("ko-KR", { maximumSignificantDigits: 12 })}`
+        : "계산 결과가 너무 큽니다.";
+    });
+    // APP_CODE_END: calculator
+
+    // APP_CODE_START: timer
+    const timerDisplay = document.getElementById("timer-display");
+    const timerStatus = document.getElementById("timer-status");
+    const timerStart = document.getElementById("timer-start");
+    const timerPause = document.getElementById("timer-pause");
+    const timerReset = document.getElementById("timer-reset");
+    let timerElapsed = 0;
+    let timerStartedAt = null;
+    let timerInterval = null;
+    function renderTimer() {
+      const hundredths = Math.floor(timerElapsed * 100);
+      const minutes = Math.floor(hundredths / 6000);
+      const seconds = Math.floor(hundredths / 100) % 60;
+      const fraction = hundredths % 100;
+      timerDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(fraction).padStart(2, "0")}`;
+    }
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerStartedAt = null;
+    }
+    timerStart.addEventListener("click", () => {
+      if (timerInterval) return;
+      timerStartedAt = Date.now();
+      timerStatus.textContent = "집중 중입니다. 한 번에 한 가지 일에 집중해보세요.";
+      timerInterval = setInterval(() => {
+        timerElapsed += (Date.now() - timerStartedAt) / 1000;
+        timerStartedAt = Date.now();
+        renderTimer();
+      }, 10);
+    });
+    timerPause.addEventListener("click", () => {
+      if (!timerInterval) return;
+      timerElapsed += (Date.now() - timerStartedAt) / 1000;
+      stopTimer();
+      renderTimer();
+      timerStatus.textContent = "일시 정지했습니다.";
+    });
+    timerReset.addEventListener("click", () => {
+      stopTimer();
+      timerElapsed = 0;
+      renderTimer();
+      timerStatus.textContent = "시작을 눌러 집중 시간을 기록하세요.";
+    });
+    // APP_CODE_END: timer
   })();
 </script>
 <script src="assets/auth.js?v=password-change-redirect-1"></script>
