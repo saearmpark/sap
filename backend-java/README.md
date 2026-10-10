@@ -43,6 +43,28 @@ mvn spring-boot:run
 | GET | `/api/files/{id}/preview` | 이미지 미리보기 (SVG 제외) |
 | DELETE | `/api/files/{id}` | 파일 삭제 |
 
+### 그림판 저장
+
+그림판 API는 PNG 이미지를 DB에 저장하며 로그인 토큰이 필요합니다. 전체 그림 저장량은 5MiB로 제한되고, 새 그림으로 용량을 넘기면 가장 오래된 그림부터 자동 삭제됩니다. 목록·불러오기·삭제는 로그인한 사용자 본인의 그림에 한정됩니다.
+
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| GET | `/api/drawings` | 내 그림 목록 (최신순) |
+| POST | `/api/drawings` | PNG 그림 저장 (`multipart/form-data`, `file` 필드, 최대 5MiB) |
+| GET | `/api/drawings/{id}` | 내 그림 불러오기 |
+| DELETE | `/api/drawings/{id}` | 내 그림 삭제 |
+
+### 실시간 대화
+
+실시간 대화는 승인된 로그인 사용자만 이용할 수 있습니다. 공용방과 1:1 대화를 지원하고, 접속 상태는 WebSocket 연결로 갱신됩니다. 메시지는 DB에 저장되어 2일 후 자동 삭제됩니다.
+
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| GET | `/api/chat/users` | 승인된 사용자와 접속 상태 |
+| GET | `/api/chat/messages` | 공용 대화방 최근 메시지 |
+| GET | `/api/chat/messages?with={userId}` | 특정 사용자와의 1:1 대화 기록 |
+| WebSocket | `/ws/chat` | 연결 후 첫 프레임에 `{ "type": "auth", "token": "로그인 토큰" }` 전송 후 메시지 송수신 |
+
 ### 계정과 일정
 
 | 메서드 | 경로 | 설명 |

@@ -14,6 +14,12 @@
   .app-list .app-entry [data-app] { flex:1; text-align:left; color:var(--ink); padding:14px 16px; }
   .app-list .app-entry [data-code-range] { flex:none; color:var(--ink-soft); padding:8px 12px; border-left:1px solid var(--border); font-size:13px; }
   .app-entry button:hover { background:var(--accent-soft) !important; }
+  .drawing-tools { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px; }
+  .drawing-tools label { display:inline-flex; align-items:center; gap:6px; font-size:14px; color:var(--ink-soft); }
+  .drawing-tools input[type="color"] { width:44px; height:36px; border:1px solid var(--border); border-radius:6px; background:var(--bg); padding:2px; }
+  .drawing-tools input[type="range"] { width:180px; }
+  .drawing-canvas-wrap { border:1px solid var(--border); border-radius:10px; overflow:hidden; background:#fff; }
+  .drawing-canvas { display:block; width:100%; height:440px; background:#fff; cursor:crosshair; touch-action:none; }
   .app-code-dialog { width:min(900px, calc(100% - 32px)); max-height:85vh; padding:20px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink); }
   .app-code-dialog::backdrop { background:rgb(0 0 0 / 55%); }
   .app-code-dialog pre { max-height:65vh; overflow:auto; padding:14px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:13px/1.55 var(--mono); white-space:pre; }
@@ -70,6 +76,7 @@
       <div class="app-entry"><button class="app-surface-button" type="button" data-app="notes">메모장</button><button type="button" data-code-range="notes">코드 보기</button></div>
       <div class="app-entry"><button class="app-surface-button" type="button" data-app="expenses">지출 관리</button><button type="button" data-code-range="expenses">코드 보기</button></div>
       <div class="app-entry"><button class="app-surface-button" type="button" data-app="calculator">간단 계산기</button><button type="button" data-code-range="calculator">코드 보기</button></div>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="drawing">그림판</button><button type="button" data-code-range="drawing">코드 보기</button></div>
       <div class="app-entry"><button class="app-surface-button" type="button" data-app="timer">타이머</button><button type="button" data-code-range="timer">코드 보기</button></div>
     </div>
     <section id="app-todo" class="card app-panel" hidden>
@@ -110,6 +117,23 @@
       </form>
       <p id="calculator-result" class="app-total" aria-live="polite">결과: -</p>
     </section>
+    <section id="app-drawing" class="card app-panel" hidden>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
+      <h3>그림판</h3>
+      <div class="drawing-tools">
+        <label>색상 <input id="drawing-color" type="color" value="#1f2937"></label>
+        <label>굵기 <input id="drawing-size" type="range" min="2" max="40" step="1" value="6"></label>
+        <button id="drawing-clear" type="button">지우기</button>
+        <button id="drawing-save" type="button">서버에 저장</button>
+        <button id="drawing-download" type="button">PNG 다운로드</button>
+      </div>
+      <div class="drawing-canvas-wrap">
+        <canvas id="drawing-canvas" class="drawing-canvas" width="920" height="440" aria-label="그림 그리기 영역"></canvas>
+      </div>
+      <p id="drawing-status" class="app-muted" aria-live="polite">서버 저장은 로그인 후 이용할 수 있습니다. 전체 저장량은 5MB이며 용량 초과 시 오래된 그림부터 삭제됩니다.</p>
+      <h4>내가 서버에 저장한 그림</h4>
+      <ul id="drawing-saved-list" class="app-items"></ul>
+    </section>
     <section id="app-timer" class="card app-panel" hidden>
       <button class="app-back app-surface-button" type="button">← 앱 목록</button>
       <h3>타이머</h3>
@@ -128,6 +152,7 @@
     </dialog>
   </main>
 </div>
+<script src="assets/auth.js?v=password-change-redirect-1"></script>
 <script>
   (() => {
     const menu = document.getElementById("app-menu");
@@ -368,6 +393,168 @@
     });
     // APP_CODE_END: calculator
 
+    // APP_CODE_START: drawing
+    const drawingCanvas = document.getElementById("drawing-canvas");
+    const drawingColor = document.getElementById("drawing-color");
+    const drawingSize = document.getElementById("drawing-size");
+    const drawingClear = document.getElementById("drawing-clear");
+    const drawingSave = document.getElementById("drawing-save");
+    const drawingDownload = document.getElementById("drawing-download");
+    const drawingStatus = document.getElementById("drawing-status");
+    const drawingSavedList = document.getElementById("drawing-saved-list");
+    const drawingContext = drawingCanvas.getContext("2d");
+    const drawingApi = `${SAPAuth.API_ROOT}/drawings`;
+    let isDrawing = false;
+    let previousPoint = null;
+    function prepareDrawingCanvas() {
+      drawingContext.fillStyle = "#ffffff";
+      drawingContext.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+      drawingContext.lineCap = "round";
+      drawingContext.lineJoin = "round";
+      drawingContext.strokeStyle = drawingColor.value;
+      drawingContext.lineWidth = Number(drawingSize.value);
+    }
+    function getCanvasPoint(event) {
+      const rect = drawingCanvas.getBoundingClientRect();
+      return {
+        x: ((event.clientX - rect.left) / rect.width) * drawingCanvas.width,
+        y: ((event.clientY - rect.top) / rect.height) * drawingCanvas.height,
+      };
+    }
+    function beginDrawing(event) {
+      event.preventDefault();
+      isDrawing = true;
+      previousPoint = getCanvasPoint(event);
+      drawingStatus.textContent = "그리는 중입니다.";
+    }
+    function continueDrawing(event) {
+      if (!isDrawing || !previousPoint) return;
+      const nextPoint = getCanvasPoint(event);
+      drawingContext.strokeStyle = drawingColor.value;
+      drawingContext.lineWidth = Number(drawingSize.value);
+      drawingContext.beginPath();
+      drawingContext.moveTo(previousPoint.x, previousPoint.y);
+      drawingContext.lineTo(nextPoint.x, nextPoint.y);
+      drawingContext.stroke();
+      previousPoint = nextPoint;
+    }
+    function stopDrawing() {
+      isDrawing = false;
+      previousPoint = null;
+      drawingStatus.textContent = "마우스로 자유롭게 그려보세요.";
+    }
+    drawingCanvas.addEventListener("pointerdown", beginDrawing);
+    drawingCanvas.addEventListener("pointermove", continueDrawing);
+    drawingCanvas.addEventListener("pointerup", stopDrawing);
+    drawingCanvas.addEventListener("pointerleave", stopDrawing);
+    drawingCanvas.addEventListener("pointercancel", stopDrawing);
+    drawingClear.addEventListener("click", () => {
+      prepareDrawingCanvas();
+      drawingStatus.textContent = "캔버스를 비웠습니다.";
+    });
+    function downloadDrawing() {
+      const link = document.createElement("a");
+      link.href = drawingCanvas.toDataURL("image/png");
+      link.download = "sap-drawing.png";
+      link.click();
+      drawingStatus.textContent = "그림을 PNG 파일로 다운로드했습니다.";
+    }
+    async function refreshSavedDrawings() {
+      drawingSavedList.replaceChildren();
+      if (!SAPAuth.getToken()) {
+        const item = document.createElement("li");
+        item.textContent = "로그인하면 서버에 저장한 그림을 확인할 수 있습니다.";
+        drawingSavedList.appendChild(item);
+        return;
+      }
+      try {
+        const response = await SAPAuth.apiFetch(drawingApi);
+        if (!response.ok) throw new Error(`저장된 그림을 불러오지 못했습니다 (HTTP ${response.status}).`);
+        const savedDrawings = await response.json();
+        if (savedDrawings.length === 0) {
+          const item = document.createElement("li");
+          item.textContent = "저장된 그림이 없습니다.";
+          drawingSavedList.appendChild(item);
+          return;
+        }
+        savedDrawings.forEach(drawing => {
+          const item = document.createElement("li");
+          const label = document.createElement("span");
+          label.textContent = `${new Date(drawing.createdAt).toLocaleString("ko-KR")} · ${(drawing.fileSize / 1024).toFixed(1)}KB`;
+          const load = document.createElement("button");
+          load.className = "app-surface-button";
+          load.type = "button";
+          load.textContent = "불러오기";
+          load.addEventListener("click", async () => {
+            try {
+              const imageResponse = await SAPAuth.apiFetch(`${drawingApi}/${drawing.id}`);
+              if (!imageResponse.ok) throw new Error("그림을 불러오지 못했습니다.");
+              const image = await createImageBitmap(await imageResponse.blob());
+              drawingContext.fillStyle = "#ffffff";
+              drawingContext.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+              drawingContext.drawImage(image, 0, 0, drawingCanvas.width, drawingCanvas.height);
+              image.close();
+              drawingStatus.textContent = "서버에 저장된 그림을 불러왔습니다.";
+            } catch (error) {
+              drawingStatus.textContent = error.message || "그림을 불러오지 못했습니다.";
+            }
+          });
+          const remove = document.createElement("button");
+          remove.className = "app-surface-button";
+          remove.type = "button";
+          remove.textContent = "삭제";
+          remove.setAttribute("aria-label", "저장한 그림 삭제");
+          remove.addEventListener("click", async () => {
+            try {
+              const deleteResponse = await SAPAuth.apiFetch(`${drawingApi}/${drawing.id}`, { method: "DELETE" });
+              if (!deleteResponse.ok) throw new Error("저장한 그림을 삭제하지 못했습니다.");
+              drawingStatus.textContent = "서버에서 그림을 삭제했습니다.";
+              await refreshSavedDrawings();
+            } catch (error) {
+              drawingStatus.textContent = error.message || "그림을 삭제하지 못했습니다.";
+            }
+          });
+          item.append(label, load, remove);
+          drawingSavedList.appendChild(item);
+        });
+      } catch (error) {
+        drawingStatus.textContent = error.message || "저장된 그림을 불러오지 못했습니다.";
+      }
+    }
+    drawingSave.addEventListener("click", async () => {
+      if (!SAPAuth.getToken()) {
+        drawingStatus.textContent = "서버 저장은 로그인 후 이용할 수 있습니다. 로그인 후 다시 시도해주세요.";
+        return;
+      }
+      drawingSave.disabled = true;
+      drawingStatus.textContent = "서버에 그림을 저장하고 있습니다...";
+      try {
+        const blob = await new Promise(resolve => drawingCanvas.toBlob(resolve, "image/png"));
+        if (!blob) throw new Error("그림 파일을 만들지 못했습니다.");
+        const formData = new FormData();
+        formData.append("file", blob, "drawing.png");
+        const response = await SAPAuth.apiFetch(drawingApi, { method: "POST", body: formData });
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({}));
+          throw new Error(result.message || (response.status === 413
+            ? "그림은 5MB 이하만 저장할 수 있습니다."
+            : `서버 저장에 실패했습니다 (HTTP ${response.status}).`));
+        }
+        drawingStatus.textContent = "그림을 서버에 저장했습니다. 용량이 부족하면 오래된 그림부터 정리됩니다.";
+        await refreshSavedDrawings();
+      } catch (error) {
+        drawingStatus.textContent = error instanceof TypeError
+          ? "서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요."
+          : error.message || "그림을 서버에 저장하지 못했습니다.";
+      } finally {
+        drawingSave.disabled = false;
+      }
+    });
+    drawingDownload.addEventListener("click", downloadDrawing);
+    document.addEventListener("DOMContentLoaded", refreshSavedDrawings, { once: true });
+    prepareDrawingCanvas();
+    // APP_CODE_END: drawing
+
     // APP_CODE_START: timer
     const timerDisplay = document.getElementById("timer-display");
     const timerStatus = document.getElementById("timer-status");
@@ -415,7 +602,6 @@
     // APP_CODE_END: timer
   })();
 </script>
-<script src="assets/auth.js?v=password-change-redirect-1"></script>
 <script src="assets/theme.js"></script>
 </body>
 </html>

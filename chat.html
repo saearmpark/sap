@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 실시간 대화</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=learning-sidebar-menu-1">
+<style>
+  .chat-layout { display:grid; grid-template-columns:minmax(190px, 250px) minmax(0, 1fr); gap:16px; margin-top:20px; }
+  .chat-users, .chat-window { min-width:0; border:1px solid var(--border); border-radius:10px; background:var(--surface); }
+  .chat-users { padding:14px; }
+  .chat-users h2, .chat-window h2 { margin:0 0 12px; font-size:17px; }
+  .chat-user-list { display:grid; gap:6px; }
+  .chat-user-list button, .chat-room-button { display:flex; width:100%; align-items:center; gap:8px; text-align:left; padding:9px 10px; border:1px solid transparent; border-radius:6px; background:transparent; color:var(--ink); }
+  .chat-user-list button:hover, .chat-user-list button[aria-current="true"], .chat-room-button[aria-current="true"] { background:var(--accent-soft); border-color:var(--border); }
+  .chat-presence { width:9px; height:9px; flex:none; border-radius:50%; background:#9ca3af; }
+  .chat-presence.is-online { background:#16a34a; }
+  .chat-window { display:flex; flex-direction:column; min-height:560px; padding:16px; }
+  .chat-header { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid var(--border); }
+  .chat-status, .chat-note { color:var(--ink-soft); font-size:13px; }
+  .chat-messages { flex:1; display:flex; flex-direction:column; gap:9px; max-height:55vh; overflow:auto; padding:14px 2px; }
+  .chat-message { max-width:min(80%, 520px); padding:9px 11px; border-radius:10px; background:var(--bg); overflow-wrap:anywhere; }
+  .chat-message.is-mine { align-self:flex-end; background:var(--accent-soft); }
+  .chat-message-meta { display:flex; gap:8px; margin-bottom:3px; color:var(--ink-soft); font-size:12px; }
+  .chat-message-content { white-space:pre-wrap; }
+  .chat-form { display:flex; gap:8px; border-top:1px solid var(--border); padding-top:12px; }
+  .chat-form textarea { flex:1; min-width:0; min-height:44px; max-height:120px; resize:vertical; padding:10px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:inherit; }
+  @media (max-width:700px) {
+    .chat-layout { grid-template-columns:1fr; }
+    .chat-users { order:2; }
+    .chat-window { min-height:440px; }
+    .chat-messages { max-height:45vh; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="calendar.html">일정</a>
+      <details class="nav-learning">
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱제작</a>
+          <a href="game.html">게임제작</a>
+          <a href="concepts.html">개념학습</a>
+          <a href="web.html">웹제작</a>
+        </div>
+      </details>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">LIVE CHAT</div>
+    <h1>실시간 대화</h1>
+    <p class="lead">접속 중인 사용자를 확인하고 공용 대화방이나 1:1 대화를 이용할 수 있습니다. 메시지는 2일간 보관됩니다.</p>
+    <div class="chat-layout">
+      <aside class="chat-users">
+        <h2>대화</h2>
+        <button id="chat-room-button" class="chat-room-button" type="button" aria-current="true">공용 대화방</button>
+        <h2 style="margin-top:18px">사용자</h2>
+        <div id="chat-user-list" class="chat-user-list"></div>
+      </aside>
+      <section class="chat-window" aria-label="대화 창">
+        <header class="chat-header">
+          <h2 id="chat-title">공용 대화방</h2>
+          <span id="chat-status" class="chat-status" aria-live="polite">연결 중...</span>
+        </header>
+        <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
+        <p class="chat-note">메시지는 2일 후 자동 삭제됩니다. 한 메시지는 최대 1000자입니다.</p>
+        <form id="chat-form" class="chat-form">
+          <textarea id="chat-input" maxlength="1000" rows="2" placeholder="메시지를 입력하세요" required></textarea>
+          <button type="submit">전송</button>
+        </form>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="assets/auth.js?v=password-change-redirect-1"></script>
+<script>
+  (() => {
+    const userList = document.getElementById("chat-user-list");
+    const roomButton = document.getElementById("chat-room-button");
+    const messagesEl = document.getElementById("chat-messages");
+    const chatTitle = document.getElementById("chat-title");
+    const chatStatus = document.getElementById("chat-status");
+    const chatForm = document.getElementById("chat-form");
+    const chatInput = document.getElementById("chat-input");
+    const currentUser = SAPAuth.getUser();
+    let currentUserId = Number(currentUser?.id) || null;
+    let users = [];
+    let activeChat = { type: "ROOM", id: null, name: "공용 대화방" };
+    let socket;
+    let reconnectTimer;
+    let reconnectDelay = 1000;
+
+    function renderMessages(messages) {
+      messagesEl.replaceChildren();
+      messages.forEach(appendMessage);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+    function appendMessage(message) {
+      if (activeChat.type === "ROOM" && message.type !== "ROOM") return;
+      if (activeChat.type === "DIRECT" && (message.type !== "DIRECT"
+          || ![message.senderId, message.recipientId].includes(activeChat.id)
+          || ![message.senderId, message.recipientId].includes(currentUserId))) return;
+      const item = document.createElement("article");
+      item.className = `chat-message${message.senderId === currentUserId ? " is-mine" : ""}`;
+      const meta = document.createElement("div");
+      meta.className = "chat-message-meta";
+      const name = document.createElement("span");
+      name.textContent = message.senderId === currentUserId ? "나" : message.senderName;
+      const time = document.createElement("time");
+      time.dateTime = message.createdAt;
+      time.textContent = new Date(message.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+      meta.append(name, time);
+      const content = document.createElement("div");
+      content.className = "chat-message-content";
+      content.textContent = message.content;
+      item.append(meta, content);
+      messagesEl.appendChild(item);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+    async function loadMessages() {
+      messagesEl.replaceChildren();
+      chatTitle.textContent = activeChat.name;
+      const query = activeChat.type === "DIRECT" ? `?with=${encodeURIComponent(activeChat.id)}` : "";
+      try {
+        const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/chat/messages${query}`);
+        if (!response.ok) throw new Error(`대화 기록을 불러오지 못했습니다 (HTTP ${response.status}).`);
+        renderMessages(await response.json());
+      } catch (error) {
+        chatStatus.textContent = error.message || "대화 기록을 불러오지 못했습니다.";
+      }
+    }
+    function selectRoom() {
+      activeChat = { type: "ROOM", id: null, name: "공용 대화방" };
+      roomButton.setAttribute("aria-current", "true");
+      userList.querySelectorAll("button").forEach(button => button.removeAttribute("aria-current"));
+      loadMessages();
+    }
+    function selectUser(user) {
+      activeChat = { type: "DIRECT", id: user.id, name: `${user.displayName}님과의 대화` };
+      roomButton.removeAttribute("aria-current");
+      userList.querySelectorAll("button").forEach(button => {
+        if (Number(button.dataset.userId) === user.id) button.setAttribute("aria-current", "true");
+        else button.removeAttribute("aria-current");
+      });
+      loadMessages();
+    }
+    function renderUsers(nextUsers) {
+      users = nextUsers;
+      userList.replaceChildren();
+      users.filter(user => user.id !== currentUserId).forEach(user => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.userId = user.id;
+        if (activeChat.type === "DIRECT" && user.id === activeChat.id) button.setAttribute("aria-current", "true");
+        const indicator = document.createElement("span");
+        indicator.className = `chat-presence${user.online ? " is-online" : ""}`;
+        indicator.setAttribute("aria-label", user.online ? "접속 중" : "오프라인");
+        const label = document.createElement("span");
+        label.textContent = `${user.displayName}${user.online ? "" : " · 오프라인"}`;
+        button.append(indicator, label);
+        button.addEventListener("click", () => selectUser(user));
+        userList.appendChild(button);
+      });
+    }
+    async function refreshUsers() {
+      const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/chat/users`);
+      if (!response.ok) throw new Error("사용자 목록을 불러오지 못했습니다.");
+      renderUsers(await response.json());
+    }
+    function connect() {
+      if (!SAPAuth.getToken()) return;
+      const apiUrl = new URL(SAPAuth.API_ROOT);
+      apiUrl.protocol = apiUrl.protocol === "https:" ? "wss:" : "ws:";
+      apiUrl.pathname = "/ws/chat";
+      apiUrl.search = "";
+      socket = new WebSocket(apiUrl);
+      socket.addEventListener("open", () => {
+        socket.send(JSON.stringify({ type: "auth", token: SAPAuth.getToken() }));
+      });
+      socket.addEventListener("message", event => {
+        const packet = JSON.parse(event.data);
+        if (packet.type === "ready") {
+          reconnectDelay = 1000;
+          chatStatus.textContent = "실시간 연결됨";
+          loadMessages();
+          return;
+        }
+        if (packet.type === "presence") renderUsers(packet.users);
+        if (packet.type === "message") appendMessage(packet.message);
+        if (packet.type === "error") chatStatus.textContent = packet.message;
+      });
+      socket.addEventListener("close", event => {
+        if (event.code === 1008) {
+          SAPAuth.clearSession();
+          location.replace(SAPAuth.loginUrl());
+          return;
+        }
+        chatStatus.textContent = "연결이 끊겼습니다. 다시 연결 중...";
+        clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(connect, reconnectDelay);
+        reconnectDelay = Math.min(reconnectDelay * 2, 15000);
+      });
+      socket.addEventListener("error", () => socket.close());
+    }
+    roomButton.addEventListener("click", selectRoom);
+    chatForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const content = chatInput.value.trim();
+      if (!content || socket?.readyState !== WebSocket.OPEN) {
+        chatStatus.textContent = "서버 연결 후 메시지를 보낼 수 있습니다.";
+        return;
+      }
+      socket.send(JSON.stringify({
+        type: "message",
+        chatType: activeChat.type,
+        recipientId: activeChat.id,
+        content,
+      }));
+      chatInput.value = "";
+      chatInput.focus();
+    });
+    chatInput.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        chatForm.requestSubmit();
+      }
+    });
+    window.addEventListener("beforeunload", () => {
+      clearTimeout(reconnectTimer);
+      socket?.close();
+    });
+
+    SAPAuth.requireSession().then(user => {
+      if (!user || user.unavailable) {
+        chatStatus.textContent = "로그인 서버에 연결할 수 없습니다.";
+        return;
+      }
+      currentUserId = user.id;
+      refreshUsers().catch(error => { chatStatus.textContent = error.message; });
+      loadMessages();
+      connect();
+    });
+  })();
+</script>
+<script src="assets/theme.js"></script>
+</body>
+</html>

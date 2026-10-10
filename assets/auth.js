@@ -14,6 +14,7 @@
   function saveSession(data) {
     localStorage.setItem(tokenKey, data.accessToken);
     localStorage.setItem(userKey, JSON.stringify({
+      id: data.id,
       username: data.username,
       displayName: data.displayName,
       isAdmin: data.isAdmin === true
@@ -31,7 +32,7 @@
 
   function loginUrl() {
     const next = location.pathname.split("/").pop();
-    const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html"];
+    const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html"];
     return `login.html${allowed.includes(next) ? `?next=${encodeURIComponent(next)}` : ""}`;
   }
 
@@ -81,6 +82,17 @@
       link.textContent = "로그인 / 회원가입";
       link.href = "login.html";
       link.onclick = null;
+    }
+
+    let chatLink = document.querySelector("[data-chat-link]");
+    if (getToken() && !chatLink) {
+      chatLink = document.createElement("a");
+      chatLink.href = "chat.html";
+      chatLink.dataset.chatLink = "";
+      chatLink.textContent = "실시간 대화";
+      link?.insertAdjacentElement("afterend", chatLink);
+    } else if (chatLink) {
+      chatLink.hidden = !getToken();
     }
 
     let passwordLink = document.querySelector("[data-password-link]");

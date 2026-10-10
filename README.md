@@ -9,7 +9,7 @@ Java, Python, HTML/CSS를 연습하는 개인 학습 사이트입니다.
 
 ```text
 .
-├── index.html, calendar.html, learn.html, concepts.html, web.html # 홈, 일정, 학습 화면
+├── index.html, calendar.html, learn.html, concepts.html, web.html, chat.html # 홈, 일정, 학습, 실시간 대화
 ├── board.html, files.html, game.html              # 게시판, 자료실, 게임 화면
 ├── assets/                                        # 공통 CSS와 테마 전환 스크립트
 ├── backend-java/                                  # Spring Boot 게시판 API
@@ -17,7 +17,7 @@ Java, Python, HTML/CSS를 연습하는 개인 학습 사이트입니다.
 └── games/python/                                  # pygame-ce 게임 실습
 ```
 
-정적 페이지는 GitHub Pages에서 저장소 루트 기준으로 제공하므로 HTML 파일은 루트에 둡니다. 사이트 화면은 `assets/style.css`와 `assets/theme.js`를 공유합니다. 게시판과 자료실은 회원가입 후 관리자 승인과 로그인이 필요하며, 일정도 로그인한 계정별로 저장됩니다. 인증·회원 승인·일정 API는 Java 백엔드에 있습니다.
+정적 페이지는 GitHub Pages에서 저장소 루트 기준으로 제공하므로 HTML 파일은 루트에 둡니다. 사이트 화면은 `assets/style.css`와 `assets/theme.js`를 공유합니다. 게시판, 자료실, 실시간 대화는 회원가입 후 관리자 승인과 로그인이 필요하며, 일정도 로그인한 계정별로 저장됩니다. 실시간 대화는 공용방·1:1 메시지와 사용자 접속 상태를 제공하고 대화는 2일간 보관합니다. 관련 API는 Java 백엔드에 있습니다.
 
 `web.html`에는 HTML·CSS·JavaScript로 작은 웹사이트를 만들고 GitHub Pages에 게시하는 단계별 초보자 안내가 있습니다.
 `concepts.html`에는 프로그래밍 언어, 컴퓨터·통신 기초와 제작 용어를 정리했습니다.
