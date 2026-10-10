@@ -499,4 +499,14 @@ code {
   .file-preview-link { width: 64px; height: 52px; margin-right: 8px; }
   .calendar-fields { grid-template-columns: 1fr; }
   .calendar-toolbar h2 { font-size: 17px; }
+  .main { padding: 28px 12px; }
+  .calendar-wrap { overflow-x: hidden; padding: 12px 8px; }
+  .calendar-table { width: 100%; min-width: 0; table-layout: fixed; font-size: 11px; }
+  .calendar-table th { padding: 6px 1px; }
+  .calendar-table td { height: auto; min-width: 0; padding: 4px 2px; overflow-wrap: anywhere; }
+  .calendar-date { padding: 2px 3px; font-size: 12px; }
+  .calendar-holiday-name { font-size: 9px; overflow-wrap: anywhere; }
+  .calendar-event { height: auto; min-height: 0; padding: 3px 2px; white-space: normal; overflow-wrap: anywhere; text-overflow: clip; font-size: 9px; line-height: 1.25; }
+  .calendar-event.is-shared small { white-space: normal; overflow-wrap: anywhere; font-size: 8px; }
+  .calendar-legend { font-size: 11px; }
 }
