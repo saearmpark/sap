@@ -195,6 +195,30 @@
   .animal-piece { display:grid; place-items:center; width:75%; aspect-ratio:1; border:1px solid #795326; border-radius:4px; background:#ffedc2; font-size:clamp(16px, 6vw, 27px); font-weight:800; pointer-events:none; }
   .animal-piece.player-two { transform:rotate(180deg); }
   .animal-piece.is-promoted { color:#b42318; }
+  .word-chain-form { display:flex; flex-wrap:wrap; gap:8px; max-width:380px; margin:12px 0; }
+  .word-chain-form input { min-width:0; flex:1 1 150px; padding:9px 11px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:inherit; }
+  .blackjack-table { display:flex; flex-wrap:wrap; gap:12px; margin:14px 0; }
+  .blackjack-hand { flex:1 1 180px; min-height:100px; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--surface); }
+  .blackjack-cards { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .blackjack-card { display:grid; place-items:center; width:44px; height:62px; border:1px solid var(--border); border-radius:6px; background:#fff; color:#17181a; font-weight:700; }
+  .dots-box-board { display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:0; width:min(100%, 390px); aspect-ratio:1; margin:12px 0; touch-action:manipulation; }
+  .dots-dot, .dots-edge, .dots-box { display:grid; place-items:center; min-width:0; min-height:0; padding:0; border:0; border-radius:0; }
+  .dots-dot { background:transparent; }
+  .dots-dot::after { width:42%; aspect-ratio:1; border-radius:50%; background:var(--ink); content:""; }
+  .dots-edge { position:relative; background:transparent; }
+  .dots-edge::after { position:absolute; width:82%; height:5px; border-radius:4px; background:var(--border); content:""; }
+  .dots-edge.vertical::after { width:5px; height:82%; }
+  .dots-edge.is-one::after { background:#2563eb; }
+  .dots-edge.is-two::after { background:#ef4444; }
+  .dots-box { background:transparent; font-size:clamp(14px, 5vw, 24px); font-weight:800; }
+  .dodge-game-canvas { display:block; width:min(100%, 420px); height:auto; border:1px solid var(--border); border-radius:8px; background:#111827; touch-action:none; }
+  .dodge-controls { display:flex; gap:12px; margin:10px 0; }
+  .dodge-controls button { min-width:64px; min-height:48px; touch-action:manipulation; }
+  .typing-prompt { max-width:640px; padding:14px; border-radius:8px; background:var(--accent-soft); color:var(--ink) !important; font-size:clamp(18px, 4vw, 24px) !important; line-height:1.6; }
+  .typing-form { display:flex; flex-wrap:wrap; gap:8px; max-width:640px; margin:12px 0; }
+  .typing-form input { min-width:0; flex:1 1 220px; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:inherit; }
+  .typing-form button { min-height:44px; }
+  .scramble-word { margin:14px 0; color:var(--accent); font:700 clamp(28px, 8vw, 44px) var(--mono); letter-spacing:.16em; }
   .runner-canvas { width:min(100%, 520px); height:auto; border:1px solid var(--border); border-radius:8px; background:var(--bg); touch-action:manipulation; }
   .sort-tubes { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin:16px 0; }
   .sort-tube { display:flex; flex-direction:column-reverse; align-items:center; justify-content:flex-start; gap:4px; width:52px; height:176px; padding:6px 4px; border:2px solid var(--border); border-top:0; border-radius:0 0 18px 18px; background:var(--bg); }
@@ -304,13 +328,20 @@
       <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-animal-shogi">동물장기</button><button class="game-code-button" type="button" data-game-code-view="panel-animal-shogi">코드 보기</button></div>
       <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-runner">점프 달리기</button><button class="game-code-button" type="button" data-game-code-view="panel-runner">코드 보기</button></div>
       <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sort">색깔 정렬</button><button class="game-code-button" type="button" data-game-code-view="panel-sort">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-word-chain">끝말잇기</button><button class="game-code-button" type="button" data-game-code-view="panel-word-chain">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-blackjack">블랙잭</button><button class="game-code-button" type="button" data-game-code-view="panel-blackjack">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-holdem">텍사스 홀덤</button><button class="game-code-button" type="button" data-game-code-view="panel-holdem">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dots-boxes">점과 상자</button><button class="game-code-button" type="button" data-game-code-view="panel-dots-boxes">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dodge-rocks">운석 피하기</button><button class="game-code-button" type="button" data-game-code-view="panel-dodge-rocks">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-typing">타자 연습</button><button class="game-code-button" type="button" data-game-code-view="panel-typing">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-scramble">단어 뒤섞기</button><button class="game-code-button" type="button" data-game-code-view="panel-scramble">코드 보기</button></div>
     </div>
 
     <div id="panel-ttt" class="card game-panel" hidden>
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 1</span>
       <h3>틱택토 (JavaScript)</h3>
-      <p style="margin-bottom: 14px;">기본 로직과 화면 갱신을 익히는 첫 프로젝트입니다. O와 X가 번갈아 두며, 3칸이 한 줄로 맞으면 승리합니다.</p>
+      <p style="margin-bottom: 14px;">당신은 O, 컴퓨터는 X를 둡니다. 번갈아 두어 3칸을 한 줄로 맞추세요.</p>
 
       <div id="ttt-board" class="ttt-board"></div>
       <div class="ttt-controls">
@@ -624,8 +655,8 @@
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 17</span>
       <h3>4목 게임 (JavaScript)</h3>
-      <p>두 명이 번갈아 돌을 떨어뜨려 가로·세로·대각선으로 네 개를 먼저 연결하세요.</p>
-      <p id="connect-status" class="extra-game-status" aria-live="polite">🔴 빨강 차례</p>
+      <p>당신은 빨강, 컴퓨터는 노랑입니다. 돌을 떨어뜨려 가로·세로·대각선으로 네 개를 먼저 연결하세요.</p>
+      <p id="connect-status" class="extra-game-status" aria-live="polite">🔴 내 차례</p>
       <div id="connect-board" class="connect-board" aria-label="4목 게임판"></div>
       <button id="connect-reset" type="button">새 게임</button>
     </div>
@@ -712,6 +743,88 @@
       <div id="sort-tubes" class="sort-tubes" aria-label="색깔 정렬 시험관"></div>
       <button id="sort-reset" type="button">새 게임</button>
     </div>
+    <div id="panel-word-chain" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 26</span>
+      <h3>끝말잇기 (JavaScript)</h3>
+      <p>네이버 사전의 검색 범위에 맞춰 입력 단어를 제한하지 않습니다. 앞 단어의 마지막 글자로 시작하는 단어를 입력하세요. 이미 나온 단어는 사용할 수 없습니다.</p>
+      <p id="word-chain-status" class="extra-game-status" aria-live="polite">새 게임을 시작하세요.</p>
+      <form id="word-chain-form" class="word-chain-form">
+        <input id="word-chain-input" type="text" maxlength="50" placeholder="첫 단어를 입력하세요" aria-label="끝말잇기 단어" required>
+        <button type="submit">입력</button>
+      </form>
+      <a id="word-chain-dictionary-link" href="https://dict.naver.com/" target="_blank" rel="noopener noreferrer">네이버 어학사전에서 단어 확인</a>
+      <ol id="word-chain-history" class="app-items"></ol>
+      <button id="word-chain-reset" type="button">새 게임</button>
+    </div>
+    <div id="panel-blackjack" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 27</span>
+      <h3>블랙잭 (JavaScript)</h3>
+      <p>카드를 더해 21에 가까운 점수를 만드세요. 21을 넘으면 패배하고, 딜러는 17점 이상에서 멈춥니다. A는 1 또는 11로 계산됩니다.</p>
+      <p id="blackjack-status" class="extra-game-status" aria-live="polite">새 게임을 시작하세요.</p>
+      <div class="blackjack-table">
+        <section class="blackjack-hand"><strong>나 · <span id="blackjack-player-score">0</span></strong><div id="blackjack-player-cards" class="blackjack-cards"></div></section>
+        <section class="blackjack-hand"><strong>딜러 · <span id="blackjack-dealer-score">0</span></strong><div id="blackjack-dealer-cards" class="blackjack-cards"></div></section>
+      </div>
+      <div class="choice-controls"><button id="blackjack-hit" type="button">카드 받기</button><button id="blackjack-stay" type="button">그만 받기</button><button id="blackjack-reset" type="button">새 게임</button></div>
+    </div>
+    <div id="panel-holdem" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 28</span>
+      <h3>텍사스 홀덤 (JavaScript)</h3>
+      <p>컴퓨터와 홀덤 한 판을 겨룹니다. 내 카드 두 장과 커뮤니티 카드 다섯 장 중 가장 좋은 5장 조합으로 승부합니다. 베팅 없이 체크하거나 포기할 수 있습니다.</p>
+      <section class="blackjack-hand"><strong>컴퓨터</strong><div id="holdem-computer-cards" class="blackjack-cards"></div></section>
+      <section class="blackjack-hand"><strong>커뮤니티 카드</strong><div id="holdem-community-cards" class="blackjack-cards"></div></section>
+      <section class="blackjack-hand"><strong>나</strong><div id="holdem-player-cards" class="blackjack-cards"></div></section>
+      <p id="holdem-status" class="extra-game-status" aria-live="polite">새 게임을 시작하세요.</p>
+      <div class="choice-controls"><button id="holdem-next" type="button">체크 / 다음 카드</button><button id="holdem-fold" type="button">포기</button><button id="holdem-reset" type="button">새 게임</button></div>
+    </div>
+    <div id="panel-dots-boxes" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 29</span>
+      <h3>점과 상자 (JavaScript)</h3>
+      <p>당신은 파랑, 컴퓨터는 빨강입니다. 점 사이 선을 그으세요. 상자의 네 변을 완성하면 점수를 얻고 한 번 더 둡니다.</p>
+      <p id="dots-box-status" class="extra-game-status" aria-live="polite">내 차례 · 나 0 : 컴퓨터 0</p>
+      <div id="dots-box-board" class="dots-box-board" aria-label="점과 상자 게임판"></div>
+      <button id="dots-box-reset" type="button">새 게임</button>
+    </div>
+    <div id="panel-dodge-rocks" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 30</span>
+      <h3>운석 피하기 (JavaScript)</h3>
+      <p>좌우 방향키 또는 아래 버튼으로 우주선을 움직여 운석을 피하세요. 30초 동안 버티면 성공입니다.</p>
+      <canvas id="dodge-rocks-canvas" class="dodge-game-canvas" width="420" height="360" aria-label="운석 피하기 게임 화면"></canvas>
+      <div class="dodge-controls"><button id="dodge-rocks-left" type="button" aria-label="왼쪽 이동">◀</button><button id="dodge-rocks-right" type="button" aria-label="오른쪽 이동">▶</button><button id="dodge-rocks-start" type="button">시작</button></div>
+      <p id="dodge-rocks-status" class="extra-game-status" aria-live="polite">시작을 눌러 게임을 시작하세요.</p>
+    </div>
+    <div id="panel-typing" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 31</span>
+      <h3>타자 연습 (JavaScript)</h3>
+      <p>30초 동안 문장을 정확히 입력하세요. 첫 글자를 입력하면 시간이 시작됩니다.</p>
+      <p id="typing-timer" class="extra-game-status" role="timer">남은 시간 30초</p>
+      <p id="typing-prompt" class="typing-prompt"></p>
+      <form id="typing-form" class="typing-form">
+        <input id="typing-input" type="text" autocomplete="off" placeholder="문장을 입력하세요" aria-label="타자 문장 입력" disabled>
+        <button id="typing-start" type="button">시작</button>
+      </form>
+      <p id="typing-status" class="extra-game-status" aria-live="polite">시작을 눌러 준비하세요.</p>
+    </div>
+    <div id="panel-scramble" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 32</span>
+      <h3>단어 뒤섞기 (JavaScript)</h3>
+      <p>섞인 영어 단어를 원래 순서로 맞혀보세요. 정답이면 점수를 얻고 다음 문제로 넘어갑니다.</p>
+      <p id="scramble-round" class="extra-game-status">점수 0점</p>
+      <p id="scramble-word" class="scramble-word" aria-label="섞인 단어"></p>
+      <form id="scramble-form" class="word-chain-form">
+        <input id="scramble-input" type="text" autocomplete="off" placeholder="영어 단어 입력" aria-label="정답 단어" required>
+        <button type="submit">확인</button>
+      </form>
+      <p id="scramble-status" class="extra-game-status" aria-live="polite">새 단어를 맞혀보세요.</p>
+      <button id="scramble-reset" type="button">새 게임</button>
+    </div>
     <dialog id="game-code-dialog" class="game-code-dialog">
       <button id="game-code-close" type="button">닫기</button>
       <h3 id="game-code-title">코드 보기</h3>
@@ -746,6 +859,7 @@
     let cells = Array(9).fill(null);
     let current = "O";
     let gameOver = false;
+    let computerTimer = null;
 
     function render() {
       boardEl.innerHTML = "";
@@ -753,6 +867,9 @@
         const cell = document.createElement("div");
         cell.className = "ttt-cell";
         cell.textContent = value || "";
+        cell.setAttribute("role", "button");
+        cell.setAttribute("aria-label", `칸 ${i + 1}${value ? ` ${value}` : " 비어 있음"}`);
+        cell.setAttribute("aria-disabled", String(gameOver || current === "X" || Boolean(value)));
         cell.addEventListener("click", () => handleClick(i));
         boardEl.appendChild(cell);
       });
@@ -768,39 +885,82 @@
       return null;
     }
 
-    function handleClick(i) {
-      if (gameOver || cells[i]) return;
-      cells[i] = current;
+    function minimax(turn, depth) {
       const winner = checkWinner();
+      if (winner === "X") return 10 - depth;
+      if (winner === "O") return depth - 10;
+      if (winner === "draw") return 0;
+      const scores = [];
+      for (let i = 0; i < cells.length; i++) {
+        if (cells[i]) continue;
+        cells[i] = turn;
+        scores.push(minimax(turn === "X" ? "O" : "X", depth + 1));
+        cells[i] = null;
+      }
+      return turn === "X" ? Math.max(...scores) : Math.min(...scores);
+    }
 
+    function place(mark, index) {
+      if (gameOver || cells[index]) return;
+      cells[index] = mark;
+      const winner = checkWinner();
       if (winner === "draw") {
         statusEl.textContent = "무승부입니다.";
         gameOver = true;
       } else if (winner) {
-        statusEl.textContent = `${winner} 승리!`;
+        statusEl.textContent = winner === "O" ? "내가 이겼습니다!" : "컴퓨터가 이겼습니다.";
         gameOver = true;
+      } else if (mark === "O") {
+        current = "X";
+        statusEl.textContent = "컴퓨터가 생각 중입니다...";
+        computerTimer = setTimeout(playComputer, 300);
       } else {
-        current = current === "O" ? "X" : "O";
-        statusEl.textContent = `${current} 차례입니다`;
+        current = "O";
+        statusEl.textContent = "내 차례입니다.";
       }
       render();
     }
 
-    resetBtn.addEventListener("click", () => {
+    function playComputer() {
+      computerTimer = null;
+      if (gameOver || current !== "X") return;
+      let bestScore = -Infinity;
+      let choices = [];
+      for (let i = 0; i < cells.length; i++) {
+        if (cells[i]) continue;
+        cells[i] = "X";
+        const score = minimax("O", 0);
+        cells[i] = null;
+        if (score > bestScore) {
+          bestScore = score;
+          choices = [i];
+        } else if (score === bestScore) choices.push(i);
+      }
+      if (choices.length) place("X", choices[Math.floor(Math.random() * choices.length)]);
+    }
+
+    function reset() {
+      clearTimeout(computerTimer);
+      computerTimer = null;
       cells = Array(9).fill(null);
       current = "O";
       gameOver = false;
-      statusEl.textContent = "O 차례입니다";
+      statusEl.textContent = "내 차례입니다.";
       render();
-    });
+    }
 
+    function handleClick(index) {
+      if (gameOver || current !== "O" || cells[index]) return;
+      place("O", index);
+    }
+    resetBtn.addEventListener("click", reset);
     registerGame("panel-ttt", {
-      init() {
-        cells = Array(9).fill(null);
-        current = "O";
-        gameOver = false;
-        statusEl.textContent = "O 차례입니다";
-        render();
+      init: reset,
+      stop() {
+        if (computerTimer !== null) {
+          clearTimeout(computerTimer);
+          playComputer();
+        }
       },
     });
   })();
@@ -3281,14 +3441,15 @@
     let board = [];
     let current = 1;
     let gameOver = false;
+    let computerTimer = null;
 
-    function hasWon(row, col, player) {
+    function hasWon(row, col, player, state = board) {
       const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
       return directions.some(([dr, dc]) => {
         let count = 1;
         for (const sign of [-1, 1]) {
           let r = row + dr * sign, c = col + dc * sign;
-          while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
+          while (r >= 0 && r < ROWS && c >= 0 && c < COLS && state[r][c] === player) {
             count++;
             r += dr * sign;
             c += dc * sign;
@@ -3308,43 +3469,127 @@
           slot.setAttribute("aria-label", `행 ${row + 1}, 열 ${col + 1}${board[row][col] ? " 놓인 돌 있음" : " 빈칸"}`);
           if (board[row][col] === 1) slot.classList.add("is-red");
           if (board[row][col] === 2) slot.classList.add("is-yellow");
-          slot.disabled = gameOver || Boolean(board[row][col]);
+          slot.disabled = gameOver || current !== 1 || Boolean(board[row][col]);
           slot.addEventListener("click", () => drop(col));
           boardEl.appendChild(slot);
         }
       }
     }
 
-    function drop(col) {
-      if (gameOver) return;
+    function place(col, player) {
+      if (gameOver || (player === 1 && current !== 1) || (player === 2 && current !== 2)) return;
       for (let row = ROWS - 1; row >= 0; row--) {
         if (board[row][col]) continue;
-        board[row][col] = current;
-        if (hasWon(row, col, current)) {
+        board[row][col] = player;
+        if (hasWon(row, col, player)) {
           gameOver = true;
-          statusEl.textContent = `${current === 1 ? "🔴 빨강" : "🟡 노랑"} 승리! 새 게임으로 다시 시작하세요.`;
+          statusEl.textContent = player === 1 ? "내가 이겼습니다!" : "컴퓨터가 이겼습니다.";
         } else if (board.every(line => line.every(Boolean))) {
           gameOver = true;
           statusEl.textContent = "무승부입니다!";
         } else {
-          current = current === 1 ? 2 : 1;
-          statusEl.textContent = `${current === 1 ? "🔴 빨강" : "🟡 노랑"} 차례`;
+          current = player === 1 ? 2 : 1;
+          statusEl.textContent = current === 1 ? "🔴 내 차례" : "컴퓨터가 생각 중입니다...";
         }
         render();
+        if (player === 1 && !gameOver) computerTimer = setTimeout(playComputer, 350);
         return;
       }
     }
 
+    function availableRow(state, col) {
+      for (let row = ROWS - 1; row >= 0; row--) if (!state[row][col]) return row;
+      return -1;
+    }
+
+    function evaluate(state) {
+      let score = 0;
+      for (let row = 0; row < ROWS; row++) if (state[row][Math.floor(COLS / 2)] === 2) score += 4;
+      const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          for (const [dr, dc] of directions) {
+            const endRow = row + dr * 3, endCol = col + dc * 3;
+            if (endRow < 0 || endRow >= ROWS || endCol < 0 || endCol >= COLS) continue;
+            const window = [0, 1, 2, 3].map(offset => state[row + dr * offset][col + dc * offset]);
+            const computer = window.filter(value => value === 2).length;
+            const human = window.filter(value => value === 1).length;
+            if (computer && !human) score += [0, 2, 16, 120, 100000][computer];
+            if (human && !computer) score -= [0, 3, 22, 180, 100000][human];
+          }
+        }
+      }
+      return score;
+    }
+
+    function search(state, depth, alpha, beta, maximizing, lastMove) {
+      if (lastMove && hasWon(lastMove.row, lastMove.col, lastMove.player, state)) return lastMove.player === 2 ? 1000000 + depth : -1000000 - depth;
+      if (!depth || state.every(line => line.every(Boolean))) return evaluate(state);
+      const player = maximizing ? 2 : 1;
+      let best = maximizing ? -Infinity : Infinity;
+      for (const col of [3, 2, 4, 1, 5, 0, 6]) {
+        const row = availableRow(state, col);
+        if (row < 0) continue;
+        state[row][col] = player;
+        const score = search(state, depth - 1, alpha, beta, !maximizing, { row, col, player });
+        state[row][col] = 0;
+        if (maximizing) {
+          best = Math.max(best, score);
+          alpha = Math.max(alpha, best);
+        } else {
+          best = Math.min(best, score);
+          beta = Math.min(beta, best);
+        }
+        if (beta <= alpha) break;
+      }
+      return best;
+    }
+
+    function bestComputerColumn() {
+      let bestScore = -Infinity, choices = [];
+      for (const col of [3, 2, 4, 1, 5, 0, 6]) {
+        const row = availableRow(board, col);
+        if (row < 0) continue;
+        board[row][col] = 2;
+        const score = search(board, 4, -Infinity, Infinity, false, { row, col, player: 2 });
+        board[row][col] = 0;
+        if (score > bestScore) { bestScore = score; choices = [col]; }
+        else if (score === bestScore) choices.push(col);
+      }
+      return choices[Math.floor(Math.random() * choices.length)];
+    }
+
+    function drop(col) {
+      if (current === 1) place(col, 1);
+    }
+
+    function playComputer() {
+      computerTimer = null;
+      if (gameOver || current !== 2) return;
+      const col = bestComputerColumn();
+      if (col !== undefined) place(col, 2);
+    }
+
     function reset() {
+      clearTimeout(computerTimer);
+      computerTimer = null;
       board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
       current = 1;
       gameOver = false;
-      statusEl.textContent = "🔴 빨강 차례";
+      statusEl.textContent = "🔴 내 차례";
       render();
     }
 
     document.getElementById("connect-reset").addEventListener("click", reset);
-    registerGame("panel-connect", { init: reset, stop() {} });
+    registerGame("panel-connect", {
+      init: reset,
+      stop() {
+        if (computerTimer !== null) {
+          clearTimeout(computerTimer);
+          playComputer();
+        }
+      },
+    });
   })();
 </script>
 
@@ -4386,6 +4631,784 @@
         if (computerTimer !== null) playComputerTurn();
       },
     });
+  })();
+</script>
+
+<script data-game-code="panel-word-chain">
+  (function () {
+    const words = [
+      "사과", "과자", "자동차", "차표", "표범", "범인", "인형", "형광등", "등산", "산책",
+      "책상", "상자", "자전거", "거미", "미술", "술잔", "잔디", "디지털", "털실", "실내",
+      "내일", "일기", "기차", "차례", "예절", "절구", "구름", "나무", "무지개", "개나리",
+      "리본", "본부", "부엌", "억울", "울타리", "리듬", "음악", "악기", "기린", "린스",
+      "스키", "기름", "차도", "도서관", "관광", "광장", "장미", "미소", "소나무",
+      "무지", "지구", "구두", "두부", "부자", "자연", "연필", "필통", "통장", "장갑",
+      "갑옷", "옷장", "장난감", "감자", "자석", "석탄", "탄산", "산소", "소금", "금요일",
+      "일요일", "돈가스", "스마트폰", "폰트", "트럭", "럭비", "비누", "누나",
+      "나비", "비행기", "기차역", "역사", "사람", "보석", "석류", "유리", "리모컨",
+    ];
+    const form = document.getElementById("word-chain-form");
+    const input = document.getElementById("word-chain-input");
+    const historyEl = document.getElementById("word-chain-history");
+    const statusEl = document.getElementById("word-chain-status");
+    const dictionaryLink = document.getElementById("word-chain-dictionary-link");
+    let used = new Set();
+    let current = "";
+    let finished = false;
+
+    function normalizeWord(value) {
+      return value.trim().replace(/\s+/g, "");
+    }
+    function firstLetter(word) {
+      return [...word].find(character => /\p{L}/u.test(character)) || "";
+    }
+    function lastLetter(word) {
+      return [...word].reverse().find(character => /\p{L}/u.test(character)) || "";
+    }
+    function addWord(word, speaker) {
+      const item = document.createElement("li");
+      item.textContent = `${speaker}: ${word}`;
+      historyEl.appendChild(item);
+      used.add(word);
+      current = word;
+    }
+    function reset() {
+      used = new Set();
+      current = "";
+      finished = false;
+      input.disabled = false;
+      form.querySelector("button").disabled = false;
+      input.value = "";
+      historyEl.replaceChildren();
+      statusEl.textContent = "한글·외래어·전문 용어 등 단어를 입력하세요. 단어 검색 링크로 네이버 어학사전도 확인할 수 있습니다.";
+      dictionaryLink.href = "https://dict.naver.com/";
+      input.focus();
+    }
+    input.addEventListener("input", () => {
+      const word = normalizeWord(input.value);
+      dictionaryLink.href = word
+        ? `https://dict.naver.com/dict.search?query=${encodeURIComponent(word)}&target=dic&ie=utf8`
+        : "https://dict.naver.com/";
+    });
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      if (finished) return;
+      const word = normalizeWord(input.value);
+      if (!word || !/^[\p{L}\p{M}\p{N}·'’\-]+$/u.test(word) || !/\p{L}/u.test(word)) {
+        statusEl.textContent = "한글, 외래어, 한자 등 단어를 입력하세요.";
+        input.select();
+        return;
+      }
+      if (used.has(word)) {
+        statusEl.textContent = "이미 나온 단어입니다. 다른 단어를 입력하세요.";
+        input.select();
+        return;
+      }
+      const requiredLetter = lastLetter(current);
+      if (current && !word.startsWith(requiredLetter)) {
+        statusEl.textContent = `“${requiredLetter}”로 시작하는 단어를 입력하세요.`;
+        input.select();
+        return;
+      }
+      addWord(word, "나");
+      const endingLetter = lastLetter(word);
+      const replies = words.filter(candidate => !used.has(candidate) && firstLetter(candidate) === endingLetter);
+      if (!replies.length) {
+        finished = true;
+        statusEl.textContent = `컴퓨터가 “${endingLetter}”로 시작하는 단어를 찾지 못했습니다. 내가 이겼습니다!`;
+        input.disabled = true;
+        form.querySelector("button").disabled = true;
+        return;
+      }
+      const reply = replies[Math.floor(Math.random() * replies.length)];
+      addWord(reply, "컴퓨터");
+      statusEl.textContent = `컴퓨터가 “${reply}”라고 했어요. “${lastLetter(reply)}”로 시작하는 단어를 입력하세요.`;
+      input.value = "";
+      input.focus();
+    });
+    document.getElementById("word-chain-reset").addEventListener("click", reset);
+    registerGame("panel-word-chain", { init: reset, stop() {} });
+  })();
+</script>
+
+<script data-game-code="panel-blackjack">
+  (function () {
+    const playerCards = document.getElementById("blackjack-player-cards");
+    const dealerCards = document.getElementById("blackjack-dealer-cards");
+    const playerScoreEl = document.getElementById("blackjack-player-score");
+    const dealerScoreEl = document.getElementById("blackjack-dealer-score");
+    const statusEl = document.getElementById("blackjack-status");
+    const hitBtn = document.getElementById("blackjack-hit");
+    const stayBtn = document.getElementById("blackjack-stay");
+    let deck = [];
+    let player = [];
+    let dealer = [];
+    let finished = false;
+
+    function shuffleDeck() {
+      deck = [];
+      for (let suit = 0; suit < 4; suit++) {
+        for (let rank = 2; rank <= 14; rank++) deck.push({ rank, suit });
+      }
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+    }
+    function draw(hand) { hand.push(deck.pop()); }
+    function score(hand) {
+      let total = 0, aces = 0;
+      hand.forEach(card => {
+        if (card.rank === 14) { total += 11; aces++; }
+        else total += Math.min(card.rank, 10);
+      });
+      while (total > 21 && aces) { total -= 10; aces--; }
+      return total;
+    }
+    function cardLabel(card) {
+      const rank = card.rank === 11 ? "J" : card.rank === 12 ? "Q" : card.rank === 13 ? "K" : card.rank === 14 ? "A" : String(card.rank);
+      return `${rank}${["♠", "♥", "♦", "♣"][card.suit]}`;
+    }
+    function render(revealDealer = finished) {
+      playerCards.replaceChildren();
+      dealerCards.replaceChildren();
+      player.forEach(card => {
+        const item = document.createElement("span");
+        item.className = "blackjack-card";
+        item.textContent = cardLabel(card);
+        playerCards.appendChild(item);
+      });
+      dealer.forEach((card, index) => {
+        const item = document.createElement("span");
+        item.className = "blackjack-card";
+        item.textContent = index === 1 && !revealDealer ? "?" : cardLabel(card);
+        dealerCards.appendChild(item);
+      });
+      playerScoreEl.textContent = String(score(player));
+      dealerScoreEl.textContent = revealDealer ? String(score(dealer)) : "?";
+      hitBtn.disabled = finished;
+      stayBtn.disabled = finished;
+    }
+    function finish() {
+      finished = true;
+      while (score(dealer) < 17) draw(dealer);
+      const mine = score(player), theirs = score(dealer);
+      statusEl.textContent = mine > 21 ? "버스트! 딜러가 이겼습니다." : theirs > 21 ? "딜러 버스트! 내가 이겼습니다." : mine > theirs ? "내가 이겼습니다!" : mine < theirs ? "딜러가 이겼습니다." : "무승부입니다.";
+      render(true);
+    }
+    function reset() {
+      shuffleDeck();
+      player = [];
+      dealer = [];
+      finished = false;
+      draw(player); draw(dealer); draw(player); draw(dealer);
+      statusEl.textContent = "카드를 더 받거나 멈추세요.";
+      if (score(player) === 21 || score(dealer) === 21) finish();
+      else render(false);
+    }
+    hitBtn.addEventListener("click", () => {
+      if (finished) return;
+      draw(player);
+      if (score(player) >= 21) finish();
+      else render(false);
+    });
+    stayBtn.addEventListener("click", () => { if (!finished) finish(); });
+    document.getElementById("blackjack-reset").addEventListener("click", reset);
+    registerGame("panel-blackjack", { init: reset, stop() {} });
+  })();
+</script>
+
+<script data-game-code="panel-holdem">
+  (function () {
+    const suits = ["♠", "♥", "♦", "♣"];
+    const playerEl = document.getElementById("holdem-player-cards");
+    const computerEl = document.getElementById("holdem-computer-cards");
+    const communityEl = document.getElementById("holdem-community-cards");
+    const statusEl = document.getElementById("holdem-status");
+    const nextBtn = document.getElementById("holdem-next");
+    const foldBtn = document.getElementById("holdem-fold");
+    let deck = [];
+    let player = [];
+    let computer = [];
+    let community = [];
+    let phase = 0;
+    let finished = false;
+
+    function shuffle() {
+      deck = [];
+      for (let suit = 0; suit < 4; suit++) {
+        for (let rank = 2; rank <= 14; rank++) deck.push({ rank, suit });
+      }
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+    }
+
+    function label(card) {
+      const rank = card.rank === 14 ? "A" : card.rank === 13 ? "K" : card.rank === 12 ? "Q" : card.rank === 11 ? "J" : String(card.rank);
+      return `${rank}${suits[card.suit]}`;
+    }
+
+    function renderCards(container, cards, hidden = false, placeholders = 0) {
+      container.replaceChildren();
+      cards.forEach((card, index) => {
+        const item = document.createElement("span");
+        item.className = "blackjack-card";
+        item.textContent = hidden ? "?" : label(card);
+        if (!hidden && (card.suit === 1 || card.suit === 2)) item.style.color = "#dc2626";
+        container.appendChild(item);
+      });
+      for (let i = cards.length; i < placeholders; i++) {
+        const item = document.createElement("span");
+        item.className = "blackjack-card";
+        item.textContent = "·";
+        container.appendChild(item);
+      }
+    }
+
+    function render() {
+      renderCards(playerEl, player);
+      renderCards(computerEl, computer, !finished);
+      renderCards(communityEl, community, false, 5);
+      nextBtn.disabled = finished;
+      foldBtn.disabled = finished;
+    }
+
+    function evaluateFive(cards) {
+      const ranks = cards.map(card => card.rank).sort((a, b) => b - a);
+      const counts = new Map();
+      ranks.forEach(rank => counts.set(rank, (counts.get(rank) || 0) + 1));
+      const groups = [...counts].sort((a, b) => b[1] - a[1] || b[0] - a[0]);
+      const flush = cards.every(card => card.suit === cards[0].suit);
+      const unique = [...new Set(ranks)].sort((a, b) => b - a);
+      let straightHigh = 0;
+      if (unique.length === 5 && unique[0] - unique[4] === 4) straightHigh = unique[0];
+      else if (unique.join(",") === "14,5,4,3,2") straightHigh = 5;
+      if (flush && straightHigh) return [8, straightHigh];
+      if (groups[0][1] === 4) return [7, groups[0][0], groups[1][0]];
+      if (groups[0][1] === 3 && groups[1][1] === 2) return [6, groups[0][0], groups[1][0]];
+      if (flush) return [5, ...ranks];
+      if (straightHigh) return [4, straightHigh];
+      if (groups[0][1] === 3) return [3, groups[0][0], ...groups.slice(1).map(group => group[0]).sort((a, b) => b - a)];
+      if (groups[0][1] === 2 && groups[1][1] === 2) return [2, Math.max(groups[0][0], groups[1][0]), Math.min(groups[0][0], groups[1][0]), groups[2][0]];
+      if (groups[0][1] === 2) return [1, groups[0][0], ...groups.slice(1).map(group => group[0]).sort((a, b) => b - a)];
+      return [0, ...ranks];
+    }
+
+    function bestHand(cards) {
+      let best = null;
+      for (let a = 0; a < cards.length - 4; a++) {
+        for (let b = a + 1; b < cards.length - 3; b++) {
+          for (let c = b + 1; c < cards.length - 2; c++) {
+            for (let d = c + 1; d < cards.length - 1; d++) {
+              for (let e = d + 1; e < cards.length; e++) {
+                const score = evaluateFive([cards[a], cards[b], cards[c], cards[d], cards[e]]);
+                if (!best || compare(score, best) > 0) best = score;
+              }
+            }
+          }
+        }
+      }
+      return best;
+    }
+
+    function compare(left, right) {
+      for (let i = 0; i < Math.max(left.length, right.length); i++) {
+        const difference = (left[i] || 0) - (right[i] || 0);
+        if (difference) return difference;
+      }
+      return 0;
+    }
+
+    const handNames = ["하이 카드", "원 페어", "투 페어", "트리플", "스트레이트", "플러시", "풀 하우스", "포 카드", "스트레이트 플러시"];
+
+    function showdown() {
+      finished = true;
+      const playerScore = bestHand(player.concat(community));
+      const computerScore = bestHand(computer.concat(community));
+      const result = compare(playerScore, computerScore);
+      statusEl.textContent = `${result === 0 ? "무승부" : result > 0 ? "승리!" : "컴퓨터 승리"} · 나: ${handNames[playerScore[0]]} / 컴퓨터: ${handNames[computerScore[0]]}`;
+      render();
+    }
+
+    function advance() {
+      if (finished) return;
+      phase++;
+      if (phase === 1) {
+        community.push(deck.pop(), deck.pop(), deck.pop());
+        statusEl.textContent = "플랍 공개 · 컴퓨터 체크. 다음 카드를 확인하거나 포기하세요.";
+      } else if (phase === 2) {
+        community.push(deck.pop());
+        statusEl.textContent = "턴 공개 · 컴퓨터 체크. 리버를 확인하거나 포기하세요.";
+      } else if (phase === 3) {
+        community.push(deck.pop());
+        statusEl.textContent = "리버 공개 · 컴퓨터 체크. 쇼다운으로 승부를 확인하세요.";
+      } else {
+        showdown();
+        return;
+      }
+      render();
+    }
+
+    function reset() {
+      shuffle();
+      player = [deck.pop(), deck.pop()];
+      computer = [deck.pop(), deck.pop()];
+      community = [];
+      phase = 0;
+      finished = false;
+      statusEl.textContent = "프리플랍 · 내 카드 두 장을 확인하세요. 체크로 플랍을 진행합니다.";
+      render();
+    }
+
+    nextBtn.addEventListener("click", advance);
+    foldBtn.addEventListener("click", () => {
+      if (finished) return;
+      finished = true;
+      statusEl.textContent = "포기했습니다. 컴퓨터가 이겼습니다.";
+      render();
+    });
+    document.getElementById("holdem-reset").addEventListener("click", reset);
+    registerGame("panel-holdem", { init: reset, stop() {} });
+  })();
+</script>
+
+<script data-game-code="panel-dots-boxes">
+  (function () {
+    const SIZE = 3;
+    const boardEl = document.getElementById("dots-box-board");
+    const statusEl = document.getElementById("dots-box-status");
+    let horizontal = new Map();
+    let vertical = new Map();
+    let boxes = [];
+    let current = 1;
+    let scores = [0, 0, 0];
+    let moves = 0;
+    let finished = false;
+    let computerTimer = null;
+    const key = (row, col) => `${row},${col}`;
+
+    function isBoxComplete(row, col) {
+      return horizontal.has(key(row, col)) && horizontal.has(key(row + 1, col)) &&
+        vertical.has(key(row, col)) && vertical.has(key(row, col + 1));
+    }
+    function render() {
+      boardEl.replaceChildren();
+      for (let row = 0; row <= SIZE * 2; row++) {
+        for (let col = 0; col <= SIZE * 2; col++) {
+          const isDot = row % 2 === 0 && col % 2 === 0;
+          const isEdge = row % 2 !== col % 2;
+          const cell = isDot || !isEdge ? document.createElement("span") : document.createElement("button");
+          if (isDot) {
+            cell.className = "dots-dot";
+            cell.setAttribute("aria-hidden", "true");
+          } else if (!isEdge) {
+            const owner = boxes[(row - 1) / 2][(col - 1) / 2];
+            cell.className = "dots-box";
+            cell.textContent = owner ? (owner === 1 ? "●" : "■") : "";
+            if (owner) cell.style.color = owner === 1 ? "#2563eb" : "#ef4444";
+          } else {
+            const isHorizontal = row % 2 === 0;
+            const edgeRow = isHorizontal ? row / 2 : (row - 1) / 2;
+            const edgeCol = isHorizontal ? (col - 1) / 2 : col / 2;
+            const edges = isHorizontal ? horizontal : vertical;
+            const edgeKey = key(edgeRow, edgeCol);
+            const owner = edges.has(edgeKey) ? edges.get(edgeKey) : 0;
+            cell.type = "button";
+            cell.className = `dots-edge${isHorizontal ? "" : " vertical"}${owner ? ` is-${owner === 1 ? "one" : "two"}` : ""}`;
+            cell.disabled = finished || current !== 1 || Boolean(owner);
+            cell.setAttribute("aria-label", `${isHorizontal ? "가로" : "세로"} 선 ${edgeRow + 1}, ${edgeCol + 1}${owner ? " 선택됨" : " 놓기"}`);
+            cell.addEventListener("click", () => takeEdge(isHorizontal, edgeRow, edgeCol));
+          }
+          boardEl.appendChild(cell);
+        }
+      }
+      statusEl.textContent = finished
+        ? `게임 종료 · 나 ${scores[1]} : 컴퓨터 ${scores[2]} · ${scores[1] === scores[2] ? "무승부" : scores[1] > scores[2] ? "내 승리" : "컴퓨터 승리"}`
+        : `${current === 1 ? "내" : "컴퓨터"} 차례 · 나 ${scores[1]} : 컴퓨터 ${scores[2]}`;
+    }
+    function adjacentBoxes(isHorizontal, row, col) {
+      return (isHorizontal
+        ? [[row - 1, col], [row, col]]
+        : [[row, col - 1], [row, col]]
+      ).filter(([r, c]) => r >= 0 && r < SIZE && c >= 0 && c < SIZE);
+    }
+
+    function sideCount(row, col) {
+      return Number(horizontal.has(key(row, col))) + Number(horizontal.has(key(row + 1, col))) +
+        Number(vertical.has(key(row, col))) + Number(vertical.has(key(row, col + 1)));
+    }
+
+    function availableEdges() {
+      const edges = [];
+      for (let row = 0; row <= SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) if (!horizontal.has(key(row, col))) edges.push({ isHorizontal: true, row, col });
+      }
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col <= SIZE; col++) if (!vertical.has(key(row, col))) edges.push({ isHorizontal: false, row, col });
+      }
+      return edges;
+    }
+
+    function chooseComputerEdge() {
+      const edges = availableEdges();
+      const scoringEdges = edges.filter(({ isHorizontal, row, col }) =>
+        adjacentBoxes(isHorizontal, row, col).some(([r, c]) => sideCount(r, c) === 3)
+      );
+      if (scoringEdges.length) return scoringEdges[Math.floor(Math.random() * scoringEdges.length)];
+      const safeEdges = edges.filter(({ isHorizontal, row, col }) =>
+        adjacentBoxes(isHorizontal, row, col).every(([r, c]) => sideCount(r, c) < 2)
+      );
+      const choices = safeEdges.length ? safeEdges : edges;
+      return choices[Math.floor(Math.random() * choices.length)];
+    }
+
+    function takeEdge(isHorizontal, row, col, player = current) {
+      const edges = isHorizontal ? horizontal : vertical;
+      const edgeKey = key(row, col);
+      if (finished || player !== current || (player === 1 && current !== 1) || edges.has(edgeKey)) return;
+      edges.set(edgeKey, player);
+      moves++;
+      const adjacent = adjacentBoxes(isHorizontal, row, col);
+      let claimed = 0;
+      adjacent.forEach(([r, c]) => {
+        if (!boxes[r][c] && isBoxComplete(r, c)) {
+          boxes[r][c] = player;
+          scores[player]++;
+          claimed++;
+        }
+      });
+      if (!claimed) current = player === 1 ? 2 : 1;
+      if (moves === 24) finished = true;
+      render();
+      if (!finished && current === 2) computerTimer = setTimeout(playComputer, 300);
+    }
+
+    function playComputer() {
+      computerTimer = null;
+      if (finished || current !== 2) return;
+      const edge = chooseComputerEdge();
+      if (edge) takeEdge(edge.isHorizontal, edge.row, edge.col, 2);
+    }
+
+    function reset() {
+      clearTimeout(computerTimer);
+      computerTimer = null;
+      horizontal = new Map();
+      vertical = new Map();
+      boxes = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+      current = 1;
+      scores = [0, 0, 0];
+      moves = 0;
+      finished = false;
+      render();
+    }
+    document.getElementById("dots-box-reset").addEventListener("click", reset);
+    registerGame("panel-dots-boxes", {
+      init: reset,
+      stop() {
+        clearTimeout(computerTimer);
+        computerTimer = null;
+        while (!finished && current === 2) {
+          const edge = chooseComputerEdge();
+          if (!edge) break;
+          takeEdge(edge.isHorizontal, edge.row, edge.col, 2);
+          clearTimeout(computerTimer);
+          computerTimer = null;
+        }
+      },
+    });
+  })();
+</script>
+
+<script data-game-code="panel-dodge-rocks">
+  (function () {
+    const canvas = document.getElementById("dodge-rocks-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("dodge-rocks-status");
+    const startBtn = document.getElementById("dodge-rocks-start");
+    const leftBtn = document.getElementById("dodge-rocks-left");
+    const rightBtn = document.getElementById("dodge-rocks-right");
+    let x = canvas.width / 2;
+    let rocks = [];
+    let running = false;
+    let startTime = 0;
+    let lastTime = 0;
+    let spawnTime = 0;
+    let animationId = null;
+    let heldDirection = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#e5e7eb";
+      ctx.beginPath();
+      ctx.moveTo(x, canvas.height - 28);
+      ctx.lineTo(x - 16, canvas.height - 5);
+      ctx.lineTo(x + 16, canvas.height - 5);
+      ctx.closePath();
+      ctx.fill();
+      rocks.forEach(rock => {
+        ctx.fillStyle = "#9ca3af";
+        ctx.beginPath();
+        ctx.arc(rock.x, rock.y, rock.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    function finish(won) {
+      running = false;
+      cancelAnimationFrame(animationId);
+      animationId = null;
+      startBtn.disabled = false;
+      statusEl.textContent = won ? "성공! 30초 동안 운석을 피했습니다." : "우주선이 운석에 맞았습니다. 시작을 눌러 다시 도전하세요.";
+      draw();
+    }
+    function frame(time) {
+      if (!running) return;
+      const delta = Math.min(40, time - lastTime || 16);
+      lastTime = time;
+      x = Math.max(18, Math.min(canvas.width - 18, x + heldDirection * delta * 0.28));
+      spawnTime -= delta;
+      if (spawnTime <= 0) {
+        rocks.push({ x: 12 + Math.random() * (canvas.width - 24), y: -16, radius: 8 + Math.random() * 9, speed: 100 + Math.random() * 90 });
+        spawnTime = Math.max(180, 650 - (time - startTime) / 60) + Math.random() * 250;
+      }
+      rocks.forEach(rock => { rock.y += rock.speed * delta / 1000; });
+      rocks = rocks.filter(rock => rock.y < canvas.height + rock.radius);
+      if (rocks.some(rock => Math.hypot(rock.x - x, rock.y - (canvas.height - 16)) < rock.radius + 13)) {
+        finish(false);
+        return;
+      }
+      const elapsed = time - startTime;
+      if (elapsed >= 30000) {
+        finish(true);
+        return;
+      }
+      statusEl.textContent = `운석 피하기 · ${Math.ceil((30000 - elapsed) / 1000)}초 남음`;
+      draw();
+      animationId = requestAnimationFrame(frame);
+    }
+    function move(direction) { if (running) x += direction * 28; }
+    function onKeyDown(event) {
+      if (!running || document.getElementById("panel-dodge-rocks").hidden) return;
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        heldDirection = event.key === "ArrowLeft" ? -1 : 1;
+      }
+    }
+    function start() {
+      cancelAnimationFrame(animationId);
+      x = canvas.width / 2;
+      rocks = [];
+      heldDirection = 0;
+      spawnTime = 300;
+      running = true;
+      startTime = performance.now();
+      lastTime = startTime;
+      startBtn.disabled = true;
+      animationId = requestAnimationFrame(frame);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", event => {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") heldDirection = 0;
+    });
+    leftBtn.addEventListener("pointerdown", () => { heldDirection = -1; });
+    rightBtn.addEventListener("pointerdown", () => { heldDirection = 1; });
+    [leftBtn, rightBtn].forEach(button => button.addEventListener("pointerup", () => { heldDirection = 0; }));
+    [leftBtn, rightBtn].forEach(button => button.addEventListener("pointerleave", () => { heldDirection = 0; }));
+    leftBtn.addEventListener("click", () => move(-1));
+    rightBtn.addEventListener("click", () => move(1));
+    startBtn.addEventListener("click", start);
+    registerGame("panel-dodge-rocks", {
+      init() {
+        running = false;
+        cancelAnimationFrame(animationId);
+        animationId = null;
+        startBtn.disabled = false;
+        statusEl.textContent = "시작을 눌러 게임을 시작하세요.";
+        draw();
+      },
+      stop() {
+        running = false;
+        heldDirection = 0;
+        cancelAnimationFrame(animationId);
+        animationId = null;
+        startBtn.disabled = false;
+      },
+    });
+    draw();
+  })();
+</script>
+
+<script data-game-code="panel-typing">
+  (function () {
+    const prompts = [
+      "Practice makes progress every day.",
+      "Small steps can lead to big ideas.",
+      "Learning is an adventure worth taking.",
+      "A curious mind discovers new things.",
+      "Build something useful and share it.",
+      "Keep trying when a challenge feels hard.",
+      "Good games make people smile.",
+      "Take a deep breath and focus.",
+      "Reading opens a door to imagination.",
+      "Make today a little better than yesterday.",
+    ];
+    const promptEl = document.getElementById("typing-prompt");
+    const input = document.getElementById("typing-input");
+    const timerEl = document.getElementById("typing-timer");
+    const statusEl = document.getElementById("typing-status");
+    const startBtn = document.getElementById("typing-start");
+    let promptIndex = 0;
+    let completedChars = 0;
+    let mistakes = 0;
+    let startedAt = 0;
+    let remaining = 30;
+    let timer = null;
+    let running = false;
+    let previousInput = "";
+
+    function choosePrompt() {
+      promptIndex = Math.floor(Math.random() * prompts.length);
+      promptEl.textContent = prompts[promptIndex];
+      input.value = "";
+    }
+    function updateStatus() {
+      const elapsedMinutes = Math.max((30 - remaining) / 60, 1 / 60);
+      const wpm = Math.round((completedChars + input.value.length) / 5 / elapsedMinutes);
+      const typed = completedChars + input.value.length;
+      const accuracy = typed ? Math.round((typed - mistakes) / typed * 100) : 100;
+      statusEl.textContent = `속도 ${wpm} WPM · 정확도 ${accuracy}%`;
+    }
+    function finish() {
+      running = false;
+      clearInterval(timer);
+      timer = null;
+      input.disabled = true;
+      const elapsedMinutes = Math.max((Date.now() - startedAt) / 60000, 1 / 60);
+      const totalChars = completedChars + input.value.length;
+      const wpm = Math.round(totalChars / 5 / elapsedMinutes);
+      const accuracy = totalChars ? Math.round((totalChars - mistakes) / totalChars * 100) : 100;
+      statusEl.textContent = `끝! ${wpm} WPM · 정확도 ${accuracy}%`;
+      startBtn.textContent = "다시 시작";
+    }
+    function start() {
+      clearInterval(timer);
+      completedChars = 0;
+      mistakes = 0;
+      remaining = 30;
+      running = true;
+      startedAt = Date.now();
+      timerEl.textContent = "남은 시간 30초";
+      input.disabled = false;
+      startBtn.textContent = "다시 시작";
+      choosePrompt();
+      previousInput = "";
+      statusEl.textContent = "문장을 입력하세요.";
+      input.focus();
+      timer = setInterval(() => {
+        remaining--;
+        timerEl.textContent = `남은 시간 ${remaining}초`;
+        if (remaining <= 0) finish();
+      }, 1000);
+    }
+    input.addEventListener("input", () => {
+      if (!running) return;
+      const prompt = promptEl.textContent;
+      const typed = input.value;
+      let changedAt = 0;
+      while (changedAt < previousInput.length && changedAt < typed.length && previousInput[changedAt] === typed[changedAt]) changedAt++;
+      if (typed.length > changedAt && typed[changedAt] !== prompt[changedAt]) mistakes++;
+      previousInput = typed;
+      if (typed.length > prompt.length || !prompt.startsWith(typed)) {
+        const mismatchIndex = [...typed].findIndex((char, index) => char !== prompt[index]);
+        if (mismatchIndex >= 0) {
+          updateStatus();
+          statusEl.textContent += " · 틀린 부분을 고쳐 입력하세요.";
+          return;
+        }
+      }
+      if (typed === prompt) {
+        completedChars += prompt.length;
+        choosePrompt();
+        previousInput = "";
+      }
+      updateStatus();
+    });
+    document.getElementById("typing-form").addEventListener("submit", event => event.preventDefault());
+    startBtn.addEventListener("click", start);
+    registerGame("panel-typing", {
+      init() {
+        clearInterval(timer);
+        timer = null;
+        running = false;
+        input.disabled = true;
+        remaining = 30;
+        timerEl.textContent = "남은 시간 30초";
+        promptEl.textContent = "시작을 누르면 문장이 나옵니다.";
+        statusEl.textContent = "시작을 눌러 준비하세요.";
+        startBtn.textContent = "시작";
+      },
+      stop() {
+        clearInterval(timer);
+        timer = null;
+        if (running) {
+          running = false;
+          input.disabled = true;
+          statusEl.textContent = "게임이 일시 중지되었습니다. 다시 시작해 이어서 도전하세요.";
+        }
+      },
+    });
+  })();
+</script>
+
+<script data-game-code="panel-scramble">
+  (function () {
+    const words = ["planet", "garden", "pencil", "bridge", "window", "orange", "rabbit", "school", "puzzle", "friend", "camera", "summer", "rocket", "flower", "travel"];
+    const wordEl = document.getElementById("scramble-word");
+    const input = document.getElementById("scramble-input");
+    const form = document.getElementById("scramble-form");
+    const statusEl = document.getElementById("scramble-status");
+    const roundEl = document.getElementById("scramble-round");
+    let answer = "";
+    let score = 0;
+    let round = 0;
+
+    function nextWord() {
+      const choices = words.filter(word => word !== answer);
+      answer = choices[Math.floor(Math.random() * choices.length)];
+      const letters = [...answer];
+      for (let i = letters.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [letters[i], letters[j]] = [letters[j], letters[i]];
+      }
+      if (letters.join("") === answer) letters.push(letters.shift());
+      wordEl.textContent = letters.join("");
+      input.value = "";
+      round++;
+      roundEl.textContent = `문제 ${round} · 점수 ${score}점`;
+      statusEl.textContent = "섞인 단어를 맞혀보세요.";
+    }
+    function reset() {
+      score = 0;
+      round = 0;
+      answer = "";
+      nextWord();
+    }
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      if (input.value.trim().toLowerCase() === answer) {
+        score += 10;
+        statusEl.textContent = `정답! ${answer} · 10점을 얻었습니다.`;
+        roundEl.textContent = `문제 ${round} · 점수 ${score}점`;
+        nextWord();
+      } else {
+        statusEl.textContent = "다시 생각해보세요.";
+        input.select();
+      }
+    });
+    document.getElementById("scramble-reset").addEventListener("click", reset);
+    registerGame("panel-scramble", { init: reset, stop() {} });
   })();
 </script>
 
