@@ -145,6 +145,51 @@
   .mole-hole.mole-hit .mole {
     background: var(--ink);
   }
+  .extra-game-board { display:grid; gap:8px; width:min(100%, 380px); margin:12px 0; }
+  .memory-board { grid-template-columns:repeat(4, minmax(0, 1fr)); }
+  .memory-card { aspect-ratio:1; padding:4px; border:1px solid var(--border); background:var(--accent-soft); color:var(--ink) !important; font-size:clamp(22px, 7vw, 36px); }
+  .memory-card.is-open, .memory-card.is-matched { background:var(--surface); }
+  .choice-controls { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+  .choice-controls button { min-height:44px; }
+  .guess-form { display:flex; flex-wrap:wrap; gap:8px; max-width:380px; margin:12px 0; }
+  .guess-form input { min-width:0; flex:1 1 140px; padding:9px 11px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:inherit; }
+  .reaction-pad { width:min(100%, 380px); min-height:180px; margin:12px 0; border:2px solid var(--border); background:var(--accent-soft); color:var(--ink) !important; font-size:clamp(22px, 6vw, 32px); touch-action:manipulation; }
+  .reaction-pad.is-ready { background:#16803c; color:#fff !important; }
+  .reaction-pad.is-early { background:#b42318; color:#fff !important; }
+  .extra-game-status { min-height:28px; color:var(--ink-soft); }
+  .connect-board { display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:4px; width:min(100%, 420px); padding:8px; border-radius:10px; background:#2563eb; }
+  .connect-slot { aspect-ratio:1; min-width:0; padding:2px; border:0; border-radius:50%; background:var(--surface); }
+  .connect-slot.is-red { background:#ef4444; }
+  .connect-slot.is-yellow { background:#facc15; }
+  .mines-board { display:grid; grid-template-columns:repeat(8, minmax(0, 1fr)); gap:3px; width:min(100%, 400px); margin:12px 0; }
+  .mine-cell { aspect-ratio:1; min-width:0; padding:0; border:1px solid var(--border); border-radius:4px; background:var(--accent-soft); color:var(--ink) !important; font-size:clamp(12px, 4vw, 18px); }
+  .mine-cell.is-open { background:var(--surface); }
+  .mine-cell.is-mine { background:#fee2e2; }
+  .word-display { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0; }
+  .word-letter { min-width:36px; padding:4px; border-bottom:2px solid var(--ink-soft); text-align:center; font:700 24px var(--mono); }
+  .letter-pad { display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:5px; max-width:420px; }
+  .letter-pad button { min-width:0; padding:7px 2px; }
+  .math-problem { font-size:clamp(26px, 7vw, 40px) !important; font-weight:700; color:var(--ink) !important; }
+  .math-form { display:flex; flex-wrap:wrap; gap:8px; max-width:380px; margin:12px 0; }
+  .math-form input { min-width:0; flex:1 1 120px; padding:9px 11px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:inherit; }
+  .math-form button { min-height:44px; }
+  .bingo-board { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:4px; width:min(100%, 360px); margin:12px 0; }
+  .bingo-cell { aspect-ratio:1; min-width:0; padding:2px; border:1px solid var(--border); background:var(--surface); color:var(--ink) !important; font-size:clamp(14px, 4vw, 22px); }
+  .bingo-cell.is-marked { background:var(--accent); color:var(--surface) !important; }
+  .gomoku-board { display:grid; grid-template-columns:repeat(15, minmax(0, 1fr)); grid-template-rows:repeat(15, minmax(0, 1fr)); gap:0; width:min(100%, 480px); aspect-ratio:1; padding:5px; background:#d8a95b; }
+  .gomoku-cell { display:grid; place-items:center; position:relative; min-width:0; min-height:0; padding:0; border:0; border-radius:0; background:transparent; }
+  .gomoku-cell::before, .gomoku-cell::after { position:absolute; z-index:0; content:""; background:#795326; pointer-events:none; }
+  .gomoku-cell::before { top:50%; left:0; width:100%; height:1px; }
+  .gomoku-cell::after { top:0; left:50%; width:1px; height:100%; }
+  .gomoku-stone { z-index:1; width:76%; aspect-ratio:1; border-radius:50%; box-shadow:0 1px 2px #0006; pointer-events:none; }
+  .gomoku-stone-black { background:radial-gradient(circle at 35% 30%, #555, #111 65%); }
+  .gomoku-stone-white { border:1px solid #888; background:radial-gradient(circle at 35% 30%, #fff, #e6e6e6 75%); }
+  .runner-canvas { width:min(100%, 520px); height:auto; border:1px solid var(--border); border-radius:8px; background:var(--bg); touch-action:manipulation; }
+  .sort-tubes { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin:16px 0; }
+  .sort-tube { display:flex; flex-direction:column-reverse; align-items:center; justify-content:flex-start; gap:4px; width:52px; height:176px; padding:6px 4px; border:2px solid var(--border); border-top:0; border-radius:0 0 18px 18px; background:var(--bg); }
+  .sort-tube.is-selected { outline:3px solid var(--accent); outline-offset:2px; }
+  .sort-ball { width:38px; height:32px; flex:none; border-radius:50%; }
+  .game-panel { scroll-margin-top:16px; }
   .breakout-canvas {
     touch-action: none; /* 캔버스 위에서 드래그/스와이프할 때 화면 자체가 스크롤되지 않게 한다 */
     min-width: 0; /* flex 안에서도 화면 폭에 맞게 줄어들 수 있도록 (기본값 auto면 줄어들지 않는다) */
@@ -235,6 +280,18 @@
       <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gyeol">결합 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-gyeol">코드 보기</button></div>
       <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dodge">똥피하기</button><button class="game-code-button" type="button" data-game-code-view="panel-dodge">코드 보기</button></div>
       <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sudoku">스도쿠</button><button class="game-code-button" type="button" data-game-code-view="panel-sudoku">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-memory">카드 짝맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-memory">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-rps">가위바위보</button><button class="game-code-button" type="button" data-game-code-view="panel-rps">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-guess">숫자 맞히기</button><button class="game-code-button" type="button" data-game-code-view="panel-guess">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-reaction">반응 속도 테스트</button><button class="game-code-button" type="button" data-game-code-view="panel-reaction">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-connect">4목 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-connect">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-mines">지뢰 찾기</button><button class="game-code-button" type="button" data-game-code-view="panel-mines">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-word">영단어 맞히기</button><button class="game-code-button" type="button" data-game-code-view="panel-word">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-math">암산 챌린지</button><button class="game-code-button" type="button" data-game-code-view="panel-math">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bingo">빙고</button><button class="game-code-button" type="button" data-game-code-view="panel-bingo">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gomoku">오목</button><button class="game-code-button" type="button" data-game-code-view="panel-gomoku">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-runner">점프 달리기</button><button class="game-code-button" type="button" data-game-code-view="panel-runner">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sort">색깔 정렬</button><button class="game-code-button" type="button" data-game-code-view="panel-sort">코드 보기</button></div>
     </div>
 
     <div id="panel-ttt" class="card game-panel" hidden>
@@ -506,6 +563,129 @@
       <p id="sudoku-timer" class="sudoku-status" role="timer" aria-label="스도쿠 진행 시간">경과 시간: 00:00</p>
       <p id="sudoku-status" class="sudoku-status" aria-live="polite">새 게임을 눌러 시작하세요.</p>
       <p class="mobile-hint">빈칸을 선택해 숫자를 입력하세요. 가상 숫자 모드를 켜면 후보 숫자를 기록하거나 다시 눌러 지울 수 있습니다.</p>
+    </div>
+    <div id="panel-memory" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 13</span>
+      <h3>카드 짝맞추기 (JavaScript)</h3>
+      <p>카드를 두 장씩 열어 같은 그림을 찾으세요. 섞기와 배열 상태 관리, 클릭 이벤트를 연습합니다.</p>
+      <p id="memory-status" class="extra-game-status" aria-live="polite">게임을 준비하고 있습니다.</p>
+      <div id="memory-board" class="extra-game-board memory-board" aria-label="카드 짝맞추기 게임판"></div>
+      <button id="memory-reset" type="button">새 게임</button>
+    </div>
+    <div id="panel-rps" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 14</span>
+      <h3>가위바위보 (JavaScript)</h3>
+      <p>컴퓨터와 대결해 먼저 3승을 올려보세요. 무작위 선택과 조건문으로 승패를 판정합니다.</p>
+      <p id="rps-score" class="extra-game-status" aria-live="polite">나 0승 · 컴퓨터 0승</p>
+      <div class="choice-controls">
+        <button type="button" data-rps-choice="rock">✊ 바위</button>
+        <button type="button" data-rps-choice="paper">✋ 보</button>
+        <button type="button" data-rps-choice="scissors">✌️ 가위</button>
+      </div>
+      <p id="rps-status" class="extra-game-status" aria-live="polite">무엇을 낼까요?</p>
+      <button id="rps-reset" type="button">점수 초기화</button>
+    </div>
+    <div id="panel-guess" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 15</span>
+      <h3>숫자 맞히기 (JavaScript)</h3>
+      <p>1부터 100 사이의 숫자를 맞혀보세요. 입력한 숫자보다 정답이 큰지 작은지 알려드립니다.</p>
+      <form id="guess-form" class="guess-form">
+        <input id="guess-input" type="number" min="1" max="100" step="1" placeholder="1~100 숫자" required aria-label="1부터 100 사이 숫자">
+        <button type="submit">확인</button>
+      </form>
+      <p id="guess-status" class="extra-game-status" aria-live="polite">숫자를 입력해 시작하세요.</p>
+      <button id="guess-reset" type="button">새 숫자 뽑기</button>
+    </div>
+    <div id="panel-reaction" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 16</span>
+      <h3>반응 속도 테스트 (JavaScript)</h3>
+      <p>시작을 누르고 초록색으로 바뀌면 최대한 빨리 눌러보세요. 너무 일찍 누르면 다시 시도해야 합니다.</p>
+      <button id="reaction-pad" class="reaction-pad" type="button" disabled>시작을 눌러주세요</button>
+      <div class="choice-controls"><button id="reaction-start" type="button">시작</button></div>
+      <p id="reaction-status" class="extra-game-status" aria-live="polite">최고 기록: -</p>
+    </div>
+    <div id="panel-connect" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 17</span>
+      <h3>4목 게임 (JavaScript)</h3>
+      <p>두 명이 번갈아 돌을 떨어뜨려 가로·세로·대각선으로 네 개를 먼저 연결하세요.</p>
+      <p id="connect-status" class="extra-game-status" aria-live="polite">🔴 빨강 차례</p>
+      <div id="connect-board" class="connect-board" aria-label="4목 게임판"></div>
+      <button id="connect-reset" type="button">새 게임</button>
+    </div>
+    <div id="panel-mines" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 18</span>
+      <h3>지뢰 찾기 (JavaScript)</h3>
+      <p>숫자 힌트를 이용해 지뢰가 없는 칸을 모두 여세요. 깃발 모드를 켜면 의심되는 칸을 표시할 수 있습니다.</p>
+      <div class="choice-controls"><button id="mines-flag-mode" type="button" aria-pressed="false">깃발 모드: 끔</button><button id="mines-reset" type="button">새 게임</button></div>
+      <p id="mines-status" class="extra-game-status" aria-live="polite">지뢰 10개 · 첫 칸은 안전합니다.</p>
+      <div id="mines-board" class="mines-board" aria-label="지뢰 찾기 게임판"></div>
+    </div>
+    <div id="panel-word" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 19</span>
+      <h3>영단어 맞히기 (JavaScript)</h3>
+      <p>힌트를 보고 숨겨진 영어 단어의 철자를 하나씩 맞혀보세요. 틀린 글자를 6번 고르면 게임이 끝납니다.</p>
+      <p id="word-hint" class="extra-game-status"></p>
+      <div id="word-display" class="word-display" aria-label="숨겨진 단어"></div>
+      <p id="word-status" class="extra-game-status" aria-live="polite"></p>
+      <div id="word-letters" class="letter-pad" aria-label="알파벳 선택"></div>
+      <button id="word-reset" type="button" style="margin-top:12px">새 단어</button>
+    </div>
+    <div id="panel-math" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 20</span>
+      <h3>암산 챌린지 (JavaScript)</h3>
+      <p>60초 동안 가능한 많은 문제를 풀어보세요. 정답을 맞히면 다음 문제가 나옵니다.</p>
+      <p id="math-timer" class="extra-game-status" role="timer">남은 시간 60초</p>
+      <p id="math-problem" class="math-problem">시작을 눌러주세요</p>
+      <form id="math-form" class="math-form">
+        <input id="math-answer" type="number" step="1" placeholder="정답" aria-label="정답 입력" disabled required>
+        <button id="math-submit" type="submit" disabled>확인</button>
+      </form>
+      <p id="math-status" class="extra-game-status" aria-live="polite">점수 0점</p>
+      <button id="math-start" type="button">시작</button>
+    </div>
+    <div id="panel-bingo" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 21</span>
+      <h3>빙고 (JavaScript)</h3>
+      <p>숫자 칸을 눌러 표시하고 가로·세로·대각선 줄을 완성하세요. 무작위 5×5 보드에서 빙고 줄 수를 세어줍니다.</p>
+      <p id="bingo-status" class="extra-game-status" aria-live="polite">칸을 눌러 빙고를 만들어보세요.</p>
+      <div id="bingo-board" class="bingo-board" aria-label="빙고 게임판"></div>
+      <button id="bingo-reset" type="button">새 보드</button>
+    </div>
+    <div id="panel-gomoku" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 22</span>
+      <h3>오목 (JavaScript)</h3>
+      <p>검은 돌은 내가, 흰 돌은 컴퓨터가 둡니다. 가로줄과 세로줄이 만나는 교차점에 놓아 다섯 개를 먼저 연결하세요.</p>
+      <p id="gomoku-status" class="extra-game-status" aria-live="polite">내 차례 (검은 돌)</p>
+      <div id="gomoku-board" class="gomoku-board" aria-label="오목 게임판"></div>
+      <button id="gomoku-reset" type="button">새 게임</button>
+    </div>
+    <div id="panel-runner" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 23</span>
+      <h3>점프 달리기 (JavaScript)</h3>
+      <p>장애물을 뛰어넘으며 오래 달려보세요. 화면을 누르거나 스페이스바를 눌러 점프합니다.</p>
+      <canvas id="runner-canvas" class="runner-canvas" width="520" height="180" aria-label="점프 달리기 게임"></canvas>
+      <div class="choice-controls"><button id="runner-start" type="button">시작</button></div>
+      <p id="runner-status" class="extra-game-status" aria-live="polite">시작을 눌러 게임을 시작하세요.</p>
+    </div>
+    <div id="panel-sort" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 24</span>
+      <h3>색깔 정렬 (JavaScript)</h3>
+      <p>시험관의 공을 옮겨 같은 색끼리 모으세요. 한 번에 맨 위 공 하나만 옮길 수 있고, 같은 색이나 빈 시험관에만 놓을 수 있습니다.</p>
+      <p id="sort-status" class="extra-game-status" aria-live="polite">시험관을 차례로 눌러 공을 옮기세요.</p>
+      <div id="sort-tubes" class="sort-tubes" aria-label="색깔 정렬 시험관"></div>
+      <button id="sort-reset" type="button">새 게임</button>
     </div>
     <dialog id="game-code-dialog" class="game-code-dialog">
       <button id="game-code-close" type="button">닫기</button>
@@ -2823,6 +3003,1012 @@
   })();
 </script>
 
+<script data-game-code="panel-memory">
+  (function () {
+    const boardEl = document.getElementById("memory-board");
+    const statusEl = document.getElementById("memory-status");
+    const resetBtn = document.getElementById("memory-reset");
+    const symbols = ["🍎", "🚀", "🐳", "🌈", "🎸", "⭐", "🍀", "⚽"];
+    let cards = [];
+    let opened = [];
+    let matchedPairs = 0;
+    let moves = 0;
+    let locked = false;
+    let mismatchTimer = null;
+
+    function shuffle(items) {
+      for (let index = items.length - 1; index > 0; index--) {
+        const other = Math.floor(Math.random() * (index + 1));
+        [items[index], items[other]] = [items[other], items[index]];
+      }
+      return items;
+    }
+
+    function render() {
+      boardEl.replaceChildren();
+      cards.forEach((card, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "memory-card";
+        button.textContent = card.open || card.matched ? card.symbol : "?";
+        button.disabled = card.open || card.matched;
+        button.setAttribute("aria-label", card.open || card.matched ? card.symbol : `카드 ${index + 1} 열기`);
+        if (card.open) button.classList.add("is-open");
+        if (card.matched) button.classList.add("is-matched");
+        button.addEventListener("click", () => openCard(index));
+        boardEl.appendChild(button);
+      });
+      statusEl.textContent = matchedPairs === symbols.length
+        ? `모든 짝을 찾았습니다! 총 ${moves}번 시도했습니다.`
+        : `찾은 짝 ${matchedPairs} / ${symbols.length} · 시도 ${moves}번`;
+    }
+
+    function openCard(index) {
+      if (locked || cards[index].open || cards[index].matched) return;
+      cards[index].open = true;
+      opened.push(index);
+      if (opened.length === 2) {
+        moves++;
+        const [first, second] = opened;
+        if (cards[first].symbol === cards[second].symbol) {
+          cards[first].matched = true;
+          cards[second].matched = true;
+          matchedPairs++;
+          opened = [];
+          render();
+        } else {
+          locked = true;
+          render();
+          mismatchTimer = setTimeout(() => {
+            cards[first].open = false;
+            cards[second].open = false;
+            opened = [];
+            locked = false;
+            mismatchTimer = null;
+            render();
+          }, 700);
+        }
+      } else {
+        render();
+      }
+    }
+
+    function newGame() {
+      clearTimeout(mismatchTimer);
+      mismatchTimer = null;
+      cards = shuffle([...symbols, ...symbols]).map(symbol => ({ symbol, open: false, matched: false }));
+      opened = [];
+      matchedPairs = 0;
+      moves = 0;
+      locked = false;
+      render();
+    }
+
+    resetBtn.addEventListener("click", newGame);
+    registerGame("panel-memory", {
+      init: newGame,
+      stop() {
+        clearTimeout(mismatchTimer);
+        mismatchTimer = null;
+        if (locked) {
+          opened.forEach(index => { cards[index].open = false; });
+          opened = [];
+          locked = false;
+          render();
+        }
+      },
+    });
+  })();
+</script>
+
+<script data-game-code="panel-rps">
+  (function () {
+    const choices = [
+      { id: "rock", label: "바위", emoji: "✊" },
+      { id: "paper", label: "보", emoji: "✋" },
+      { id: "scissors", label: "가위", emoji: "✌️" },
+    ];
+    const scoreEl = document.getElementById("rps-score");
+    const statusEl = document.getElementById("rps-status");
+    const choiceButtons = Array.from(document.querySelectorAll("[data-rps-choice]"));
+    let playerWins = 0;
+    let computerWins = 0;
+    let finished = false;
+
+    function renderScore() {
+      scoreEl.textContent = `나 ${playerWins}승 · 컴퓨터 ${computerWins}승`;
+      choiceButtons.forEach(button => { button.disabled = finished; });
+    }
+    function play(playerChoice) {
+      if (finished) return;
+      const computerChoice = choices[Math.floor(Math.random() * choices.length)];
+      const playerIndex = choices.findIndex(choice => choice.id === playerChoice);
+      const computerIndex = choices.indexOf(computerChoice);
+      let result = "비겼습니다.";
+      if ((playerIndex - computerIndex + choices.length) % choices.length === 1) {
+        playerWins++;
+        result = "이번 판은 내가 이겼습니다!";
+      } else if (playerIndex !== computerIndex) {
+        computerWins++;
+        result = "이번 판은 컴퓨터가 이겼습니다.";
+      }
+      statusEl.textContent = `나 ${choices[playerIndex].emoji} · 컴퓨터 ${computerChoice.emoji} — ${result}`;
+      if (playerWins === 3 || computerWins === 3) {
+        finished = true;
+        statusEl.textContent += playerWins === 3 ? " 최종 승리!" : " 컴퓨터의 최종 승리!";
+      }
+      renderScore();
+    }
+    function reset() {
+      playerWins = 0;
+      computerWins = 0;
+      finished = false;
+      statusEl.textContent = "무엇을 낼까요?";
+      renderScore();
+    }
+
+    choiceButtons.forEach(button => button.addEventListener("click", () => play(button.dataset.rpsChoice)));
+    document.getElementById("rps-reset").addEventListener("click", reset);
+    registerGame("panel-rps", { init: reset, stop() {} });
+  })();
+</script>
+
+<script data-game-code="panel-guess">
+  (function () {
+    const form = document.getElementById("guess-form");
+    const input = document.getElementById("guess-input");
+    const statusEl = document.getElementById("guess-status");
+    let answer = 1;
+    let attempts = 0;
+    let finished = false;
+
+    function newGame() {
+      answer = Math.floor(Math.random() * 100) + 1;
+      attempts = 0;
+      finished = false;
+      input.disabled = false;
+      form.querySelector("button").disabled = false;
+      statusEl.textContent = "1부터 100 사이 숫자를 입력하세요.";
+      input.value = "";
+    }
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      if (finished) return;
+      const guess = Number(input.value);
+      if (!Number.isInteger(guess) || guess < 1 || guess > 100) {
+        statusEl.textContent = "1부터 100 사이의 정수를 입력하세요.";
+        return;
+      }
+      attempts++;
+      if (guess === answer) {
+        finished = true;
+        statusEl.textContent = `정답입니다! ${attempts}번 만에 맞혔습니다.`;
+        input.disabled = true;
+        form.querySelector("button").disabled = true;
+      } else {
+        statusEl.textContent = `${guess < answer ? "더 큰" : "더 작은"} 숫자입니다. 시도 횟수: ${attempts}`;
+        input.select();
+      }
+    });
+    document.getElementById("guess-reset").addEventListener("click", newGame);
+    registerGame("panel-guess", { init: newGame, stop() {} });
+  })();
+</script>
+
+<script data-game-code="panel-reaction">
+  (function () {
+    const pad = document.getElementById("reaction-pad");
+    const startBtn = document.getElementById("reaction-start");
+    const statusEl = document.getElementById("reaction-status");
+    let phase = "idle";
+    let waitTimer = null;
+    let readyAt = 0;
+    let bestMs = null;
+
+    function resetRound() {
+      clearTimeout(waitTimer);
+      waitTimer = null;
+      phase = "idle";
+      pad.disabled = true;
+      pad.classList.remove("is-ready", "is-early");
+      pad.textContent = "초록색이 되면 누르세요!";
+    }
+    function start() {
+      resetRound();
+      phase = "waiting";
+      pad.textContent = "기다리세요...";
+      statusEl.textContent = `최고 기록: ${bestMs === null ? "-" : `${bestMs}ms`}`;
+      waitTimer = setTimeout(() => {
+        phase = "ready";
+        readyAt = performance.now();
+        pad.disabled = false;
+        pad.classList.add("is-ready");
+        pad.textContent = "지금 누르세요!";
+      }, 1500 + Math.random() * 2500);
+    }
+    pad.addEventListener("click", () => {
+      if (phase === "waiting") {
+        clearTimeout(waitTimer);
+        waitTimer = null;
+        phase = "early";
+        pad.disabled = true;
+        pad.classList.add("is-early");
+        pad.textContent = "너무 빨라요!";
+        statusEl.textContent = "초록색으로 바뀐 뒤에 눌러주세요. 다시 시작할 수 있습니다.";
+      } else if (phase === "ready") {
+        const elapsed = Math.round(performance.now() - readyAt);
+        bestMs = bestMs === null ? elapsed : Math.min(bestMs, elapsed);
+        resetRound();
+        pad.textContent = `${elapsed}ms`;
+        statusEl.textContent = `반응 시간 ${elapsed}ms · 최고 기록 ${bestMs}ms`;
+      }
+    });
+    startBtn.addEventListener("click", start);
+    registerGame("panel-reaction", { init: resetRound, stop: resetRound });
+  })();
+</script>
+
+<script data-game-code="panel-connect">
+  (function () {
+    const ROWS = 6, COLS = 7, CONNECT = 4;
+    const boardEl = document.getElementById("connect-board");
+    const statusEl = document.getElementById("connect-status");
+    let board = [];
+    let current = 1;
+    let gameOver = false;
+
+    function hasWon(row, col, player) {
+      const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+      return directions.some(([dr, dc]) => {
+        let count = 1;
+        for (const sign of [-1, 1]) {
+          let r = row + dr * sign, c = col + dc * sign;
+          while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
+            count++;
+            r += dr * sign;
+            c += dc * sign;
+          }
+        }
+        return count >= CONNECT;
+      });
+    }
+
+    function render() {
+      boardEl.replaceChildren();
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const slot = document.createElement("button");
+          slot.type = "button";
+          slot.className = "connect-slot";
+          slot.setAttribute("aria-label", `행 ${row + 1}, 열 ${col + 1}${board[row][col] ? " 놓인 돌 있음" : " 빈칸"}`);
+          if (board[row][col] === 1) slot.classList.add("is-red");
+          if (board[row][col] === 2) slot.classList.add("is-yellow");
+          slot.disabled = gameOver || Boolean(board[row][col]);
+          slot.addEventListener("click", () => drop(col));
+          boardEl.appendChild(slot);
+        }
+      }
+    }
+
+    function drop(col) {
+      if (gameOver) return;
+      for (let row = ROWS - 1; row >= 0; row--) {
+        if (board[row][col]) continue;
+        board[row][col] = current;
+        if (hasWon(row, col, current)) {
+          gameOver = true;
+          statusEl.textContent = `${current === 1 ? "🔴 빨강" : "🟡 노랑"} 승리! 새 게임으로 다시 시작하세요.`;
+        } else if (board.every(line => line.every(Boolean))) {
+          gameOver = true;
+          statusEl.textContent = "무승부입니다!";
+        } else {
+          current = current === 1 ? 2 : 1;
+          statusEl.textContent = `${current === 1 ? "🔴 빨강" : "🟡 노랑"} 차례`;
+        }
+        render();
+        return;
+      }
+    }
+
+    function reset() {
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+      current = 1;
+      gameOver = false;
+      statusEl.textContent = "🔴 빨강 차례";
+      render();
+    }
+
+    document.getElementById("connect-reset").addEventListener("click", reset);
+    registerGame("panel-connect", { init: reset, stop() {} });
+  })();
+</script>
+
+<script data-game-code="panel-mines">
+  (function () {
+    const SIZE = 8, MINE_COUNT = 10;
+    const boardEl = document.getElementById("mines-board");
+    const statusEl = document.getElementById("mines-status");
+    const flagModeBtn = document.getElementById("mines-flag-mode");
+    let cells = [];
+    let flags = 0;
+    let revealed = 0;
+    let flagMode = false;
+    let started = false;
+    let ended = false;
+
+    function neighbors(index) {
+      const row = Math.floor(index / SIZE), col = index % SIZE, result = [];
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (!dr && !dc) continue;
+          const r = row + dr, c = col + dc;
+          if (r >= 0 && r < SIZE && c >= 0 && c < SIZE) result.push(r * SIZE + c);
+        }
+      }
+      return result;
+    }
+
+    function placeMines(safeIndex) {
+      const safeArea = new Set([safeIndex, ...neighbors(safeIndex)]);
+      const options = cells.map((_, index) => index).filter(index => !safeArea.has(index));
+      for (let index = options.length - 1; index > 0; index--) {
+        const other = Math.floor(Math.random() * (index + 1));
+        [options[index], options[other]] = [options[other], options[index]];
+      }
+      options.slice(0, MINE_COUNT).forEach(index => { cells[index].mine = true; });
+      cells.forEach((cell, index) => {
+        cell.count = neighbors(index).filter(next => cells[next].mine).length;
+      });
+      started = true;
+    }
+
+    function reveal(index) {
+      const cell = cells[index];
+      if (ended || cell.open || cell.flag) return;
+      if (!started) placeMines(index);
+      if (cell.mine) {
+        ended = true;
+        cells.forEach(entry => { if (entry.mine) entry.open = true; });
+        statusEl.textContent = "지뢰를 밟았습니다! 새 게임으로 다시 도전하세요.";
+        return;
+      }
+      const pending = [index];
+      while (pending.length) {
+        const next = pending.pop();
+        const current = cells[next];
+        if (current.open || current.flag || current.mine) continue;
+        current.open = true;
+        revealed++;
+        if (current.count === 0) pending.push(...neighbors(next));
+      }
+      if (revealed === SIZE * SIZE - MINE_COUNT) {
+        ended = true;
+        statusEl.textContent = "성공! 모든 안전한 칸을 열었습니다.";
+      } else {
+        statusEl.textContent = `지뢰 ${MINE_COUNT}개 · 깃발 ${flags}개`;
+      }
+    }
+
+    function toggleFlag(index) {
+      const cell = cells[index];
+      if (ended || cell.open) return;
+      if (!cell.flag && flags >= MINE_COUNT) {
+        statusEl.textContent = `깃발은 ${MINE_COUNT}개까지만 표시할 수 있습니다.`;
+        return;
+      }
+      cell.flag = !cell.flag;
+      flags += cell.flag ? 1 : -1;
+    }
+
+    function render() {
+      boardEl.replaceChildren();
+      cells.forEach((cell, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "mine-cell";
+        button.setAttribute("aria-label", `칸 ${index + 1}${cell.open ? (cell.mine ? " 지뢰" : ` ${cell.count}개 인접`) : cell.flag ? " 깃발" : " 닫힘"}`);
+        if (cell.open) {
+          button.classList.add("is-open");
+          if (cell.mine) {
+            button.classList.add("is-mine");
+            button.textContent = "💣";
+          } else if (cell.count) button.textContent = String(cell.count);
+        } else if (cell.flag) button.textContent = "🚩";
+        button.addEventListener("click", () => {
+          if (flagMode) toggleFlag(index);
+          else reveal(index);
+          render();
+        });
+        button.addEventListener("contextmenu", event => {
+          event.preventDefault();
+          toggleFlag(index);
+          render();
+        });
+        boardEl.appendChild(button);
+      });
+    }
+
+    function reset() {
+      cells = Array.from({ length: SIZE * SIZE }, () => ({ mine: false, count: 0, open: false, flag: false }));
+      flags = 0;
+      revealed = 0;
+      started = false;
+      ended = false;
+      statusEl.textContent = `지뢰 ${MINE_COUNT}개 · 첫 칸은 안전합니다.`;
+      render();
+    }
+
+    flagModeBtn.addEventListener("click", () => {
+      flagMode = !flagMode;
+      flagModeBtn.setAttribute("aria-pressed", String(flagMode));
+      flagModeBtn.textContent = `깃발 모드: ${flagMode ? "켬" : "끔"}`;
+    });
+    document.getElementById("mines-reset").addEventListener("click", reset);
+    registerGame("panel-mines", { init: reset, stop() {} });
+  })();
+</script>
+
+<script data-game-code="panel-word">
+  (function () {
+    const words = [
+      { word: "planet", hint: "태양 주위를 도는 천체" },
+      { word: "pencil", hint: "글씨를 쓰거나 그림을 그리는 도구" },
+      { word: "garden", hint: "꽃과 식물을 가꾸는 곳" },
+      { word: "bridge", hint: "강이나 도로 위를 건너게 해주는 구조물" },
+      { word: "window", hint: "빛과 바람이 들어오는 벽의 열린 부분" },
+      { word: "puzzle", hint: "생각해서 맞히는 문제 또는 놀이" },
+      { word: "monkey", hint: "나무를 잘 타는 영장류 동물" },
+      { word: "orange", hint: "주황색 과일" },
+    ];
+    const hintEl = document.getElementById("word-hint");
+    const displayEl = document.getElementById("word-display");
+    const statusEl = document.getElementById("word-status");
+    const lettersEl = document.getElementById("word-letters");
+    let currentWord;
+    let guessed;
+    let mistakes;
+    let finished;
+
+    function render() {
+      displayEl.replaceChildren();
+      for (const letter of currentWord.word) {
+        const tile = document.createElement("span");
+        tile.className = "word-letter";
+        tile.textContent = guessed.has(letter) || finished ? letter.toUpperCase() : "_";
+        displayEl.appendChild(tile);
+      }
+      lettersEl.replaceChildren();
+      for (const letter of "abcdefghijklmnopqrstuvwxyz") {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = letter.toUpperCase();
+        button.disabled = guessed.has(letter) || finished;
+        button.setAttribute("aria-label", `알파벳 ${letter}`);
+        button.addEventListener("click", () => guess(letter));
+        lettersEl.appendChild(button);
+      }
+    }
+
+    function guess(letter) {
+      if (finished || guessed.has(letter)) return;
+      guessed.add(letter);
+      if (!currentWord.word.includes(letter)) mistakes++;
+      const solved = [...currentWord.word].every(char => guessed.has(char));
+      if (solved) {
+        finished = true;
+        statusEl.textContent = `정답입니다! ${currentWord.word.toUpperCase()} · 틀린 횟수 ${mistakes}/6`;
+      } else if (mistakes >= 6) {
+        finished = true;
+        statusEl.textContent = `아쉽네요! 정답은 ${currentWord.word.toUpperCase()}입니다.`;
+      } else {
+        statusEl.textContent = `틀린 횟수 ${mistakes}/6`;
+      }
+      render();
+    }
+
+    function newGame() {
+      currentWord = words[Math.floor(Math.random() * words.length)];
+      guessed = new Set();
+      mistakes = 0;
+      finished = false;
+      hintEl.textContent = `힌트: ${currentWord.hint}`;
+      statusEl.textContent = "알파벳을 선택해보세요. 기회는 6번입니다.";
+      render();
+    }
+
+    document.getElementById("word-reset").addEventListener("click", newGame);
+    registerGame("panel-word", { init: newGame, stop() {} });
+  })();
+</script>
+
+<script data-game-code="panel-math">
+  (function () {
+    const form = document.getElementById("math-form");
+    const answerInput = document.getElementById("math-answer");
+    const submitBtn = document.getElementById("math-submit");
+    const problemEl = document.getElementById("math-problem");
+    const timerEl = document.getElementById("math-timer");
+    const statusEl = document.getElementById("math-status");
+    const startBtn = document.getElementById("math-start");
+    let answer = 0;
+    let score = 0;
+    let timeLeft = 60;
+    let timer = null;
+    let running = false;
+
+    function nextProblem() {
+      const operation = Math.floor(Math.random() * 3);
+      let first = Math.floor(Math.random() * 20) + 1;
+      let second = Math.floor(Math.random() * 20) + 1;
+      if (operation === 0) {
+        answer = first + second;
+        problemEl.textContent = `${first} + ${second} = ?`;
+      } else if (operation === 1) {
+        if (second > first) [first, second] = [second, first];
+        answer = first - second;
+        problemEl.textContent = `${first} − ${second} = ?`;
+      } else {
+        first = Math.floor(Math.random() * 10) + 1;
+        second = Math.floor(Math.random() * 10) + 1;
+        answer = first * second;
+        problemEl.textContent = `${first} × ${second} = ?`;
+      }
+      answerInput.value = "";
+      answerInput.focus({ preventScroll: true });
+    }
+
+    function finish() {
+      clearInterval(timer);
+      timer = null;
+      running = false;
+      answerInput.disabled = true;
+      submitBtn.disabled = true;
+      startBtn.textContent = "다시 시작";
+      problemEl.textContent = "시간 종료!";
+      statusEl.textContent = `최종 점수 ${score}점`;
+    }
+
+    function start() {
+      clearInterval(timer);
+      score = 0;
+      timeLeft = 60;
+      running = true;
+      answerInput.disabled = false;
+      submitBtn.disabled = false;
+      startBtn.textContent = "다시 시작";
+      timerEl.textContent = `남은 시간 ${timeLeft}초`;
+      statusEl.textContent = `점수 ${score}점`;
+      nextProblem();
+      timer = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = `남은 시간 ${timeLeft}초`;
+        if (timeLeft <= 0) finish();
+      }, 1000);
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      if (!running) return;
+      if (Number(answerInput.value) === answer) {
+        score++;
+        statusEl.textContent = `정답! 점수 ${score}점`;
+      } else {
+        statusEl.textContent = `다시 생각해보세요. 점수 ${score}점`;
+        answerInput.select();
+        return;
+      }
+      nextProblem();
+    });
+    startBtn.addEventListener("click", start);
+    registerGame("panel-math", {
+      init() {
+        clearInterval(timer);
+        timer = null;
+        running = false;
+        timeLeft = 60;
+        score = 0;
+        answerInput.disabled = true;
+        submitBtn.disabled = true;
+        timerEl.textContent = "남은 시간 60초";
+        problemEl.textContent = "시작을 눌러주세요";
+        statusEl.textContent = "점수 0점";
+        startBtn.textContent = "시작";
+      },
+      stop() {
+        if (running) finish();
+      },
+    });
+  })();
+</script>
+
+<script data-game-code="panel-bingo">
+  (function () {
+    const boardEl = document.getElementById("bingo-board");
+    const statusEl = document.getElementById("bingo-status");
+    let numbers = [];
+    let marked = new Set();
+
+    function render() {
+      boardEl.replaceChildren();
+      numbers.forEach((number, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `bingo-cell${marked.has(index) ? " is-marked" : ""}`;
+        button.textContent = String(number);
+        button.setAttribute("aria-pressed", String(marked.has(index)));
+        button.addEventListener("click", () => {
+          if (marked.has(index)) marked.delete(index);
+          else marked.add(index);
+          render();
+        });
+        boardEl.appendChild(button);
+      });
+      let lines = 0;
+      for (let row = 0; row < 5; row++) {
+        if ([0, 1, 2, 3, 4].every(col => marked.has(row * 5 + col))) lines++;
+      }
+      for (let col = 0; col < 5; col++) {
+        if ([0, 1, 2, 3, 4].every(row => marked.has(row * 5 + col))) lines++;
+      }
+      if ([0, 1, 2, 3, 4].every(index => marked.has(index * 5 + index))) lines++;
+      if ([0, 1, 2, 3, 4].every(index => marked.has(index * 5 + 4 - index))) lines++;
+      statusEl.textContent = lines ? `빙고 ${lines}줄! 계속 표시하거나 새 보드를 시작하세요.` : "칸을 눌러 숫자를 표시하세요.";
+    }
+
+    function newGame() {
+      numbers = Array.from({ length: 25 }, (_, index) => index + 1);
+      for (let index = numbers.length - 1; index > 0; index--) {
+        const other = Math.floor(Math.random() * (index + 1));
+        [numbers[index], numbers[other]] = [numbers[other], numbers[index]];
+      }
+      marked = new Set();
+      render();
+    }
+
+    document.getElementById("bingo-reset").addEventListener("click", newGame);
+    registerGame("panel-bingo", { init: newGame, stop() {} });
+  })();
+</script>
+
+<script data-game-code="panel-gomoku">
+  (function () {
+    const SIZE = 15, TARGET = 5;
+    const boardEl = document.getElementById("gomoku-board");
+    const statusEl = document.getElementById("gomoku-status");
+    let board = [];
+    let moves = 0;
+    let finished = false;
+    let computerThinking = false;
+    let computerTimer = null;
+    const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+
+    function isWinner(row, col, player) {
+      return directions.some(([dr, dc]) => {
+        let count = 1;
+        for (const direction of [-1, 1]) {
+          let r = row + dr * direction, c = col + dc * direction;
+          while (r >= 0 && r < SIZE && c >= 0 && c < SIZE && board[r][c] === player) {
+            count++;
+            r += dr * direction;
+            c += dc * direction;
+          }
+        }
+        return count >= TARGET;
+      });
+    }
+
+    function moveScore(row, col, player) {
+      board[row][col] = player;
+      if (isWinner(row, col, player)) {
+        board[row][col] = 0;
+        return 10000000;
+      }
+      let score = 0;
+      for (const [dr, dc] of directions) {
+        let count = 1;
+        let openEnds = 0;
+        for (const direction of [-1, 1]) {
+          let r = row + dr * direction, c = col + dc * direction;
+          while (r >= 0 && r < SIZE && c >= 0 && c < SIZE && board[r][c] === player) {
+            count++;
+            r += dr * direction;
+            c += dc * direction;
+          }
+          if (r >= 0 && r < SIZE && c >= 0 && c < SIZE && board[r][c] === 0) openEnds++;
+        }
+        if (count >= 4) score += openEnds === 2 ? 100000 : 10000;
+        else if (count === 3) score += openEnds === 2 ? 3000 : openEnds === 1 ? 400 : 0;
+        else if (count === 2) score += openEnds === 2 ? 150 : openEnds === 1 ? 30 : 0;
+      }
+      board[row][col] = 0;
+      return score;
+    }
+
+    function chooseComputerMove() {
+      let bestMove = null;
+      let bestScore = -Infinity;
+      const hasStones = moves > 0;
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          if (board[row][col]) continue;
+          let nearStone = !hasStones;
+          for (let rowOffset = -1; rowOffset <= 1 && !nearStone; rowOffset++) {
+            for (let colOffset = -1; colOffset <= 1; colOffset++) {
+              const neighborRow = row + rowOffset, neighborCol = col + colOffset;
+              if ((rowOffset || colOffset) && neighborRow >= 0 && neighborRow < SIZE &&
+                  neighborCol >= 0 && neighborCol < SIZE && board[neighborRow][neighborCol]) {
+                nearStone = true;
+                break;
+              }
+            }
+          }
+          if (!nearStone) continue;
+          const offense = moveScore(row, col, 2);
+          const defense = moveScore(row, col, 1);
+          const score = offense + defense * 0.9 + Math.random();
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = [row, col];
+          }
+        }
+      }
+      return bestMove;
+    }
+
+    function render() {
+      boardEl.replaceChildren();
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "gomoku-cell";
+          const stone = board[row][col];
+          button.setAttribute("aria-label", `행 ${row + 1}, 열 ${col + 1}${stone ? stone === 1 ? " 검은 돌" : " 흰 돌" : " 빈칸"}`);
+          button.disabled = finished || computerThinking || Boolean(stone);
+          if (stone) {
+            const stoneEl = document.createElement("span");
+            stoneEl.className = `gomoku-stone ${stone === 1 ? "gomoku-stone-black" : "gomoku-stone-white"}`;
+            button.appendChild(stoneEl);
+          }
+          button.addEventListener("click", () => place(row, col, 1));
+          boardEl.appendChild(button);
+        }
+      }
+    }
+
+    function place(row, col, player) {
+      if (finished || (player === 1 && computerThinking) || board[row][col]) return;
+      board[row][col] = player;
+      moves++;
+      if (isWinner(row, col, player)) {
+        finished = true;
+        statusEl.textContent = player === 1 ? "내가 이겼습니다!" : "컴퓨터가 이겼습니다.";
+      } else if (moves === SIZE * SIZE) {
+        finished = true;
+        statusEl.textContent = "무승부입니다.";
+      } else {
+        if (player === 1) {
+          computerThinking = true;
+          statusEl.textContent = "컴퓨터가 생각 중입니다...";
+        } else {
+          computerThinking = false;
+          statusEl.textContent = "내 차례 (검은 돌)";
+        }
+      }
+      render();
+      if (player === 1 && !finished) {
+        computerTimer = setTimeout(() => {
+          computerTimer = null;
+          const move = chooseComputerMove();
+          if (move) place(move[0], move[1], 2);
+        }, 350);
+      }
+    }
+
+    function reset() {
+      clearTimeout(computerTimer);
+      computerTimer = null;
+      board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+      moves = 0;
+      finished = false;
+      computerThinking = false;
+      statusEl.textContent = "내 차례 (검은 돌)";
+      render();
+    }
+
+    document.getElementById("gomoku-reset").addEventListener("click", reset);
+    registerGame("panel-gomoku", {
+      init: reset,
+      stop() {
+        clearTimeout(computerTimer);
+        computerTimer = null;
+        computerThinking = false;
+      },
+    });
+  })();
+</script>
+
+<script data-game-code="panel-runner">
+  (function () {
+    const canvas = document.getElementById("runner-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("runner-status");
+    const startBtn = document.getElementById("runner-start");
+    const ground = 150;
+    let playerY = ground - 28;
+    let velocityY = 0;
+    let obstacles = [];
+    let score = 0;
+    let speed = 4;
+    let running = false;
+    let animationId = null;
+    let lastTime = 0;
+    let spawnIn = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#7c6f64";
+      ctx.fillRect(0, ground, canvas.width, 2);
+      ctx.fillStyle = "#2563eb";
+      ctx.fillRect(48, playerY, 26, 28);
+      ctx.fillStyle = "#b42318";
+      obstacles.forEach(obstacle => ctx.fillRect(obstacle.x, ground - obstacle.height, obstacle.width, obstacle.height));
+      ctx.fillStyle = "#1b1f1d";
+      ctx.font = "16px sans-serif";
+      ctx.fillText(`점수 ${score}`, 12, 24);
+    }
+
+    function jump() {
+      if (running && playerY >= ground - 28) velocityY = -360;
+    }
+    function endGame() {
+      running = false;
+      cancelAnimationFrame(animationId);
+      animationId = null;
+      statusEl.textContent = `게임 종료 · 점수 ${score} · 시작을 눌러 다시 도전하세요.`;
+      startBtn.disabled = false;
+      draw();
+    }
+    function frame(time) {
+      if (!running) return;
+      const delta = Math.min(32, time - lastTime || 16);
+      lastTime = time;
+      velocityY += 1100 * delta / 1000;
+      playerY = Math.min(ground - 28, playerY + velocityY * delta / 1000);
+      spawnIn -= delta;
+      if (spawnIn <= 0) {
+        const height = 22 + Math.random() * 20;
+        obstacles.push({ x: canvas.width, width: 18 + Math.random() * 14, height });
+        spawnIn = 850 + Math.random() * 750;
+      }
+      obstacles.forEach(obstacle => { obstacle.x -= speed * delta / 16; });
+      obstacles = obstacles.filter(obstacle => obstacle.x + obstacle.width > 0);
+      for (const obstacle of obstacles) {
+        if (obstacle.x < 74 && obstacle.x + obstacle.width > 48 && playerY + 28 > ground - obstacle.height) {
+          endGame();
+          return;
+        }
+      }
+      score += delta / 100;
+      speed = Math.min(8, 4 + score / 120);
+      statusEl.textContent = `달리는 중 · 점수 ${Math.floor(score)}`;
+      draw();
+      animationId = requestAnimationFrame(frame);
+    }
+    function start() {
+      cancelAnimationFrame(animationId);
+      playerY = ground - 28;
+      velocityY = 0;
+      obstacles = [];
+      score = 0;
+      speed = 4;
+      spawnIn = 650;
+      running = true;
+      lastTime = 0;
+      startBtn.disabled = true;
+      statusEl.textContent = "달리는 중 · 화면을 눌러 점프하세요.";
+      animationId = requestAnimationFrame(frame);
+    }
+    function onKeyDown(event) {
+      if (document.getElementById("panel-runner").hidden || document.getElementById("game-code-dialog").open) return;
+      if (event.code === "Space" || event.key === "ArrowUp") {
+        event.preventDefault();
+        jump();
+      }
+    }
+    canvas.addEventListener("pointerdown", jump);
+    startBtn.addEventListener("click", start);
+    document.addEventListener("keydown", onKeyDown);
+    registerGame("panel-runner", {
+      init() {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+        running = false;
+        startBtn.disabled = false;
+        statusEl.textContent = "시작을 눌러 게임을 시작하세요.";
+        draw();
+      },
+      stop() {
+        running = false;
+        cancelAnimationFrame(animationId);
+        animationId = null;
+        startBtn.disabled = false;
+      },
+    });
+  })();
+</script>
+
+<script data-game-code="panel-sort">
+  (function () {
+    const tubeRoot = document.getElementById("sort-tubes");
+    const statusEl = document.getElementById("sort-status");
+    const colors = ["#ef4444", "#2563eb", "#16a34a", "#eab308"];
+    let tubes = [];
+    let selected = null;
+    let finished = false;
+
+    function isSolved() {
+      return tubes.every(tube => tube.length === 0 || (tube.length === 4 && tube.every(ball => ball === tube[0])));
+    }
+    function render() {
+      tubeRoot.replaceChildren();
+      tubes.forEach((tube, index) => {
+        const vessel = document.createElement("button");
+        vessel.type = "button";
+        vessel.className = `sort-tube${selected === index ? " is-selected" : ""}`;
+        vessel.disabled = finished;
+        vessel.setAttribute("aria-label", `시험관 ${index + 1}, 공 ${tube.length}개`);
+        tube.forEach(colorIndex => {
+          const ball = document.createElement("span");
+          ball.className = "sort-ball";
+          ball.style.backgroundColor = colors[colorIndex];
+          vessel.appendChild(ball);
+        });
+        vessel.addEventListener("click", () => chooseTube(index));
+        tubeRoot.appendChild(vessel);
+      });
+    }
+    function chooseTube(index) {
+      if (finished) return;
+      if (selected === null) {
+        if (!tubes[index].length) return;
+        selected = index;
+      } else if (selected === index) {
+        selected = null;
+      } else {
+        const source = tubes[selected], target = tubes[index];
+        const ball = source[source.length - 1];
+        if (target.length < 4 && (!target.length || target[target.length - 1] === ball)) {
+          source.pop();
+          target.push(ball);
+          if (isSolved()) {
+            finished = true;
+            statusEl.textContent = "완성! 같은 색 공을 모두 모았습니다.";
+          }
+        } else if (tubes[index].length) {
+          statusEl.textContent = "같은 색이거나 빈 시험관에만 놓을 수 있습니다.";
+        }
+        selected = null;
+      }
+      render();
+    }
+    function reset() {
+      const balls = colors.flatMap((_, index) => Array(4).fill(index));
+      for (let index = balls.length - 1; index > 0; index--) {
+        const other = Math.floor(Math.random() * (index + 1));
+        [balls[index], balls[other]] = [balls[other], balls[index]];
+      }
+      tubes = Array.from({ length: 5 }, (_, index) => balls.slice(index * 4, index * 4 + 4));
+      selected = null;
+      finished = false;
+      statusEl.textContent = "시험관을 차례로 눌러 공을 옮기세요.";
+      render();
+    }
+    document.getElementById("sort-reset").addEventListener("click", reset);
+    registerGame("panel-sort", { init: reset, stop() {} });
+  })();
+</script>
+
 <script>
   // ── 게임 목록 ↔ 선택한 게임 화면 전환 ─────────────────
   (function () {
@@ -2842,6 +4028,7 @@
         initialized.add(id);
       }
       activeId = id;
+      requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
 
     function closeGame() {
@@ -2852,6 +4039,7 @@
       panels.forEach(p => { p.hidden = true; });
       menuEl.hidden = false;
       activeId = null;
+      requestAnimationFrame(() => menuEl.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
 
     document.querySelectorAll(".game-list-item").forEach(btn => {
