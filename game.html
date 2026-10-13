@@ -206,7 +206,8 @@
   .yut-board-svg { position:absolute; inset:0; width:100%; height:100%; }
   .yut-node { position:absolute; z-index:1; display:grid; place-items:center; width:9%; aspect-ratio:1; padding:0; transform:translate(-50%, -50%); border:2px solid #735b3b; border-radius:50%; background:#fff8e8; color:#33291c; font-size:clamp(9px, 2.6vw, 14px); }
   .yut-node.is-selected { outline:3px solid #e3a72f; }
-  .yut-node.is-target { outline:3px solid #3a9959; background:#e4f5df; }
+  .yut-node.is-target-outer { outline:3px solid #3a9959; background:#e4f5df; }
+  .yut-node.is-target-shortcut { outline:3px dashed #3977bd; background:#e7f0ff; }
   .yut-yard { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
   .yut-yard button { min-height:38px; padding:6px 10px; }
   .yut-token { display:inline-grid; place-items:center; width:43%; aspect-ratio:1; border-radius:50%; color:#fff; font-size:clamp(8px, 2vw, 12px); }
@@ -6830,10 +6831,16 @@
       turn = turn === RED ? BLUE : RED;
       legal = legalMoves(turn);
       if (!legal.length) {
-        finished = true;
-        statusEl.textContent = inCheck(board, turn)
-          ? `${turn === RED ? "파랑" : "빨강"} 승리! 장군입니다.`
-          : `${turn === RED ? "파랑" : "빨강"} 승리! 상대가 둘 수 없습니다.`;
+        if (inCheck(board, turn)) {
+          finished = true;
+          statusEl.textContent = `${turn === RED ? "파랑" : "빨강"} 승리! 장군입니다.`;
+        } else if (turn === BLUE) {
+          turn = RED;
+          legal = legalMoves(RED);
+          statusEl.textContent = "컴퓨터가 둘 수 없어 한 수 쉽니다. 내 차례입니다.";
+        } else {
+          statusEl.textContent = "둘 수 있는 말이 없습니다. 한 수 쉬세요.";
+        }
         render();
         return;
       }
@@ -6851,8 +6858,14 @@
       if (!active || finished || turn !== BLUE) return;
       legal = legalMoves(BLUE);
       if (!legal.length) {
-        finished = true;
-        statusEl.textContent = "빨강 승리! 컴퓨터가 둘 수 없습니다.";
+        if (inCheck(board, BLUE)) {
+          finished = true;
+          statusEl.textContent = "빨강 승리! 컴퓨터가 장군입니다.";
+        } else {
+          turn = RED;
+          legal = legalMoves(RED);
+          statusEl.textContent = "컴퓨터가 둘 수 없어 한 수 쉽니다. 내 차례입니다.";
+        }
         render();
         return;
       }
@@ -6949,6 +6962,7 @@
     let result = null;
     let selected = null;
     let selectedRoute = "outer";
+    let routeChosen = false;
     let active = false;
     let finished = false;
     let aiTimer = null;
@@ -6990,16 +7004,19 @@
       return teams[team].filter(token => !token.done
         && (result > 0 || (!token.inYard && token.pos >= 0)));
     }
-    function targetPosition(token, route = selectedRoute) {
+    function targetPosition(token, route) {
       if (!token || result === null) return null;
       const nextPos = (token.inYard ? -1 : token.pos) + result;
-      return nextPos >= 0 && nextPos < PATHS[route].length ? PATHS[route][nextPos] : null;
+      const moveRoute = route || selectedRoute;
+      return nextPos >= 0 && nextPos < PATHS[moveRoute].length ? PATHS[moveRoute][nextPos] : null;
     }
     function finishesMove(token, route = selectedRoute) {
       if (!token || result === null) return false;
       return (token.inYard ? -1 : token.pos) + result >= PATHS[route].length;
     }
     function render() {
+      const forkRoutes = selected && forkAvailable(selected) ? routesAtFork(selected) : [];
+      const previewRoutes = forkRoutes.length && !routeChosen ? forkRoutes : [selectedRoute];
       boardEl.querySelectorAll(".yut-node").forEach(button => {
         const node = Number(button.dataset.node);
         const occupants = [];
@@ -7015,7 +7032,13 @@
           button.appendChild(badge);
         }
         button.classList.toggle("is-selected", Boolean(selected && PATHS[selected.path][selected.pos] === node));
-        button.classList.toggle("is-target", Boolean(selected && targetPosition(selected) === node));
+        for (const route of previewRoutes) {
+          const destination = finishesMove(selected, route) ? null : targetPosition(selected, route);
+          button.classList.toggle(
+            route === "outer" ? "is-target-outer" : "is-target-shortcut",
+            Boolean(selected && destination === node),
+          );
+        }
       });
       const yard = document.getElementById("yut-yard");
       yard.replaceChildren();
@@ -7032,9 +7055,17 @@
       throwBtn.disabled = !active || finished || (turn === 0 && result !== null);
       outerBtn.hidden = !pending || !selected || !forkAvailable(selected);
       shortcutBtn.hidden = !pending || !selected || !forkAvailable(selected);
-      moveBtn.hidden = !pending || !selected || forkAvailable(selected);
+      outerBtn.textContent = "큰길 (초록 표시)";
+      shortcutBtn.textContent = "지름길 (파란 표시)";
+      outerBtn.classList.toggle("is-selected", routeChosen && selectedRoute === "outer");
+      shortcutBtn.classList.toggle("is-selected", routeChosen && selectedRoute !== "outer");
+      moveBtn.hidden = !pending || !selected
+        || (forkRoutes.length > 0 && !routeChosen)
+        || finishesMove(selected, selectedRoute);
       moveBtn.disabled = !pending || !selected;
-      finishBtn.hidden = !pending || !selected || !finishesMove(selected);
+      finishBtn.hidden = !pending || !selected
+        || (forkRoutes.length > 0 && !routeChosen)
+        || !finishesMove(selected, selectedRoute);
       finishBtn.disabled = !pending || !selected;
       passBtn.hidden = !pending || validTokens(0).length > 0;
       passBtn.disabled = !active || !pending || validTokens(0).length > 0;
@@ -7046,11 +7077,25 @@
       const node = currentPath(token)[token.pos];
       return (node === 8 || node === 12) && token.path === "outer";
     }
+    function routesAtFork(token) {
+      const node = currentPath(token)[token.pos];
+      if (node === 8) return ["outer", "shortcutA"];
+      if (node === 12) return ["outer", "shortcutB"];
+      return [];
+    }
     function selectAtNode(node) {
       if (!active || finished || turn !== 0 || result === null) return;
-      if (selected && targetPosition(selected) === node) {
-        commitHumanMove(selectedRoute);
-        return;
+      if (selected) {
+        const routes = routesAtFork(selected).length && !routeChosen
+          ? routesAtFork(selected)
+          : [selectedRoute];
+        const matchingRoute = routes.find(route => targetPosition(selected, route) === node);
+        if (matchingRoute) {
+          selectedRoute = matchingRoute;
+          routeChosen = true;
+          commitHumanMove(matchingRoute);
+          return;
+        }
       }
       const token = teams[0].find(item => !item.done && !item.inYard && PATHS[item.path][item.pos] === node);
       if (token) selectToken(token);
@@ -7059,6 +7104,7 @@
       if (!active || finished || turn !== 0 || result === null || token.done) return;
       selected = token;
       selectedRoute = token.path;
+      routeChosen = !forkAvailable(token);
       render();
       statusEl.textContent = forkAvailable(token)
         ? "말을 선택했습니다. 큰길 또는 지름길을 고르세요."
@@ -7067,10 +7113,9 @@
     function setRoute(route) {
       if (!selected || !forkAvailable(selected)) return;
       selectedRoute = route;
+      routeChosen = true;
       outerBtn.classList.toggle("is-selected", route === "outer");
       shortcutBtn.classList.toggle("is-selected", route !== "outer");
-      moveBtn.hidden = false;
-      moveBtn.disabled = false;
       render();
     }
     function doMove(teamIndex, token, route) {
@@ -7116,6 +7161,7 @@
         statusEl.textContent = `${turn === 0 ? "승리" : "컴퓨터 승리"}! 말을 모두 결승에 보냈습니다.`;
         result = null;
         selected = null;
+        routeChosen = false;
         render();
         return;
       }
@@ -7140,6 +7186,7 @@
       const wasCaptured = result === null;
       if (!wasCaptured) result = null;
       selected = null;
+      routeChosen = false;
       render();
       afterMove(special || captured);
     }
@@ -7212,6 +7259,7 @@
       turn = 0;
       result = null;
       selected = null;
+      routeChosen = false;
       finished = false;
       active = true;
       sticksEl.replaceChildren();
