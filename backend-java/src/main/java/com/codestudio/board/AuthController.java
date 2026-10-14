@@ -27,7 +27,7 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody AuthRequest request) {
         authService.register(request.username(), request.displayName(), request.password());
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-                "message", "가입 신청이 완료되었습니다. 관리자의 승인 후 로그인할 수 있습니다."));
+                "message", "가입이 완료되었습니다. 이제 로그인할 수 있습니다."));
     }
 
     @PostMapping("/login")

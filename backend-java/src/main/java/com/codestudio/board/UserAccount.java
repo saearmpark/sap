@@ -32,7 +32,7 @@ public class UserAccount {
     protected UserAccount() {}
 
     public UserAccount(String username, String displayName, String passwordHash) {
-        this(username, displayName, passwordHash, "PENDING", false);
+        this(username, displayName, passwordHash, "APPROVED", false);
     }
 
     public UserAccount(String username, String displayName, String passwordHash, String approvalStatus, boolean administrator) {
