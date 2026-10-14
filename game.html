@@ -49,6 +49,11 @@
     font-size: 12px;
     margin-bottom: 14px;
   }
+  .ttt-online { margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+  .ttt-online-controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:10px 0; }
+  .ttt-online-controls input { width:150px; text-transform:uppercase; }
+  .ttt-online-status { min-height:24px; color:var(--ink-soft); }
+  .ttt-online-room { font-weight:700; letter-spacing:.08em; }
   .baseball-form, .game-inline-controls { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
   .baseball-form input { width:140px; }
   .sequence-pads { display:grid; grid-template-columns:repeat(2, minmax(90px, 130px)); gap:8px; margin:14px 0; }
@@ -402,6 +407,25 @@
         <span id="ttt-status" class="ttt-status">O 차례입니다</span>
         <button id="ttt-reset" type="button">다시 시작</button>
       </div>
+      <section class="ttt-online" aria-labelledby="ttt-online-title">
+        <h4 id="ttt-online-title">온라인 1:1 대전</h4>
+        <p>로그인 후 방을 만들고, 방 코드를 상대에게 공유하세요. 방과 게임 상태는 서버에 임시로 보관됩니다.</p>
+        <div class="ttt-online-controls">
+          <button id="ttt-online-create" type="button">방 만들기</button>
+          <label for="ttt-room-code">방 코드</label>
+          <input id="ttt-room-code" type="text" maxlength="6" autocomplete="off" placeholder="예: A2BCDE">
+          <button id="ttt-online-join" type="button">입장</button>
+        </div>
+        <p id="ttt-online-room" class="ttt-online-room" aria-live="polite">대전방에 입장하지 않았습니다.</p>
+        <div id="ttt-online-board" class="ttt-board" aria-label="온라인 틱택토 게임판"></div>
+        <p id="ttt-online-status" class="ttt-online-status" aria-live="polite">온라인 대전을 시작하려면 로그인하세요.</p>
+        <div class="ttt-online-controls">
+          <button id="ttt-online-copy" type="button" hidden>방 코드 복사</button>
+          <button id="ttt-online-rematch" type="button" hidden>재대결 요청</button>
+          <button id="ttt-online-leave" type="button" hidden>방 나가기</button>
+          <a id="ttt-online-login" href="login.html?next=game.html">로그인</a>
+        </div>
+      </section>
     </div>
 
     <div id="panel-bo" class="card game-panel" hidden>
@@ -1083,6 +1107,212 @@
       if (gameOver || current !== "O" || cells[index]) return;
       place("O", index);
     }
+
+    const onlineBoardEl = document.getElementById("ttt-online-board");
+    const onlineStatusEl = document.getElementById("ttt-online-status");
+    const onlineRoomEl = document.getElementById("ttt-online-room");
+    const onlineRoomCodeEl = document.getElementById("ttt-room-code");
+    const onlineCreateBtn = document.getElementById("ttt-online-create");
+    const onlineJoinBtn = document.getElementById("ttt-online-join");
+    const onlineLeaveBtn = document.getElementById("ttt-online-leave");
+    const onlineRematchBtn = document.getElementById("ttt-online-rematch");
+    const onlineCopyBtn = document.getElementById("ttt-online-copy");
+    const onlineLoginLink = document.getElementById("ttt-online-login");
+    let onlineSocket = null;
+    let onlineAuthenticated = false;
+    let onlineReadyPromise = null;
+    let onlineState = null;
+
+    function renderOnlineState() {
+      const hasSession = Boolean(window.SAPAuth?.getToken());
+      onlineLoginLink.hidden = hasSession;
+      onlineBoardEl.replaceChildren();
+      if (!onlineState) {
+        onlineRoomEl.textContent = "대전방에 입장하지 않았습니다.";
+        onlineStatusEl.textContent = hasSession
+          ? "방을 만들거나 상대의 방 코드로 입장하세요."
+          : "온라인 대전을 시작하려면 로그인하세요.";
+        onlineLeaveBtn.hidden = true;
+        onlineRematchBtn.hidden = true;
+        onlineCopyBtn.hidden = true;
+        return;
+      }
+
+      const { cells: onlineCells, yourMark, currentMark, status, winner } = onlineState;
+      onlineRoomCodeEl.value = onlineState.roomCode;
+      onlineRoomEl.textContent = `방 코드: ${onlineState.roomCode} · 내 기호 ${yourMark} · X ${onlineState.xName}`
+        + (onlineState.oName ? ` · O ${onlineState.oName}` : " · 상대 대기 중");
+      onlineCopyBtn.hidden = false;
+      onlineLeaveBtn.hidden = false;
+      onlineRematchBtn.hidden = status !== "finished";
+      onlineRematchBtn.textContent = onlineState.youRequestedRematch
+        ? "재대결 요청 완료"
+        : "재대결 요청";
+      onlineRematchBtn.disabled = onlineState.youRequestedRematch;
+
+      if (status === "waiting") {
+        onlineStatusEl.textContent = "상대가 방 코드로 입장하기를 기다리는 중입니다.";
+      } else if (status === "finished") {
+        onlineStatusEl.textContent = winner === "draw"
+          ? "무승부입니다."
+          : winner === yourMark ? "이겼습니다!" : "상대가 이겼습니다.";
+        if (onlineState.opponentRequestedRematch) {
+          onlineStatusEl.textContent += " 상대가 재대결을 요청했습니다.";
+        } else if (onlineState.youRequestedRematch) {
+          onlineStatusEl.textContent += " 상대의 응답을 기다리는 중입니다.";
+        }
+      } else {
+        onlineStatusEl.textContent = currentMark === yourMark
+          ? `내 차례입니다 (${yourMark}).`
+          : `상대 차례입니다 (${currentMark}).`;
+      }
+
+      onlineCells.forEach((value, index) => {
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "ttt-cell";
+        cell.textContent = value || "";
+        cell.setAttribute("aria-label", `칸 ${index + 1}${value ? ` ${value}` : " 비어 있음"}`);
+        cell.disabled = status !== "playing" || currentMark !== yourMark || Boolean(value);
+        cell.addEventListener("click", () => sendOnline({ type: "move", index }));
+        onlineBoardEl.appendChild(cell);
+      });
+    }
+
+    function showOnlineError(message) {
+      onlineStatusEl.textContent = message;
+    }
+
+    function handleOnlinePacket(packet) {
+      if (packet.type === "state") {
+        onlineState = packet;
+        renderOnlineState();
+      } else if (packet.type === "error") {
+        showOnlineError(packet.message || "온라인 대전 요청을 처리하지 못했습니다.");
+      } else if (packet.type === "opponent-left") {
+        onlineState = null;
+        renderOnlineState();
+        showOnlineError("상대가 대전방을 나갔습니다. 새 방을 만들거나 다시 입장해주세요.");
+      } else if (packet.type === "left") {
+        onlineState = null;
+        renderOnlineState();
+      }
+    }
+
+    function connectOnline() {
+      if (onlineSocket?.readyState === WebSocket.OPEN && onlineAuthenticated) {
+        return Promise.resolve();
+      }
+      if (onlineReadyPromise) return onlineReadyPromise;
+      const token = window.SAPAuth?.getToken();
+      if (!token) {
+        return Promise.reject(new Error("온라인 대전을 이용하려면 먼저 로그인해주세요."));
+      }
+
+      onlineReadyPromise = new Promise((resolve, reject) => {
+        const apiUrl = new URL(window.SAPAuth.API_ROOT);
+        apiUrl.protocol = apiUrl.protocol === "https:" ? "wss:" : "ws:";
+        apiUrl.pathname = "/ws/game";
+        apiUrl.search = "";
+        const socket = new WebSocket(apiUrl);
+        onlineSocket = socket;
+        let settled = false;
+        const timeout = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            socket.close();
+            reject(new Error("온라인 게임 서버의 응답이 없습니다. 잠시 후 다시 시도해주세요."));
+          }
+        }, 12000);
+
+        socket.addEventListener("open", () => {
+          socket.send(JSON.stringify({ type: "auth", token }));
+        });
+        socket.addEventListener("message", event => {
+          let packet;
+          try {
+            packet = JSON.parse(event.data);
+          } catch {
+            showOnlineError("서버 응답을 읽을 수 없습니다.");
+            return;
+          }
+          if (packet.type === "ready" && !settled) {
+            settled = true;
+            clearTimeout(timeout);
+            onlineAuthenticated = true;
+            resolve();
+          } else {
+            handleOnlinePacket(packet);
+          }
+        });
+        socket.addEventListener("error", () => {
+          if (!settled) {
+            settled = true;
+            clearTimeout(timeout);
+            reject(new Error("온라인 게임 서버에 연결할 수 없습니다."));
+          }
+        });
+        socket.addEventListener("close", () => {
+          clearTimeout(timeout);
+          if (!settled) {
+            settled = true;
+            reject(new Error("로그인 또는 온라인 서버 연결을 확인해주세요."));
+          }
+          if (onlineSocket === socket) {
+            onlineSocket = null;
+            onlineAuthenticated = false;
+            if (onlineState) {
+              onlineState = null;
+              renderOnlineState();
+              showOnlineError("서버 연결이 끊겼습니다. 다시 입장해주세요.");
+            }
+          }
+        });
+      }).finally(() => {
+        onlineReadyPromise = null;
+      });
+      return onlineReadyPromise;
+    }
+
+    function sendOnline(packet) {
+      if (onlineSocket?.readyState !== WebSocket.OPEN || !onlineAuthenticated) {
+        showOnlineError("온라인 서버에 연결되지 않았습니다. 방에 다시 입장해주세요.");
+        return;
+      }
+      onlineSocket.send(JSON.stringify(packet));
+    }
+
+    async function runOnlineAction(packet) {
+      showOnlineError("온라인 게임 서버에 연결 중입니다...");
+      try {
+        await connectOnline();
+        sendOnline(packet);
+      } catch (error) {
+        showOnlineError(error.message);
+      }
+    }
+
+    onlineCreateBtn.addEventListener("click", () => runOnlineAction({ type: "create" }));
+    onlineJoinBtn.addEventListener("click", () => {
+      runOnlineAction({ type: "join", roomCode: onlineRoomCodeEl.value });
+    });
+    onlineRoomCodeEl.addEventListener("input", () => {
+      onlineRoomCodeEl.value = onlineRoomCodeEl.value.toUpperCase().replace(/[^A-HJ-NP-Z2-9]/g, "").slice(0, 6);
+    });
+    onlineLeaveBtn.addEventListener("click", () => sendOnline({ type: "leave" }));
+    onlineRematchBtn.addEventListener("click", () => sendOnline({ type: "rematch" }));
+    onlineCopyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(onlineState.roomCode);
+        showOnlineError("방 코드를 복사했습니다.");
+      } catch {
+        onlineRoomCodeEl.focus();
+        onlineRoomCodeEl.select();
+        showOnlineError("방 코드를 선택했습니다. 복사해서 상대에게 공유해주세요.");
+      }
+    });
+    renderOnlineState();
+
     resetBtn.addEventListener("click", reset);
     registerGame("panel-ttt", {
       init: reset,
@@ -1090,6 +1320,13 @@
         if (computerTimer !== null) {
           clearTimeout(computerTimer);
           playComputer();
+        }
+        if (onlineSocket) {
+          onlineSocket.close();
+          onlineSocket = null;
+          onlineAuthenticated = false;
+          onlineState = null;
+          renderOnlineState();
         }
       },
     });
@@ -7348,7 +7585,7 @@
     document.getElementById("game-code-close").addEventListener("click", () => codeDialog.close());
   })();
 </script>
-<script src="assets/auth.js?v=password-change-redirect-1"></script>
+<script src="assets/auth.js?v=logout-immediate-1"></script>
 <script src="assets/theme.js"></script>
 </body>
 </html>

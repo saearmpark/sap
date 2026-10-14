@@ -36,6 +36,20 @@
     return `login.html${allowed.includes(next) ? `?next=${encodeURIComponent(next)}` : ""}`;
   }
 
+  function handleAuthLinkClick(event) {
+    const token = getToken();
+    if (!token || !getUser()) return;
+
+    event.preventDefault();
+    clearSession();
+    fetch(`${API_ROOT}/auth/logout`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      keepalive: true
+    }).catch(error => console.warn("Could not revoke the server session during logout.", error));
+    location.replace("login.html");
+  }
+
   async function apiFetch(url, options = {}) {
     const headers = new Headers(options.headers || {});
     const token = getToken();
@@ -69,19 +83,16 @@
   function updateAuthLink() {
     const link = document.querySelector("[data-auth-link]");
     const user = getUser();
+    if (link && link.dataset.logoutHandler !== "attached") {
+      link.addEventListener("click", handleAuthLinkClick);
+      link.dataset.logoutHandler = "attached";
+    }
     if (link && getToken() && user) {
       link.textContent = `${user.displayName || user.username} · 로그아웃`;
       link.href = "#logout";
-      link.onclick = async event => {
-        event.preventDefault();
-        try { await apiFetch(`${API_ROOT}/auth/logout`, { method: "POST" }); } catch {}
-        clearSession();
-        location.href = "login.html";
-      };
     } else if (link) {
       link.textContent = "로그인 / 회원가입";
       link.href = "login.html";
-      link.onclick = null;
     }
 
     let chatLink = document.querySelector("[data-chat-link]");

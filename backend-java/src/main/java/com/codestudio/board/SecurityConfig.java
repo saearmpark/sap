@@ -26,7 +26,7 @@ public class SecurityConfig {
                         (request, response, error) -> response.sendError(401)))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        .requestMatchers("/ws/chat").permitAll()
+                        .requestMatchers("/ws/chat", "/ws/game").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(new TokenAuthenticationFilter(authService), UsernamePasswordAuthenticationFilter.class)
