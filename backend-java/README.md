@@ -67,7 +67,7 @@ mvn spring-boot:run
 
 ### 온라인 틱택토
 
-게임 제작 페이지의 온라인 틱택토는 승인된 로그인 사용자끼리 6자리 방 코드로 대전합니다. 방과 진행 상태는 메모리에만 보관되므로 서버 재시작이나 참가자의 연결 종료 시 방이 사라집니다. 서버가 차례, 둘 수 있는 칸, 승패를 검증하며, 게임 종료 후 두 참가자가 모두 재대결을 요청하면 새 판을 시작합니다.
+게임 제작 페이지의 온라인 틱택토는 승인된 로그인 사용자끼리 6자리 방 코드로 대전합니다. 방과 진행 상태는 DB에 저장되며, 서버 재시작 뒤 60초 안에 두 참가자가 같은 계정으로 재접속하면 이어서 플레이할 수 있습니다. 연결이 끊겨도 60초 안에 재접속하지 않으면 방을 정리합니다. 서버가 차례, 둘 수 있는 칸, 승패를 검증하며, 게임 종료 후 두 참가자가 모두 재대결을 요청하면 새 판을 시작합니다. WebSocket 연결과 방 처리는 단일 백엔드 인스턴스를 전제로 합니다. 여러 인스턴스로 확장하려면 공유 메시지 브로커와 세션 라우팅이 추가로 필요합니다.
 
 | WebSocket | `/ws/game` | 첫 프레임에 `{ "type": "auth", "token": "로그인 토큰" }`을 전송한 뒤 `create`, `join`, `move`, `rematch`, `leave` 요청을 주고받습니다. |
 
@@ -85,6 +85,8 @@ mvn spring-boot:run
 | POST | `/api/events` | 일정 추가 |
 | PUT | `/api/events/{id}` | 내 일정 수정 |
 | DELETE | `/api/events/{id}` | 내 일정 삭제 |
+| GET | `/api/game-progress` | 로그인 사용자의 게임 학습 완료 목록 |
+| PUT | `/api/game-progress` | 완료 목록 교체 (`completedLessonIds`) |
 
 게시판·자료실·일정 API에는 `Authorization: Bearer <token>` 헤더가 필요합니다. 회원가입은 아이디(영문 소문자·숫자·밑줄 3~30자), 표시 이름(1~30자), 비밀번호(8자 이상)를 받으며, 관리자가 승인한 뒤 로그인할 수 있습니다. 발급 토큰은 7일 동안 유효합니다.
 
@@ -100,6 +102,60 @@ SAP_ADMIN_PASSWORD=비공개_관리자_비밀번호
 ## 저장 방식과 배포 주의사항
 
 게시글, 계정, 인증 토큰, 일정과 자료실 파일 메타데이터·본문은 JPA를 통해 설정된 데이터베이스에 저장됩니다. 따라서 Render 서버 재시작·재배포 후에도 DB에 저장된 파일이 유지됩니다. 데이터 보존은 연결된 데이터베이스의 백업·용량 정책을 따릅니다.
+
+### PostgreSQL 백업과 복구
+
+다음 스크립트는 Windows PowerShell과 PostgreSQL 명령줄 도구(`pg_dump`, `pg_restore`)를 사용합니다. Render 대시보드의 PostgreSQL 연결 URL 또는 애플리케이션의 `jdbc:postgresql://...` 주소를 `SPRING_DATASOURCE_URL` 환경변수로 설정한 뒤 실행합니다. 연결 URL에는 비밀번호가 들어 있으므로 명령줄 인자, 저장소, 공유 로그에 붙여넣지 마세요.
+
+```powershell
+function Set-SecretEnvironmentVariable($name, $prompt) {
+  $secret = Read-Host $prompt -AsSecureString
+  $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret)
+  try {
+    [Environment]::SetEnvironmentVariable($name, [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer), "Process")
+  } finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)
+    $secret.Dispose()
+  }
+}
+Set-SecretEnvironmentVariable "SPRING_DATASOURCE_URL" "PostgreSQL URL"
+try { .\backend-java\scripts\backup-postgres.ps1 }
+finally { Remove-Item Env:SPRING_DATASOURCE_URL -ErrorAction SilentlyContinue }
+```
+
+수동 백업은 `backend-java\backups`에 압축 아카이브와 SHA-256 체크섬으로 저장됩니다. 이 폴더는 Git에서 제외되지만, 개인 정보와 해시된 비밀번호가 포함될 수 있으므로 암호화된 안전한 위치에 보관하세요. 최소 주 1회 및 변경 작업 전에 백업하고, 보존 기간에 따라 오래된 사본을 안전하게 삭제하는 것을 권장합니다.
+
+Windows PC에서 주간 백업을 예약하려면 PowerShell에서 아래 설치 스크립트를 한 번 실행하고 숨김 입력으로 DB URL을 입력합니다. 기본값은 매주 일요일 03:00, 최신 12개 보관입니다. `-DayOfWeek`, `-At`, `-RetentionCount`로 일정을 바꿀 수 있습니다.
+
+```powershell
+.\backend-java\scripts\install-backup-schedule.ps1
+```
+
+작업은 현재 Windows 사용자로 실행되며 URL은 해당 사용자 계정으로 보호(DPAPI)되어 `%LOCALAPPDATA%\SAP\PostgresBackup`에 저장됩니다. 덤프 파일도 저장소 밖 같은 경로의 `archives`에 보관됩니다. 예약 시간에 PC가 켜져 있어야 하며, 예약 작업은 설치한 사용자 계정으로 실행됩니다. 실행 결과는 작업 스케줄러에서, 실패 세부 내용은 `scheduled-backup.log`에서 확인하세요. 예약을 제거하려면 `Unregister-ScheduledTask -TaskName SAP-Postgres-Backup -Confirm:$false`를 실행하세요.
+
+복구는 운영 DB를 직접 덮어쓰지 말고 먼저 별도의 빈 스테이징 DB에서 시험합니다. 백업 위치는 예약 여부에 따라 저장소의 `backend-java\backups` 또는 `%LOCALAPPDATA%\SAP\PostgresBackup\archives`입니다. 스테이징 DB 연결 URL을 `SAP_RESTORE_TARGET_DATABASE_URL`에 지정하면 스크립트가 체크섬을 확인하고 대상 DB 이름을 직접 입력해 확인하도록 요구합니다. 설정된 `SPRING_DATASOURCE_URL`과 같은 호스트·DB 이름으로의 복구는 차단됩니다.
+
+```powershell
+function Set-SecretEnvironmentVariable($name, $prompt) {
+  $secret = Read-Host $prompt -AsSecureString
+  $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret)
+  try {
+    [Environment]::SetEnvironmentVariable($name, [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer), "Process")
+  } finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)
+    $secret.Dispose()
+  }
+}
+Set-SecretEnvironmentVariable "SPRING_DATASOURCE_URL" "운영 DB URL (대상 보호 검사)"
+Set-SecretEnvironmentVariable "SAP_RESTORE_TARGET_DATABASE_URL" "빈 스테이징 PostgreSQL URL"
+try {
+  .\backend-java\scripts\restore-postgres.ps1 -BackupPath .\backend-java\backups\sap-postgres-YYYYMMDD-HHMMSS.dump
+} finally {
+  Remove-Item Env:SPRING_DATASOURCE_URL, Env:SAP_RESTORE_TARGET_DATABASE_URL -ErrorAction SilentlyContinue
+}
+```
+
+스테이징에서 로그인, 게시글, 일정, 자료실 파일과 게임 진행 상태를 확인한 다음 애플리케이션의 DB 연결을 전환하세요. DB 전환 전 현재 운영 DB도 별도 백업하고, Render 요금제와 대시보드에서 자동 백업·보존 기간을 확인하세요. 자동 백업이 제공되더라도 별도 복구 시험을 대신하지는 않습니다.
 
 ## 프론트엔드 연결
 

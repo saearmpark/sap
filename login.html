@@ -64,13 +64,16 @@
     </section>
   </main>
 </div>
-<script src="assets/auth.js?v=logout-immediate-1"></script>
+<script src="assets/auth.js?v=connection-feedback-1"></script>
 <script>
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
   const status = document.getElementById("auth-status");
   const passwordPanel = document.getElementById("password-change");
   const passwordForm = document.getElementById("password-form");
+  if (new URLSearchParams(location.search).get("expired") === "1") {
+    status.textContent = "로그인 시간이 만료되었습니다. 다시 로그인해주세요.";
+  }
 
   async function showPasswordPanelForSignedInUser() {
     const token = SAPAuth.getToken();

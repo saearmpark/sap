@@ -7,7 +7,7 @@ The GitHub Pages site is served from the repository root: keep page HTML files t
 ## Build, Test, and Development Commands
 
 - `cd backend-java; mvn spring-boot:run` starts the Java API at `http://127.0.0.1:8080` (requires JDK 17+ and Maven).
-- `cd backend-java; mvn test` runs the Java Maven test phase. The repository currently has no checked-in test sources.
+- `cd backend-java; mvn test` runs the Java Maven tests; the same suite runs in GitHub Actions for pushes to `main` and pull requests.
 - `cd backend-python; pip install -r requirements.txt; python app.py` starts the optional Flask API at port 5000.
 - `cd games/python; pip install -r requirements.txt; python tictactoe_pygame.py` installs game dependencies and launches an example; other `*_pygame.py` files run individual games.
 - Open root `index.html` with VS Code Live Server to develop the static pages.
@@ -18,7 +18,7 @@ Keep static pages at the root and reuse shared assets where practical. Follow ex
 
 ## Testing Guidelines
 
-There is no established automated test suite or coverage requirement. For Java changes, run `mvn test`; for UI, API, and game changes, launch the affected page or service and check the changed behavior manually. Include the command or manual checks performed in your change description.
+For Java changes, run `mvn test`; the checked-in tests cover game-room recovery and lesson progress persistence. For UI, API, and game changes, launch the affected page or service and check the changed behavior manually. Include the command or manual checks performed in your change description.
 
 ## Commit & Pull Request Guidelines
 

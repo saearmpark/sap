@@ -12,3 +12,4 @@ oracleJdk-27/
 **/*.db
 *.mv.db
 *.lock.db
+backend-java/backups/

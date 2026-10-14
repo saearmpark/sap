@@ -30,10 +30,14 @@
     updateAuthLink();
   }
 
-  function loginUrl() {
+  function loginUrl(sessionExpired = false) {
     const next = location.pathname.split("/").pop();
     const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html"];
-    return `login.html${allowed.includes(next) ? `?next=${encodeURIComponent(next)}` : ""}`;
+    const params = new URLSearchParams();
+    if (allowed.includes(next)) params.set("next", next);
+    if (sessionExpired) params.set("expired", "1");
+    const query = params.toString();
+    return `login.html${query ? `?${query}` : ""}`;
   }
 
   function handleAuthLinkClick(event) {
@@ -54,10 +58,18 @@
     const headers = new Headers(options.headers || {});
     const token = getToken();
     if (token) headers.set("Authorization", `Bearer ${token}`);
-    const response = await fetch(url, { ...options, headers });
+    let response;
+    try {
+      response = await fetch(url, { ...options, headers });
+    } catch (error) {
+      if (error instanceof TypeError) {
+        throw new TypeError("인증 서버에 연결할 수 없습니다. 인터넷 연결을 확인한 뒤 다시 시도해주세요.", { cause: error });
+      }
+      throw error;
+    }
     if (response.status === 401 && token && !url.includes("/api/auth/login")) {
       clearSession();
-      location.replace(loginUrl());
+      location.replace(loginUrl(true));
     }
     return response;
   }
@@ -71,7 +83,7 @@
       const response = await apiFetch(`${API_ROOT}/auth/me`);
       if (!response.ok) {
         clearSession();
-        location.replace(loginUrl());
+        location.replace(loginUrl(true));
         return null;
       }
       return response.json();

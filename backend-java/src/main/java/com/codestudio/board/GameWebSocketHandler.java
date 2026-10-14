@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.PostConstruct;
 import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(GameWebSocketHandler.class);
     private static final String ROOM_CODE_CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final int ROOM_CODE_LENGTH = 6;
+    private static final long RECONNECT_GRACE_MILLIS = 60_000L;
     private static final int[][] WIN_LINES = {
             {0, 1, 2}, {3, 4, 5}, {6, 7, 8},
             {0, 3, 6}, {1, 4, 7}, {2, 5, 8},
@@ -34,6 +36,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper;
     private final AuthService authService;
     private final UserAccountRepository users;
+    private final GameRoomSnapshotRepository snapshots;
     private final SecureRandom secureRandom = new SecureRandom();
     private final Map<String, GameRoom> rooms = new ConcurrentHashMap<>();
     private final Set<WebSocketSession> allSessions = ConcurrentHashMap.newKeySet();
@@ -41,10 +44,21 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     public GameWebSocketHandler(
             ObjectMapper objectMapper,
             AuthService authService,
-            UserAccountRepository users) {
+            UserAccountRepository users,
+            GameRoomSnapshotRepository snapshots) {
         this.objectMapper = objectMapper;
         this.authService = authService;
         this.users = users;
+        this.snapshots = snapshots;
+    }
+
+    @PostConstruct
+    public void restoreRooms() {
+        long now = System.currentTimeMillis();
+        for (GameRoomSnapshot snapshot : snapshots.findAll()) {
+            GameRoom room = GameRoom.fromSnapshot(snapshot, now);
+            rooms.put(room.code, room);
+        }
     }
 
     @Override
@@ -97,7 +111,11 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         session.getAttributes().put("displayName", user.getDisplayName());
         session.getAttributes().put("token", token);
         session.getAttributes().put("lastTokenCheck", System.currentTimeMillis());
-        sendPacket(session, Map.of("type", "ready"));
+        GameRoom resumedRoom = reconnectPlayer(user.getId(), session);
+        sendPacket(session, Map.of("type", "ready", "resumed", resumedRoom != null));
+        if (resumedRoom != null) {
+            sendRoomState(resumedRoom);
+        }
     }
 
     private void createRoom(WebSocketSession session, Long userId) throws IOException {
@@ -112,6 +130,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                     (String) session.getAttributes().get("displayName"), session);
         } while (rooms.putIfAbsent(room.code, room) != null);
         session.getAttributes().put("roomCode", room.code);
+        persistRoom(room);
         sendPlayerState(room, session);
     }
 
@@ -136,7 +155,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                 sendError(session, "방을 찾을 수 없습니다. 코드가 맞는지 확인해주세요.");
                 return;
             }
-            if (room.oSession != null) {
+            if (room.oUserId != null) {
                 sendError(session, "이미 상대가 입장한 방입니다.");
                 return;
             }
@@ -148,6 +167,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             room.oName = (String) session.getAttributes().get("displayName");
             room.oSession = session;
             session.getAttributes().put("roomCode", room.code);
+            persistRoom(room);
             sendRoomState(room);
         }
     }
@@ -182,6 +202,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             if (!room.finished) {
                 room.currentMark = "X".equals(mark) ? "O" : "X";
             }
+            persistRoom(room);
             sendRoomState(room);
         }
     }
@@ -202,6 +223,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             if (room.rematchRequests.size() == 2) {
                 room.reset();
             }
+            persistRoom(room);
             sendRoomState(room);
         }
     }
@@ -216,6 +238,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         }
         synchronized (room) {
             rooms.remove(room.code, room);
+            snapshots.deleteById(room.code);
             if (room.xSession == session) {
                 if (room.oSession != null) {
                     sendQuietly(room.oSession, Map.of("type", "opponent-left"));
@@ -232,10 +255,14 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    private void persistRoom(GameRoom room) {
+        snapshots.save(room.toSnapshot());
+    }
+
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
         allSessions.remove(session);
-        leaveRoom(session, false);
+        disconnectPlayer(session);
     }
 
     @Scheduled(fixedDelay = 10_000L)
@@ -260,6 +287,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                 closeSession(session);
             }
         }
+        expireDisconnectedRooms(now);
     }
 
     private void closeSession(WebSocketSession session) {
@@ -275,6 +303,106 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private GameRoom roomFor(WebSocketSession session) {
         Object code = session.getAttributes().get("roomCode");
         return code instanceof String roomCode ? rooms.get(roomCode) : null;
+    }
+
+    private GameRoom reconnectPlayer(Long userId, WebSocketSession session) {
+        for (GameRoom room : rooms.values()) {
+            synchronized (room) {
+                if (rooms.get(room.code) != room) {
+                    continue;
+                }
+                String mark = room.markFor(userId);
+                if (mark == null) {
+                    continue;
+                }
+                WebSocketSession previous = room.sessionFor(mark);
+                if (previous != null && previous.isOpen()) {
+                    previous.getAttributes().remove("roomCode");
+                    room.setSession(mark, session);
+                    room.setDisconnectedAt(mark, 0L);
+                    session.getAttributes().put("roomCode", room.code);
+                    closeSession(previous);
+                    WebSocketSession opponent = room.sessionFor(oppositeMark(mark));
+                    if (opponent != null) {
+                        sendQuietly(opponent, Map.of("type", "opponent-reconnected"));
+                    }
+                    return room;
+                }
+                long disconnectedAt = room.disconnectedAtFor(mark);
+                if (disconnectedAt == 0L || System.currentTimeMillis() - disconnectedAt > RECONNECT_GRACE_MILLIS) {
+                    if (rooms.remove(room.code, room)) {
+                        WebSocketSession opponent = room.sessionFor(oppositeMark(mark));
+                        if (opponent != null) {
+                            opponent.getAttributes().remove("roomCode");
+                            sendQuietly(opponent, Map.of("type", "opponent-left"));
+                        }
+                    }
+                    continue;
+                }
+                room.setSession(mark, session);
+                room.setDisconnectedAt(mark, 0L);
+                session.getAttributes().put("roomCode", room.code);
+                WebSocketSession opponent = room.sessionFor(oppositeMark(mark));
+                if (opponent != null) {
+                    sendQuietly(opponent, Map.of("type", "opponent-reconnected"));
+                }
+                return room;
+            }
+        }
+        return null;
+    }
+
+    private void disconnectPlayer(WebSocketSession session) {
+        GameRoom room = roomFor(session);
+        if (room == null) {
+            return;
+        }
+        synchronized (room) {
+            Long userId = (Long) session.getAttributes().get("userId");
+            String mark = userId == null ? null : room.markFor(userId);
+            if (mark == null || room.sessionFor(mark) != session) {
+                return;
+            }
+            room.setSession(mark, null);
+            room.setDisconnectedAt(mark, System.currentTimeMillis());
+            session.getAttributes().remove("roomCode");
+            persistRoom(room);
+            WebSocketSession opponent = room.sessionFor(oppositeMark(mark));
+            if (opponent != null) {
+                sendQuietly(opponent, Map.of(
+                        "type", "opponent-disconnected",
+                        "reconnectSeconds", RECONNECT_GRACE_MILLIS / 1000L));
+                sendPlayerState(room, opponent);
+            }
+        }
+    }
+
+    private void expireDisconnectedRooms(long now) {
+        for (GameRoom room : rooms.values()) {
+            synchronized (room) {
+                boolean xExpired = room.xSession == null
+                        && room.xDisconnectedAt != 0L
+                        && now - room.xDisconnectedAt > RECONNECT_GRACE_MILLIS;
+                boolean oExpired = room.oSession == null
+                        && room.oDisconnectedAt != 0L
+                        && now - room.oDisconnectedAt > RECONNECT_GRACE_MILLIS;
+                if (!xExpired && !oExpired) {
+                    continue;
+                }
+                if (rooms.remove(room.code, room)) {
+                    snapshots.deleteById(room.code);
+                    WebSocketSession opponent = xExpired ? room.oSession : room.xSession;
+                    if (opponent != null) {
+                        opponent.getAttributes().remove("roomCode");
+                        sendQuietly(opponent, Map.of("type", "opponent-left"));
+                    }
+                }
+            }
+        }
+    }
+
+    private String oppositeMark(String mark) {
+        return "X".equals(mark) ? "O" : "X";
     }
 
     private String createRoomCode() {
@@ -305,7 +433,9 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void sendRoomState(GameRoom room) {
-        sendPlayerState(room, room.xSession);
+        if (room.xSession != null) {
+            sendPlayerState(room, room.xSession);
+        }
         if (room.oSession != null) {
             sendPlayerState(room, room.oSession);
         }
@@ -323,6 +453,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         packet.put("yourMark", room.markFor(userId));
         packet.put("xName", room.xName);
         packet.put("oName", room.oName);
+        packet.put("xConnected", room.xSession != null);
+        packet.put("oConnected", room.oSession != null);
         packet.put("youRequestedRematch", room.rematchRequests.contains(room.markFor(userId)));
         packet.put("opponentRequestedRematch", room.rematchRequests.contains(
                 "X".equals(room.markFor(userId)) ? "O" : "X"));
@@ -353,11 +485,13 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         private final String code;
         private final Long xUserId;
         private final String xName;
-        private final WebSocketSession xSession;
+        private WebSocketSession xSession;
         private final Set<String> rematchRequests = new HashSet<>();
         private Long oUserId;
         private String oName;
         private WebSocketSession oSession;
+        private long xDisconnectedAt;
+        private long oDisconnectedAt;
         private String[] cells = new String[9];
         private String currentMark = "X";
         private String winner;
@@ -380,12 +514,70 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             return null;
         }
 
+        private WebSocketSession sessionFor(String mark) {
+            return "X".equals(mark) ? xSession : oSession;
+        }
+
+        private void setSession(String mark, WebSocketSession session) {
+            if ("X".equals(mark)) {
+                xSession = session;
+            } else {
+                oSession = session;
+            }
+        }
+
+        private long disconnectedAtFor(String mark) {
+            return "X".equals(mark) ? xDisconnectedAt : oDisconnectedAt;
+        }
+
+        private void setDisconnectedAt(String mark, long disconnectedAt) {
+            if ("X".equals(mark)) {
+                xDisconnectedAt = disconnectedAt;
+            } else {
+                oDisconnectedAt = disconnectedAt;
+            }
+        }
+
         private void reset() {
             cells = new String[9];
             currentMark = "X";
             winner = null;
             finished = false;
             rematchRequests.clear();
+        }
+
+        private GameRoomSnapshot toSnapshot() {
+            StringBuilder savedCells = new StringBuilder(cells.length);
+            for (String cell : cells) {
+                savedCells.append(cell == null ? '-' : cell);
+            }
+            return new GameRoomSnapshot(code, xUserId, xName, oUserId, oName, savedCells.toString(),
+                    currentMark, winner, finished, rematchRequests.contains("X"), rematchRequests.contains("O"));
+        }
+
+        private static GameRoom fromSnapshot(GameRoomSnapshot snapshot, long disconnectedAt) {
+            GameRoom room = new GameRoom(snapshot.getCode(), snapshot.getXUserId(), snapshot.getXName(), null);
+            room.oUserId = snapshot.getOUserId();
+            room.oName = snapshot.getOName();
+            String savedCells = snapshot.getCells();
+            if (savedCells == null || savedCells.length() != room.cells.length) {
+                throw new IllegalStateException("Invalid saved game board for room " + snapshot.getCode());
+            }
+            for (int i = 0; i < savedCells.length(); i++) {
+                char cell = savedCells.charAt(i);
+                room.cells[i] = cell == '-' ? null : String.valueOf(cell);
+                if (room.cells[i] != null && !"X".equals(room.cells[i]) && !"O".equals(room.cells[i])) {
+                    throw new IllegalStateException("Invalid saved game mark for room " + snapshot.getCode());
+                }
+            }
+            room.currentMark = snapshot.getCurrentMark();
+            room.winner = snapshot.getWinner();
+            room.finished = snapshot.isFinished();
+            if (snapshot.isXRequestedRematch()) room.rematchRequests.add("X");
+            if (snapshot.isORequestedRematch()) room.rematchRequests.add("O");
+            room.xDisconnectedAt = disconnectedAt;
+            if (room.oUserId != null) room.oDisconnectedAt = disconnectedAt;
+            return room;
         }
     }
 }

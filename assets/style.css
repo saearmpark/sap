@@ -82,6 +82,9 @@ body, .sidebar, .card, .game-list-item, .mobile-btn, input, textarea, button {
   color: var(--sidebar-text);
   text-decoration: none;
   font-size: 14.5px;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
   padding: 8px 10px;
   border-radius: 6px;
   transition: background 0.15s ease, color 0.15s ease;
@@ -102,6 +105,9 @@ body, .sidebar, .card, .game-list-item, .mobile-btn, input, textarea, button {
   cursor: pointer;
   color: var(--sidebar-text);
   font-size: 14.5px;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
   padding: 8px 10px;
   border-radius: 6px;
   transition: background 0.15s ease, color 0.15s ease;
@@ -410,8 +416,10 @@ code {
 /* --- 틱택토 --- */
 .ttt-board {
   display: grid;
-  grid-template-columns: repeat(3, 64px);
-  grid-template-rows: repeat(3, 64px);
+  width: min(100%, 204px);
+  aspect-ratio: 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
   gap: 6px;
   margin-bottom: 14px;
 }
@@ -423,6 +431,9 @@ code {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
   font-family: var(--mono);
   font-size: 26px;
   color: var(--accent);
@@ -509,4 +520,14 @@ code {
   .calendar-event { height: auto; min-height: 0; padding: 3px 2px; white-space: normal; overflow-wrap: anywhere; text-overflow: clip; font-size: 9px; line-height: 1.25; }
   .calendar-event.is-shared small { white-space: normal; overflow-wrap: anywhere; font-size: 8px; }
   .calendar-legend { font-size: 11px; }
+  .nav-group { gap:4px; }
+  .nav-group a, .nav-learning > summary, .nav-submenu a { min-height:44px; }
+  .game-panel { min-width:0; overflow-wrap:anywhere; }
+  .ttt-controls { flex-wrap:wrap; }
+  canvas { max-width:100%; height:auto; }
+}
+
+@media (max-width: 380px) {
+  .main { padding:24px 10px; }
+  .card { padding:16px 14px; }
 }

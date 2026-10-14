@@ -37,6 +37,14 @@
   }
   .game-code-button { flex:none; padding:8px 12px; border:0; border-left:1px solid var(--border); border-radius:0; color:var(--ink-soft); background:transparent; font:13px var(--sans); cursor:pointer; }
   .game-code-button:hover { background:var(--accent-soft); }
+  .game-completion-badge { margin-left:8px; color:var(--accent); font-size:12px; font-weight:700; }
+  .game-progress-summary { margin:-4px 0 12px; color:var(--ink-soft); font-size:14px; }
+  .game-learning-guide { margin:14px 0; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--bg); }
+  .game-learning-guide summary { min-height:40px; display:flex; align-items:center; cursor:pointer; font-weight:600; }
+  .game-learning-guide p { margin:8px 0; }
+  .game-learning-guide button { min-height:42px; }
+  .game-learning-guide label { display:flex; align-items:center; gap:8px; min-height:42px; }
+  .game-learning-guide input { width:18px; height:18px; }
   .game-code-dialog { width:min(900px, calc(100% - 32px)); max-height:85vh; padding:20px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink); }
   .game-code-dialog::backdrop { background:rgb(0 0 0 / 55%); }
   .game-code-dialog pre { max-height:65vh; overflow:auto; padding:14px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:13px/1.55 var(--mono); white-space:pre; }
@@ -160,6 +168,19 @@
     background: var(--ink);
   }
   .extra-game-board { display:grid; gap:8px; width:min(100%, 380px); margin:12px 0; }
+  .game-list { width:100%; }
+  .game-list-item, .game-code-button { min-height:46px; }
+  @media (max-width:760px) {
+    .game-code-button { padding:8px 10px; }
+    .ttt-online-controls { align-items:stretch; }
+    .ttt-online-controls label { flex:1 0 100%; }
+    .ttt-online-controls input { flex:1 1 130px; min-width:0; }
+    .game-learning-guide { padding:10px; }
+    .game-learning-guide button, .game-learning-guide label { min-height:46px; }
+  }
+  @media (max-width:380px) {
+    .game-code-button { padding:8px; font-size:12px; }
+  }
   .memory-board { grid-template-columns:repeat(4, minmax(0, 1fr)); }
   .memory-card { aspect-ratio:1; padding:4px; border:1px solid var(--border); background:var(--accent-soft); color:var(--ink) !important; font-size:clamp(22px, 7vw, 36px); }
   .memory-card.is-open, .memory-card.is-matched { background:var(--surface); }
@@ -357,6 +378,7 @@
   <main class="main">
     <div class="eyebrow">GAME DEV</div>
     <h1>게임 개발</h1>
+    <p id="game-progress-summary" class="game-progress-summary" role="status" aria-live="polite"></p>
 
     <div id="game-menu" class="game-list">
       <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-ttt">틱택토</button><button class="game-code-button" type="button" data-game-code-view="panel-ttt">코드 보기</button></div>
@@ -425,6 +447,7 @@
           <button id="ttt-online-leave" type="button" hidden>방 나가기</button>
           <a id="ttt-online-login" href="login.html?next=game.html">로그인</a>
         </div>
+        <p id="ttt-online-help" class="ttt-online-status">연결이 잠시 끊기면 60초 안에 자동으로 재접속합니다.</p>
       </section>
     </div>
 
@@ -1122,6 +1145,24 @@
     let onlineAuthenticated = false;
     let onlineReadyPromise = null;
     let onlineState = null;
+    let onlineConnected = false;
+    let onlinePanelActive = false;
+    let onlineShouldReconnect = false;
+    let onlineRetryTimer = null;
+    let onlineRetryCount = 0;
+    let onlineReconnectDeadline = 0;
+    const onlineResumeKey = "sap-online-ttt-room";
+
+    function savedRoomCode() {
+      try { return sessionStorage.getItem(onlineResumeKey) || ""; } catch { return ""; }
+    }
+
+    function saveRoomCode(code) {
+      try {
+        if (code) sessionStorage.setItem(onlineResumeKey, code);
+        else sessionStorage.removeItem(onlineResumeKey);
+      } catch {}
+    }
 
     function renderOnlineState() {
       const hasSession = Boolean(window.SAPAuth?.getToken());
@@ -1139,6 +1180,7 @@
       }
 
       const { cells: onlineCells, yourMark, currentMark, status, winner } = onlineState;
+      const opponentConnected = yourMark === "X" ? onlineState.oConnected : onlineState.xConnected;
       onlineRoomCodeEl.value = onlineState.roomCode;
       onlineRoomEl.textContent = `방 코드: ${onlineState.roomCode} · 내 기호 ${yourMark} · X ${onlineState.xName}`
         + (onlineState.oName ? ` · O ${onlineState.oName}` : " · 상대 대기 중");
@@ -1150,7 +1192,11 @@
         : "재대결 요청";
       onlineRematchBtn.disabled = onlineState.youRequestedRematch;
 
-      if (status === "waiting") {
+      if (!onlineConnected) {
+        onlineStatusEl.textContent = "서버 연결이 끊겼습니다. 자동으로 다시 연결하고 있습니다...";
+      } else if (status !== "waiting" && !opponentConnected) {
+        onlineStatusEl.textContent = "상대 연결이 끊겼습니다. 60초 동안 재접속을 기다립니다.";
+      } else if (status === "waiting") {
         onlineStatusEl.textContent = "상대가 방 코드로 입장하기를 기다리는 중입니다.";
       } else if (status === "finished") {
         onlineStatusEl.textContent = winner === "draw"
@@ -1173,7 +1219,8 @@
         cell.className = "ttt-cell";
         cell.textContent = value || "";
         cell.setAttribute("aria-label", `칸 ${index + 1}${value ? ` ${value}` : " 비어 있음"}`);
-        cell.disabled = status !== "playing" || currentMark !== yourMark || Boolean(value);
+        cell.disabled = !onlineConnected || !opponentConnected
+          || status !== "playing" || currentMark !== yourMark || Boolean(value);
         cell.addEventListener("click", () => sendOnline({ type: "move", index }));
         onlineBoardEl.appendChild(cell);
       });
@@ -1186,17 +1233,60 @@
     function handleOnlinePacket(packet) {
       if (packet.type === "state") {
         onlineState = packet;
+        onlineConnected = true;
+        onlineShouldReconnect = true;
+        onlineRetryCount = 0;
+        onlineReconnectDeadline = 0;
+        saveRoomCode(packet.roomCode);
         renderOnlineState();
       } else if (packet.type === "error") {
         showOnlineError(packet.message || "온라인 대전 요청을 처리하지 못했습니다.");
+      } else if (packet.type === "opponent-disconnected") {
+        if (onlineState) {
+          const disconnectedMark = onlineState.yourMark === "X" ? "O" : "X";
+          onlineState[disconnectedMark === "X" ? "xConnected" : "oConnected"] = false;
+        }
+        renderOnlineState();
+      } else if (packet.type === "opponent-reconnected") {
+        if (onlineState) {
+          const reconnectedMark = onlineState.yourMark === "X" ? "O" : "X";
+          onlineState[reconnectedMark === "X" ? "xConnected" : "oConnected"] = true;
+        }
+        renderOnlineState();
       } else if (packet.type === "opponent-left") {
         onlineState = null;
+        onlineShouldReconnect = false;
+        saveRoomCode("");
         renderOnlineState();
         showOnlineError("상대가 대전방을 나갔습니다. 새 방을 만들거나 다시 입장해주세요.");
       } else if (packet.type === "left") {
         onlineState = null;
+        onlineShouldReconnect = false;
+        saveRoomCode("");
         renderOnlineState();
       }
+    }
+
+    function scheduleOnlineReconnect() {
+      if (!onlinePanelActive || !onlineShouldReconnect || !window.SAPAuth?.getToken()) return;
+      if (onlineRetryTimer !== null) clearTimeout(onlineRetryTimer);
+      if (!onlineReconnectDeadline) onlineReconnectDeadline = Date.now() + 55_000;
+      if (Date.now() >= onlineReconnectDeadline) {
+        onlineShouldReconnect = false;
+        showOnlineError("재접속 시간이 만료되었습니다. 방 코드로 다시 입장해주세요.");
+        return;
+      }
+      const delays = [1000, 2000, 4000, 8000, 10000];
+      const delay = Math.min(delays[Math.min(onlineRetryCount++, delays.length - 1)],
+        onlineReconnectDeadline - Date.now());
+      onlineRetryTimer = setTimeout(async () => {
+        onlineRetryTimer = null;
+        try {
+          await connectOnline();
+        } catch {
+          scheduleOnlineReconnect();
+        }
+      }, delay);
     }
 
     function connectOnline() {
@@ -1240,6 +1330,12 @@
             settled = true;
             clearTimeout(timeout);
             onlineAuthenticated = true;
+            onlineConnected = true;
+            if (!packet.resumed && savedRoomCode()) {
+              saveRoomCode("");
+              onlineShouldReconnect = false;
+              showOnlineError("이전에 진행하던 대전방이 만료되었습니다. 새 방을 만들거나 코드를 입력해주세요.");
+            }
             resolve();
           } else {
             handleOnlinePacket(packet);
@@ -1252,7 +1348,7 @@
             reject(new Error("온라인 게임 서버에 연결할 수 없습니다."));
           }
         });
-        socket.addEventListener("close", () => {
+        socket.addEventListener("close", event => {
           clearTimeout(timeout);
           if (!settled) {
             settled = true;
@@ -1261,10 +1357,18 @@
           if (onlineSocket === socket) {
             onlineSocket = null;
             onlineAuthenticated = false;
+            onlineConnected = false;
             if (onlineState) {
-              onlineState = null;
+              if (event.code === 1008) {
+                onlineShouldReconnect = false;
+                onlineState = null;
+                saveRoomCode("");
+                renderOnlineState();
+                showOnlineError("로그인 세션이 만료되었습니다. 다시 로그인한 뒤 방 코드로 입장해주세요.");
+                return;
+              }
               renderOnlineState();
-              showOnlineError("서버 연결이 끊겼습니다. 다시 입장해주세요.");
+              scheduleOnlineReconnect();
             }
           }
         });
@@ -1292,6 +1396,25 @@
       }
     }
 
+    function resumeOnlineRoom() {
+      onlinePanelActive = true;
+      if (!savedRoomCode() && !onlineState) {
+        renderOnlineState();
+        return;
+      }
+      if (!window.SAPAuth?.getToken()) {
+        renderOnlineState();
+        showOnlineError("이전 대전방에 다시 연결하려면 로그인해주세요.");
+        return;
+      }
+      onlineShouldReconnect = true;
+      onlineStatusEl.textContent = "이전 대전방에 다시 연결하는 중...";
+      connectOnline().catch(error => {
+        showOnlineError(error.message);
+        scheduleOnlineReconnect();
+      });
+    }
+
     onlineCreateBtn.addEventListener("click", () => runOnlineAction({ type: "create" }));
     onlineJoinBtn.addEventListener("click", () => {
       runOnlineAction({ type: "join", roomCode: onlineRoomCodeEl.value });
@@ -1299,7 +1422,15 @@
     onlineRoomCodeEl.addEventListener("input", () => {
       onlineRoomCodeEl.value = onlineRoomCodeEl.value.toUpperCase().replace(/[^A-HJ-NP-Z2-9]/g, "").slice(0, 6);
     });
-    onlineLeaveBtn.addEventListener("click", () => sendOnline({ type: "leave" }));
+    onlineLeaveBtn.addEventListener("click", () => {
+      onlineShouldReconnect = false;
+      if (onlineRetryTimer !== null) clearTimeout(onlineRetryTimer);
+      onlineRetryTimer = null;
+      onlineState = null;
+      saveRoomCode("");
+      renderOnlineState();
+      sendOnline({ type: "leave" });
+    });
     onlineRematchBtn.addEventListener("click", () => sendOnline({ type: "rematch" }));
     onlineCopyBtn.addEventListener("click", async () => {
       try {
@@ -1315,8 +1446,15 @@
 
     resetBtn.addEventListener("click", reset);
     registerGame("panel-ttt", {
-      init: reset,
+      init() {
+        reset();
+        resumeOnlineRoom();
+      },
+      resume: resumeOnlineRoom,
       stop() {
+        onlinePanelActive = false;
+        if (onlineRetryTimer !== null) clearTimeout(onlineRetryTimer);
+        onlineRetryTimer = null;
         if (computerTimer !== null) {
           clearTimeout(computerTimer);
           playComputer();
@@ -1325,8 +1463,7 @@
           onlineSocket.close();
           onlineSocket = null;
           onlineAuthenticated = false;
-          onlineState = null;
-          renderOnlineState();
+          onlineConnected = false;
         }
       },
     });
@@ -7534,7 +7671,190 @@
     const menuEl = document.getElementById("game-menu");
     const panels = Array.from(document.querySelectorAll(".game-panel"));
     const initialized = new Set();
+    const storedUser = window.SAPAuth?.getUser();
+    const progressKey = `sap-game-learning-v1:${storedUser?.id || "guest"}`;
+    const legacyProgressKey = "sap-game-learning-v1";
+    const lessonGuides = {
+      "panel-ttt": { level:"입문", goal:"배열로 게임 상태를 관리하고 승리 조건을 판정합니다.", hints:["가로·세로·대각선의 세 칸을 모두 확인하세요.","내가 이길 수 없을 때는 상대의 승리 수를 먼저 막으세요.","한 수를 둘 때마다 보드와 다음 차례를 함께 갱신하세요."] },
+      "panel-bo": { level:"기본", goal:"게임 루프와 공·패들·벽돌의 충돌을 구현합니다.", hints:["화면을 그리는 단계와 좌표를 갱신하는 단계를 분리하세요.","공이 패들에 맞은 위치에 따라 반사 각도를 바꿔보세요.","충돌 순간 한 번만 점수를 더하고 게임 종료 조건을 확인하세요."] },
+      "panel-sh": { level:"기본", goal:"여러 게임 객체와 프레임 기반 업데이트를 다룹니다.", hints:["총알과 적은 배열로 관리하고 화면 밖의 객체를 정리하세요.","충돌 처리는 상태 변경과 배열 정리를 나눠 진행하세요.","생존 시간에 따라 적 등장 간격과 속도를 조정해보세요."] },
+      "panel-pz": { level:"입문", goal:"격자 상태, 인접 칸 이동, 완료 조건을 익힙니다.", hints:["빈칸의 행과 열을 기준으로 이동 가능한 칸을 찾으세요.","이웃 칸과 빈칸의 값만 서로 바꾸면 됩니다.","퍼즐을 섞을 때 합법적인 이동만 반복하면 항상 풀 수 있습니다."] },
+      "panel-sn": { level:"기본", goal:"순서가 있는 좌표 목록과 시간 기반 이동을 익힙니다.", hints:["머리 앞에 새 좌표를 넣고 먹이를 못 먹으면 꼬리를 제거하세요.","반대 방향 입력은 현재 방향과 동시에 허용하지 마세요.","벽과 자기 몸 충돌을 이동 직후 판정하세요."] },
+      "panel-tt": { level:"도전", goal:"2차원 보드, 회전, 충돌 및 줄 삭제를 결합합니다.", hints:["떨어지는 블록과 고정된 보드를 별도 데이터로 관리하세요.","회전 후 벽과 기존 블록에 겹치는지 먼저 검사하세요.","가득 찬 줄을 제거한 뒤 같은 수만큼 빈 줄을 위에 추가하세요."] },
+      "panel-2048": { level:"기본", goal:"격자 이동, 압축, 한 번만 병합하는 규칙을 구현합니다.", hints:["먼저 0을 제거한 뒤 같은 숫자를 왼쪽부터 병합하세요.","한 번 합쳐진 타일은 같은 이동에서 다시 합치지 마세요.","보드가 실제로 바뀐 경우에만 새 타일을 만드세요."] },
+      "panel-mole": { level:"입문", goal:"타이머와 포인터 입력을 이용해 반응 게임을 만듭니다.", hints:["각 구멍의 등장 종료 시각을 따로 기억하세요.","현재 시각과 종료 시각을 비교해 두더지 상태를 갱신하세요.","점수를 얻은 뒤 새 위치를 뽑아 연속 등장 규칙을 확인하세요."] },
+      "panel-pong": { level:"기본", goal:"속도·반사·키 입력을 이용한 간단한 물리 게임을 익힙니다.", hints:["공 좌표에 속도를 더해 매 프레임 이동시키세요.","벽이나 패들에 닿으면 해당 축의 속도 부호를 바꾸세요.","패들 위치로 공의 반사 방향을 조절해보세요."] },
+      "panel-gyeol": { level:"도전", goal:"카드 속성의 조합 규칙과 상태 관리를 연습합니다.", hints:["선택한 세 카드의 속성을 하나씩 비교하세요.","각 속성이 모두 같거나 모두 다른 경우만 정답입니다.","찾은 조합은 다시 선택하지 못하도록 기록하세요."] },
+      "panel-dodge": { level:"입문", goal:"시간 경과, 난이도 증가, 충돌 판정을 다룹니다.", hints:["시간이 흐른 양으로 장애물 등장 간격을 계산하세요.","플레이어와 장애물의 겹침 여부를 매 프레임 확인하세요.","충돌 또는 제한 시간 도달 시 게임 루프를 멈추세요."] },
+      "panel-sudoku": { level:"도전", goal:"행·열·상자 제약과 후보 숫자 탐색을 익힙니다.", hints:["입력 후보가 같은 행과 열에 있는지 확인하세요.","3×3 상자에 같은 숫자가 있는지도 검사하세요.","막히면 후보가 가장 적은 빈칸부터 시도하세요."] },
+      "panel-memory": { level:"입문", goal:"배열을 섞고 두 번의 선택 상태를 관리합니다.", hints:["카드 쌍을 만든 뒤 게임 시작 전에 섞으세요.","첫 카드가 열린 동안 두 번째 선택을 기다리세요.","같은 짝이면 유지하고 아니면 잠시 후 다시 가리세요."] },
+      "panel-rps": { level:"입문", goal:"무작위 선택과 조건문으로 승패를 판정합니다.", hints:["플레이어와 컴퓨터의 선택을 각각 기록하세요.","같은 선택은 무승부로 처리하세요.","세 가지 승리 조합을 조건으로 비교하세요."] },
+      "panel-guess": { level:"입문", goal:"입력값 검증과 정답 범위 좁히기를 연습합니다.", hints:["입력값이 허용 범위 안의 정수인지 확인하세요.","정답보다 크거나 작은지 알려주세요.","힌트에 따라 다음 추측의 범위를 좁혀보세요."] },
+      "panel-reaction": { level:"입문", goal:"무작위 대기와 시간 차이를 이용해 반응 속도를 측정합니다.", hints:["시작 시각과 화면이 바뀌는 시각을 별도로 기록하세요.","대기 중 클릭은 부정 출발로 처리하세요.","클릭 시각에서 시작 시각을 빼 밀리초 기록을 구하세요."] },
+      "panel-connect": { level:"기본", goal:"2차원 보드와 여러 방향의 연속 승리 판정을 구현합니다.", hints:["돌은 선택한 열의 가장 낮은 빈칸에 놓으세요.","가로·세로·두 대각선 방향을 모두 검사하세요.","컴퓨터가 두기 전에 즉시 승리와 방어 수를 확인하세요."] },
+      "panel-mines": { level:"기본", goal:"격자 이웃 탐색과 안전한 칸의 연쇄 공개를 익힙니다.", hints:["첫 클릭 전에는 지뢰를 배치하지 않아 안전하게 시작할 수 있습니다.","주변 8칸을 세어 숫자 힌트를 만드세요.","주변 지뢰가 0인 칸은 이웃 칸으로 탐색을 확장하세요."] },
+      "panel-math": { level:"입문", goal:"문제 생성, 입력 검증, 제한 시간 점수 계산을 연습합니다.", hints:["난이도에 맞는 정수 연산 문제를 무작위로 만드세요.","정답과 입력값을 숫자로 비교하세요.","타이머가 끝나면 제출을 막고 최종 점수를 표시하세요."] },
+      "panel-gomoku": { level:"기본", goal:"격자 좌표와 연속된 돌의 승리 조건을 다룹니다.", hints:["빈 교차점에만 돌을 놓을 수 있도록 검사하세요.","놓은 위치에서 네 방향의 양쪽 연속 개수를 세세요.","컴퓨터가 두기 전 즉시 승리 수와 상대의 위협을 확인하세요."] },
+      "panel-animal-shogi": { level:"도전", goal:"말의 이동 규칙, 손패, 승격을 상태로 표현합니다.", hints:["각 말의 종류와 소유자에 따라 합법적인 이동 칸을 구하세요.","잡은 말은 상대 소유에서 손패 소유로 바꾸세요.","이동·잡기·승격 뒤 승리 조건과 차례를 갱신하세요."] },
+      "panel-runner": { level:"기본", goal:"애니메이션 프레임과 점프 물리를 연결합니다.", hints:["속도에 중력을 더해 수직 위치를 갱신하세요.","바닥에 닿으면 점프 상태를 초기화하세요.","장애물 위치를 프레임 시간에 맞춰 이동시키세요."] },
+      "panel-word-chain": { level:"입문", goal:"텍스트 입력 검증과 이전 입력 기록을 관리합니다.", hints:["공백을 정리하고 빈 단어인지 먼저 검사하세요.","이전 단어의 마지막 글자와 새 단어의 첫 글자를 비교하세요.","사용한 단어는 집합이나 목록에 넣어 중복을 막으세요."] },
+      "panel-blackjack": { level:"기본", goal:"카드 점수, 에이스 예외 규칙, 라운드 상태를 처리합니다.", hints:["J·Q·K는 10점, A는 우선 11점으로 계산하세요.","합계가 21을 넘으면 A 하나를 1점으로 낮추세요.","플레이어와 딜러의 종료 조건을 순서대로 판정하세요."] },
+      "panel-holdem": { level:"도전", goal:"턴 기반 상태 전이와 베팅 규칙을 추적합니다.", hints:["커뮤니티 카드와 각 플레이어의 패를 구분하세요.","각 베팅 단계에서 콜 금액과 최소 레이즈를 계산하세요.","폴드·콜·레이즈 뒤 누가 행동할지와 라운드 종료를 확인하세요."] },
+      "panel-dots-boxes": { level:"기본", goal:"간선과 상자 완성 조건을 격자 그래프로 표현합니다.", hints:["이미 그려진 선을 다시 선택하지 않게 표시하세요.","선 추가 후 인접 상자의 네 변이 채워졌는지 검사하세요.","상자를 얻었으면 한 번 더 두고, 아니면 차례를 넘기세요."] },
+      "panel-dodge-rocks": { level:"기본", goal:"프레임 시간에 맞춘 이동과 장애물 충돌을 다룹니다.", hints:["프레임 간 경과 시간으로 이동 거리를 계산하세요.","화면 밖의 운석은 정리하고 새 운석을 주기적으로 만드세요.","충돌과 제한 시간 성공 조건을 구분하세요."] },
+      "panel-typing": { level:"입문", goal:"문자열 비교와 제한 시간 입력 기록을 구현합니다.", hints:["문장 접두부가 일치하는지 입력할 때마다 비교하세요.","틀린 글자는 수정할 수 있게 입력란을 유지하세요.","정확히 완료한 글자 수와 남은 시간을 이용해 결과를 계산하세요."] },
+      "panel-baseball": { level:"기본", goal:"숫자 자리 비교와 스트라이크·볼 판정을 구현합니다.", hints:["정답과 추측의 같은 위치 숫자를 먼저 비교하세요.","다른 위치의 공통 숫자는 볼로 계산하세요.","중복 숫자가 허용되지 않도록 입력을 검증하세요."] },
+      "panel-sequence": { level:"기본", goal:"순서 목록, 타이머, 사용자 입력 위치를 동기화합니다.", hints:["새 단계마다 무작위 항목을 하나 추가하세요.","순서를 보여준 뒤에만 사용자 입력을 받으세요.","한 입력씩 예상 순서와 비교하고 틀리면 종료하세요."] },
+      "panel-othello": { level:"도전", goal:"8방향 탐색으로 뒤집을 돌과 합법적인 수를 찾습니다.", hints:["놓을 칸에서 8개 방향을 각각 탐색하세요.","상대 돌 뒤에 내 돌이 닿을 때만 그 사이 돌을 뒤집으세요.","놓을 수가 없으면 차례를 넘기고 양쪽 모두 없으면 종료하세요."] },
+      "panel-checkers": { level:"도전", goal:"대각선 이동, 잡기, 승격 규칙을 적용합니다.", hints:["선택한 말의 소유자와 이동 방향을 확인하세요.","상대 말 하나를 넘고 뒤의 칸이 비었는지 검사하세요.","마지막 행 도착 시 승격하고 승리 상태를 갱신하세요."] },
+      "panel-chess": { level:"도전", goal:"기물별 이동과 체크·체크메이트 상태를 이해합니다.", hints:["기물 종류별 이동 후보를 생성하세요.","자기 왕이 공격받는 수는 합법 수에서 제외하세요.","상대가 둘 수 있는 모든 수가 없을 때 체크 여부를 확인하세요."] },
+      "panel-janggi": { level:"도전", goal:"장기 기물의 경로와 궁성 규칙을 보드 상태에 적용합니다.", hints:["차·포처럼 경유 기물이 필요한 이동 규칙을 구분하세요.","궁성 대각선과 장군의 이동 범위를 검사하세요.","상대 왕을 잡거나 더 둘 수 없는 상황을 판정하세요."] },
+      "panel-yut": { level:"기본", goal:"무작위 결과를 보드 경로 이동과 연결합니다.", hints:["윷 결과를 이동 칸 수와 추가 차례 여부로 변환하세요.","지름길 진입점과 도착 칸의 경로를 구분하세요.","도착점을 정확히 통과하거나 도착해야 완주하도록 검사하세요."] }
+    };
+    let completedLessons = readCompletedLessons();
+    let progressSyncMessage = window.SAPAuth?.getToken()
+      ? "계정과 이 브라우저에 저장됩니다."
+      : "이 브라우저에 저장됩니다.";
+    let accountSyncQueue = Promise.resolve();
     let activeId = null;
+
+    function readCompletedLessons() {
+      try {
+        const current = localStorage.getItem(progressKey);
+        const saved = JSON.parse(current || localStorage.getItem(legacyProgressKey) || "[]");
+        return new Set(Array.isArray(saved)
+          ? saved.filter(id => typeof id === "string" && Object.prototype.hasOwnProperty.call(lessonGuides, id))
+          : []);
+      } catch {
+        return new Set();
+      }
+    }
+
+    function renderLearningProgress() {
+      document.getElementById("game-progress-summary").textContent =
+        `학습 완료 ${completedLessons.size} / ${panels.length} · ${progressSyncMessage}`;
+      document.querySelectorAll(".game-list-item").forEach(button => {
+        const completed = completedLessons.has(button.dataset.target);
+        const badge = button.querySelector(".game-completion-badge");
+        badge.hidden = !completed;
+        button.setAttribute("aria-label",
+          `${button.dataset.gameTitle}${completed ? " · 학습 완료" : ""}`);
+      });
+    }
+
+    function saveLocalProgress() {
+      try {
+        localStorage.setItem(progressKey, JSON.stringify([...completedLessons]));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function saveAccountProgress() {
+      if (!window.SAPAuth?.getToken()) return;
+      const completedLessonIds = [...completedLessons];
+      accountSyncQueue = accountSyncQueue.then(async () => {
+        const response = await window.SAPAuth.apiFetch(`${window.SAPAuth.API_ROOT}/game-progress`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ completedLessonIds }),
+        });
+        if (!response.ok) {
+          throw new Error(`학습 기록 저장에 실패했습니다 (HTTP ${response.status}).`);
+        }
+      }).then(() => {
+        progressSyncMessage = "계정과 이 브라우저에 저장됩니다.";
+        renderLearningProgress();
+      }).catch(error => {
+        progressSyncMessage = "계정 동기화에 실패했습니다. 이 브라우저에는 기록을 저장했습니다.";
+        console.warn("Could not sync game lesson progress.", error);
+        renderLearningProgress();
+      });
+    }
+
+    async function syncLearningProgressFromAccount() {
+      if (!window.SAPAuth?.getToken()) return;
+      try {
+        const response = await window.SAPAuth.apiFetch(`${window.SAPAuth.API_ROOT}/game-progress`);
+        if (!response.ok) {
+          throw new Error(`학습 기록을 불러오지 못했습니다 (HTTP ${response.status}).`);
+        }
+        const data = await response.json();
+        const accountLessons = Array.isArray(data.completedLessonIds)
+          ? data.completedLessonIds.filter(id => Object.prototype.hasOwnProperty.call(lessonGuides, id))
+          : [];
+        accountLessons.forEach(id => completedLessons.add(id));
+        if (!saveLocalProgress()) {
+          progressSyncMessage = "계정 기록은 불러왔지만 브라우저 저장 공간에 기록하지 못했습니다.";
+        }
+        renderLearningProgress();
+        saveAccountProgress();
+      } catch (error) {
+        progressSyncMessage = "계정 기록을 불러오지 못했습니다. 브라우저에 저장된 기록은 사용할 수 있습니다.";
+        console.warn("Could not load game lesson progress.", error);
+        renderLearningProgress();
+      }
+    }
+
+    function addLearningGuides() {
+      panels.forEach(panel => {
+        const guide = lessonGuides[panel.id];
+        if (!guide) return;
+        const details = document.createElement("details");
+        details.className = "game-learning-guide";
+        const summary = document.createElement("summary");
+        summary.textContent = "학습 목표와 단계별 힌트";
+        const level = document.createElement("p");
+        level.textContent = `권장 난이도: ${guide.level}`;
+        const goal = document.createElement("p");
+        goal.textContent = `학습 목표: ${guide.goal}`;
+        const hint = document.createElement("p");
+        hint.setAttribute("aria-live", "polite");
+        const hintButton = document.createElement("button");
+        hintButton.type = "button";
+        let hintIndex = 0;
+        hintButton.textContent = "힌트 보기 (1/3)";
+        hintButton.addEventListener("click", () => {
+          hint.textContent = `힌트 ${hintIndex + 1}/3: ${guide.hints[hintIndex]}`;
+          hintIndex = (hintIndex + 1) % guide.hints.length;
+          hintButton.textContent = hintIndex === 0 ? "힌트 다시 보기" : `다음 힌트 (${hintIndex + 1}/3)`;
+        });
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = completedLessons.has(panel.id);
+        checkbox.addEventListener("change", () => {
+          if (checkbox.checked) completedLessons.add(panel.id);
+          else completedLessons.delete(panel.id);
+          if (saveLocalProgress()) {
+            renderLearningProgress();
+            saveAccountProgress();
+          } else {
+            checkbox.checked = !checkbox.checked;
+            if (checkbox.checked) completedLessons.add(panel.id);
+            else completedLessons.delete(panel.id);
+            progressSyncMessage = "학습 기록을 저장하지 못했습니다. 브라우저 저장 공간을 확인해주세요.";
+            renderLearningProgress();
+          }
+        });
+        label.append(checkbox, document.createTextNode(" 이 게임의 학습 완료로 기록"));
+        details.append(summary, level, goal, hintButton, hint, label);
+        panel.appendChild(details);
+      });
+      document.querySelectorAll(".game-list-item").forEach(button => {
+        button.dataset.gameTitle = button.textContent.trim();
+        const badge = document.createElement("span");
+        badge.className = "game-completion-badge";
+        badge.textContent = "완료";
+        badge.hidden = true;
+        button.appendChild(badge);
+      });
+      renderLearningProgress();
+    }
+
+    addLearningGuides();
+    syncLearningProgressFromAccount();
 
     function openGame(id) {
       menuEl.hidden = true;
@@ -7545,6 +7865,8 @@
       if (!initialized.has(id)) {
         window.gamePanels[id]?.init();
         initialized.add(id);
+      } else {
+        window.gamePanels[id]?.resume?.();
       }
       activeId = id;
       requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -7585,7 +7907,7 @@
     document.getElementById("game-code-close").addEventListener("click", () => codeDialog.close());
   })();
 </script>
-<script src="assets/auth.js?v=logout-immediate-1"></script>
+<script src="assets/auth.js?v=connection-feedback-1"></script>
 <script src="assets/theme.js"></script>
 </body>
 </html>

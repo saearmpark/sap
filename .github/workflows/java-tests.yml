@@ -1,0 +1,48 @@
+name: Java tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend-java/**"
+      - ".github/workflows/java-tests.yml"
+  pull_request:
+    paths:
+      - "backend-java/**"
+      - ".github/workflows/java-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-java
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+      - name: Run tests
+        run: mvn --batch-mode --no-transfer-progress test
+
+  backup-scripts:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse backup scripts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          Get-ChildItem backend-java/scripts -Filter "*.ps1" | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count) {
+              throw "$($_.Name): $($errors.Message -join '; ')"
+            }
+          }
