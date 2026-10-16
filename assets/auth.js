@@ -68,7 +68,7 @@
       }
       throw error;
     }
-    if (response.status === 401 && token && !suppressAuthRedirect && !url.includes("/api/auth/login")) {
+    if (response.status === 401 && token && !suppressAuthRedirect && url.includes("/api/auth/me")) {
       if (getToken() === token) {
         clearSession();
         location.replace(loginUrl(true));

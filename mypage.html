@@ -102,7 +102,7 @@
     </section>
   </main>
 </div>
-<script src="assets/auth.js?v=session-guard-1"></script>
+<script src="assets/auth.js?v=no-logout-data-401"></script>
 <script>
   (() => {
     const API = SAPAuth.API_ROOT;
@@ -159,7 +159,7 @@
     }
 
     async function fetchJson(path) {
-      const response = await SAPAuth.apiFetch(`${API}${path}`);
+      const response = await SAPAuth.apiFetch(`${API}${path}`, { suppressAuthRedirect: true });
       if (!response.ok) throw new Error(`${path} HTTP ${response.status}`);
       return response.json();
     }
