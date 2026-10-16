@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codestudio — 자료실</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=menu-cleanup-4">
+<link rel="stylesheet" href="assets/style.css?v=sidebar-5">
 <style>
   .drop-zone {
     border: 2px dashed var(--border);
@@ -36,9 +36,7 @@
 <body>
 <div class="layout">
   <aside class="sidebar">
-    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
     <nav class="nav-group">
-      <div class="nav-label">MENU</div>
       <a href="index.html">홈</a>
       <a href="search.html">통합 검색</a>
       <details class="nav-menu">
@@ -70,7 +68,7 @@
         </div>
       </details>
     </nav>
-    <div class="sidebar-footer">v0.1 · local build</div>
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
   </aside>
   <main class="main">
     <div class="eyebrow">ARCHIVE</div>
@@ -112,7 +110,7 @@
   </main>
 </div>
 
-<script src="assets/auth.js?v=menu-cleanup-4"></script>
+<script src="assets/auth.js?v=sidebar-5"></script>
 <script>
   const API_BASE = "https://board-backend-nngx.onrender.com/api/files";
   let pendingFile = null;

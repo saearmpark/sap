@@ -71,13 +71,6 @@ body, .sidebar, .card, .game-list-item, .mobile-btn, input, textarea, button {
   gap: 2px;
 }
 
-.nav-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--sidebar-text-dim);
-  margin: 14px 0 6px 10px;
-}
-
 .nav-group a {
   color: var(--sidebar-text);
   text-decoration: none;
@@ -128,15 +121,8 @@ body, .sidebar, .card, .game-list-item, .mobile-btn, input, textarea, button {
 .nav-submenu a { font-size: 13.5px !important; padding: 7px 10px !important; }
 .nav-submenu a.active { background: var(--accent); color: #ffffff; }
 
-.sidebar-footer {
-  margin-top: auto;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--sidebar-text-dim);
-}
-
 .theme-toggle {
-  margin-top: 0;
+  margin-top: auto;
   width: 100%;
   background: transparent;
   color: var(--sidebar-text);
