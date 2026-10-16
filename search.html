@@ -37,7 +37,6 @@
       <div class="nav-label">MENU</div>
       <a href="index.html">홈</a>
       <a href="search.html" class="active" aria-current="page">통합 검색</a>
-      <a href="calendar.html">일정</a>
       <details class="nav-menu">
         <summary>제작</summary>
         <div class="nav-submenu">
@@ -60,8 +59,9 @@
         </div>
       </details>
       <details class="nav-menu">
-        <summary>계정</summary>
+        <summary>내 공간</summary>
         <div class="nav-submenu">
+          <a href="calendar.html">일정</a>
           <a href="login.html" data-auth-link>로그인 / 회원가입</a>
         </div>
       </details>
@@ -105,8 +105,15 @@
       return div.innerHTML;
     }
 
+    function withTimeout(promise, ms) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))
+      ]);
+    }
+
     async function parsePage(path) {
-      const response = await fetch(path, { cache: "no-store" });
+      const response = await withTimeout(fetch(path, { cache: "no-store" }), 8000);
       if (!response.ok) throw new Error(path);
       return new DOMParser().parseFromString(await response.text(), "text/html");
     }
@@ -152,7 +159,7 @@
       }
 
       try {
-        const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/posts?q=${encodeURIComponent(query)}`, { suppressAuthRedirect: true });
+        const response = await withTimeout(SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/posts?q=${encodeURIComponent(query)}`, { suppressAuthRedirect: true }), 10000);
         if (response.status === 401) {
           authBlocked = true;
           SAPAuth.clearSession();
@@ -169,7 +176,7 @@
       if (authBlocked) return dynamic;
 
       try {
-        const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/files`, { suppressAuthRedirect: true });
+        const response = await withTimeout(SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/files`, { suppressAuthRedirect: true }), 10000);
         if (response.status === 401) {
           authBlocked = true;
           SAPAuth.clearSession();
@@ -244,17 +251,35 @@
         resultsEl.replaceChildren();
         return;
       }
-      status.textContent = "검색 중...";
-      await buildStaticIndex();
-      const lower = query.toLowerCase();
-      const localMatches = staticIndex.filter(item =>
-        item.title.toLowerCase().includes(lower) || item.text.toLowerCase().includes(lower));
-      const dynamicMatches = await searchDynamic(query);
-      const matches = [...localMatches, ...dynamicMatches];
-      status.textContent = authBlocked
-        ? `"${query}" 검색 결과 ${matches.length}건 · 게시판·자료실 결과는 로그인 후 표시됩니다.`
-        : `"${query}" 검색 결과 ${matches.length}건`;
-      render(matches, query);
+      try {
+        status.textContent = "검색 중...";
+        resultsEl.replaceChildren();
+
+        const lower = query.toLowerCase();
+        let localMatches = [];
+        try {
+          await withTimeout(buildStaticIndex(), 10000);
+          localMatches = staticIndex.filter(item =>
+            item.title.toLowerCase().includes(lower) || item.text.toLowerCase().includes(lower));
+        } catch {}
+        render(localMatches, query);
+
+        if (!SAPAuth.getToken()) {
+          status.textContent = `"${query}" 검색 결과 ${localMatches.length}건 · 게시판·자료실 결과는 로그인 후 표시됩니다.`;
+          return;
+        }
+
+        status.textContent = `"${query}" 검색 결과 ${localMatches.length}건 · 게시판·자료실 결과를 불러오는 중...`;
+        const dynamicMatches = await searchDynamic(query);
+        const matches = [...localMatches, ...dynamicMatches];
+        status.textContent = authBlocked
+          ? `"${query}" 검색 결과 ${matches.length}건 · 게시판·자료실 결과는 로그인 후 표시됩니다.`
+          : `"${query}" 검색 결과 ${matches.length}건`;
+        render(matches, query);
+      } catch (error) {
+        status.textContent = "검색 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
+        resultsEl.replaceChildren();
+      }
     }
 
     form.addEventListener("submit", event => {
