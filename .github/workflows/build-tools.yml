@@ -1,0 +1,54 @@
+name: Build desktop tools
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags:
+      - "tools-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: tools/desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+      - name: Build executables
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $apps = @(
+            @{ File = "file_renamer.py"; Name = "FileRenamer" },
+            @{ File = "duplicate_finder.py"; Name = "DuplicateFinder" },
+            @{ File = "folder_organizer.py"; Name = "FolderOrganizer" },
+            @{ File = "image_batch.py"; Name = "ImageBatch" },
+            @{ File = "input_recorder.py"; Name = "InputRecorder" }
+          )
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          foreach ($app in $apps) {
+            python -m PyInstaller --noconfirm --clean --onefile --windowed `
+              --name $app.Name --distpath dist --workpath build --specpath build `
+              --collect-submodules pynput $app.File
+          }
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-tools
+          path: tools/desktop/dist/*.exe
+      - name: Attach executables to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: tools/desktop/dist/*.exe

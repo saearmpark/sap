@@ -8,6 +8,11 @@ oracleJdk-27/
 **/__pycache__/
 *.py[cod]
 
+# 데스크톱 도구 빌드 산출물
+tools/desktop/build/
+tools/desktop/dist/
+tools/desktop/*.spec
+
 # 로컬 개발용 DB 파일은 소스 저장소에 포함하지 않습니다.
 **/*.db
 *.mv.db
