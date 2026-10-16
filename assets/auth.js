@@ -69,22 +69,27 @@
       throw error;
     }
     if (response.status === 401 && token && !suppressAuthRedirect && !url.includes("/api/auth/login")) {
-      clearSession();
-      location.replace(loginUrl(true));
+      if (getToken() === token) {
+        clearSession();
+        location.replace(loginUrl(true));
+      }
     }
     return response;
   }
 
   async function requireSession() {
-    if (!getToken()) {
+    const token = getToken();
+    if (!token) {
       location.replace(loginUrl());
       return null;
     }
     try {
       const response = await apiFetch(`${API_ROOT}/auth/me`);
       if (!response.ok) {
-        clearSession();
-        location.replace(loginUrl(true));
+        if (getToken() === token) {
+          clearSession();
+          location.replace(loginUrl(true));
+        }
         return null;
       }
       return response.json();

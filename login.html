@@ -64,7 +64,7 @@
     </section>
   </main>
 </div>
-<script src="assets/auth.js?v=connection-feedback-1"></script>
+<script src="assets/auth.js?v=session-guard-1"></script>
 <script>
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
@@ -87,7 +87,7 @@
         registerForm.hidden = true;
         if (location.hash === "#password-change") passwordPanel.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-      else SAPAuth.clearSession();
+      else if (SAPAuth.getToken() === token) SAPAuth.clearSession();
     } catch {
       // Keep the login page usable when the backend is temporarily unavailable.
     }
