@@ -23,7 +23,8 @@ public class GameLessonProgressController {
             "panel-rps", "panel-guess", "panel-reaction", "panel-connect", "panel-mines", "panel-math",
             "panel-gomoku", "panel-animal-shogi", "panel-runner", "panel-word-chain", "panel-blackjack",
             "panel-holdem", "panel-dots-boxes", "panel-dodge-rocks", "panel-typing", "panel-baseball",
-            "panel-sequence", "panel-othello", "panel-checkers", "panel-chess", "panel-janggi", "panel-yut");
+            "panel-sequence", "panel-othello", "panel-checkers", "panel-chess", "panel-janggi", "panel-yut",
+            "panel-fighter", "panel-pac", "panel-frog", "panel-bomber");
 
     private final GameLessonProgressRepository progress;
 

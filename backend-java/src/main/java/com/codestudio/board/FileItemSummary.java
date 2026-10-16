@@ -22,4 +22,9 @@ public interface FileItemSummary {
 
     @JsonProperty("author_name")
     String getAuthorName();
+
+    @JsonProperty("download_count")
+    long getDownloadCount();
+
+    String getTags();
 }

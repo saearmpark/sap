@@ -26,10 +26,16 @@ mvn spring-boot:run
 
 | 메서드 | 경로 | 설명 |
 |---|---|---|
-| GET | `/api/posts` | 게시글 목록 (최신순) |
+| GET | `/api/posts` | 게시글 목록 (최신순, `q` 검색어·`category` 분류 필터) |
 | GET | `/api/posts/{id}` | 게시글 상세 |
-| POST | `/api/posts` | 게시글 등록 (`title`, `content` JSON) |
-| DELETE | `/api/posts/{id}` | 게시글 삭제 |
+| POST | `/api/posts` | 게시글 등록 (`title`, `content`, `category` JSON) |
+| PUT | `/api/posts/{id}` | 게시글 수정 (작성자 또는 관리자) |
+| DELETE | `/api/posts/{id}` | 게시글 삭제 (작성자 또는 관리자, 댓글도 함께 삭제) |
+| GET | `/api/posts/{id}/comments` | 댓글 목록 |
+| POST | `/api/posts/{id}/comments` | 댓글 등록 (`content` JSON) |
+| DELETE | `/api/posts/{id}/comments/{commentId}` | 댓글 삭제 (작성자 또는 관리자) |
+
+글 분류(`category`)는 `공지`, `학습일지`, `질문`, `자유` 중 하나이며 비워 둘 수도 있습니다.
 
 ### 자료실
 
@@ -37,9 +43,9 @@ mvn spring-boot:run
 
 | 메서드 | 경로 | 설명 |
 |---|---|---|
-| GET | `/api/files` | 파일 목록 |
-| POST | `/api/files` | 파일 업로드 |
-| GET | `/api/files/{id}/download` | 파일 다운로드 |
+| GET | `/api/files` | 파일 목록 (`q` 검색어로 파일명·태그·작성자 필터) |
+| POST | `/api/files` | 파일 업로드 (선택 `tags` 필드) |
+| GET | `/api/files/{id}/download` | 파일 다운로드 (다운로드 횟수 집계) |
 | GET | `/api/files/{id}/preview` | 이미지 미리보기 (SVG 제외) |
 | DELETE | `/api/files/{id}` | 파일 삭제 |
 
@@ -82,7 +88,8 @@ mvn spring-boot:run
 | GET | `/api/admin/users/pending` | 관리자: 승인 대기 회원 목록 |
 | PUT | `/api/admin/users/{id}/approval` | 관리자: 회원 승인 또는 거절 (`status`) |
 | GET | `/api/events` | 내 일정 목록 |
-| POST | `/api/events` | 일정 추가 |
+| GET | `/api/events/export` | 내 일정을 ICS(iCalendar) 파일로 내보내기 |
+| POST | `/api/events` | 일정 추가 (`repeatRule`: `none`/`daily`/`weekly`/`monthly`) |
 | PUT | `/api/events/{id}` | 내 일정 수정 |
 | DELETE | `/api/events/{id}` | 내 일정 삭제 |
 | GET | `/api/game-progress` | 로그인 사용자의 게임 학습 완료 목록 |

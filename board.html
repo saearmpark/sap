@@ -17,6 +17,20 @@
     font-size: inherit;
     font-family: inherit;
   }
+  .board-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .board-toolbar input[type="search"], .board-toolbar select {
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+  }
+  .board-toolbar input[type="search"] { flex: 1 1 220px; }
+  .row-actions { display: flex; gap: 6px; }
+  .row-actions button { padding: 5px 9px; }
+  .edit-btn { background: transparent; color: var(--ink-soft); border: 1px solid var(--border); }
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -45,6 +59,15 @@
     margin-top: 20px;
     display: inline-block;
   }
+  .comment-section { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 14px; }
+  .comment-section h4 { margin: 0 0 10px; }
+  .comment-list { display: grid; gap: 8px; padding: 0; margin: 0 0 12px; list-style: none; }
+  .comment-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); font-size: 14px; }
+  .comment-list li .comment-body { flex: 1; overflow-wrap: anywhere; }
+  .comment-list li .comment-meta { flex: none; color: var(--ink-soft); font-size: 12px; }
+  .comment-form { display: flex; gap: 8px; align-items: flex-start; }
+  .comment-form textarea { flex: 1; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit; resize: vertical; }
+  .comment-empty { color: var(--ink-soft); font-size: 13px; margin: 0 0 12px; }
 </style>
 </head>
 <body>
@@ -79,23 +102,48 @@
     </p>
 
     <form id="post-form" class="card">
-      <h3>새 글 쓰기</h3>
+      <h3 id="post-form-title">새 글 쓰기</h3>
+      <div class="form-row">
+        <select id="category">
+          <option value="자유">자유</option>
+          <option value="공지">공지</option>
+          <option value="학습일지">학습일지</option>
+          <option value="질문">질문</option>
+        </select>
+      </div>
       <div class="form-row">
         <input type="text" id="title" placeholder="제목" required>
       </div>
       <div class="form-row">
         <textarea id="content" rows="3" placeholder="내용" required></textarea>
       </div>
-      <button type="submit">등록</button>
+      <div class="row-actions">
+        <button type="submit" id="post-submit">등록</button>
+        <button type="button" id="post-cancel" class="edit-btn" hidden>취소</button>
+      </div>
       <span id="form-status" class="form-status"></span>
+    </form>
+
+    <form id="filter-form" class="card board-toolbar">
+      <input id="search" type="search" placeholder="제목·내용 검색" autocomplete="off">
+      <select id="filter-category" aria-label="분류 필터">
+        <option value="">전체 분류</option>
+        <option value="공지">공지</option>
+        <option value="학습일지">학습일지</option>
+        <option value="질문">질문</option>
+        <option value="자유">자유</option>
+      </select>
+      <button type="submit">검색</button>
+      <button type="button" id="filter-reset" class="edit-btn">초기화</button>
+      <span id="filter-status" class="form-status" aria-live="polite"></span>
     </form>
 
     <table>
       <thead>
-        <tr><th>번호</th><th>제목</th><th>작성자</th><th>작성일</th><th></th></tr>
+        <tr><th>번호</th><th>분류</th><th>제목</th><th>작성자</th><th>작성일</th><th></th></tr>
       </thead>
       <tbody id="post-list">
-        <tr><td colspan="5">불러오는 중...</td></tr>
+        <tr><td colspan="6">불러오는 중...</td></tr>
       </tbody>
     </table>
   </main>
@@ -106,6 +154,15 @@
     <h3 id="modal-title"></h3>
     <div id="modal-meta" class="modal-meta"></div>
     <div id="modal-content" class="modal-content"></div>
+    <div class="comment-section">
+      <h4>댓글</h4>
+      <ul id="comment-list" class="comment-list"></ul>
+      <form id="comment-form" class="comment-form">
+        <textarea id="comment-input" maxlength="2000" rows="2" placeholder="댓글을 입력하세요" required></textarea>
+        <button type="submit">댓글 등록</button>
+      </form>
+      <span id="comment-status" class="form-status" aria-live="polite"></span>
+    </div>
     <button id="modal-close" class="modal-close">닫기</button>
   </div>
 </div>
@@ -117,60 +174,8 @@
   // 목록을 불러올 때마다 받아온 글 전체(제목+내용)를 여기에 저장해두고,
   // "상세 보기"를 누르면 서버에 다시 요청하지 않고 이 캐시에서 바로 꺼내 보여줍니다.
   let postsCache = [];
-
-  async function loadPosts() {
-    const listEl = document.getElementById("post-list");
-    try {
-      const res = await SAPAuth.apiFetch(API_BASE);
-      if (!res.ok) throw new Error("서버 응답 오류");
-      const posts = await res.json();
-      postsCache = posts;
-
-      if (posts.length === 0) {
-        listEl.innerHTML = '<tr><td colspan="5">등록된 글이 없습니다.</td></tr>';
-        return;
-      }
-
-      listEl.innerHTML = posts.map(p => `
-        <tr>
-          <td>${p.id}</td>
-          <td><button type="button" class="post-title-btn" data-id="${p.id}">${escapeHtml(p.title)}</button></td>
-          <td>${escapeHtml(p.author_name || "-")}</td>
-          <td>${escapeHtml(p.created_at || "")}</td>
-          <td>${canDelete(p.author_name) ? `<button data-id="${p.id}" class="delete-btn">삭제</button>` : ""}</td>
-        </tr>
-      `).join("");
-
-      document.querySelectorAll(".post-title-btn").forEach(btn => {
-        btn.addEventListener("click", () => openPost(btn.dataset.id));
-      });
-      document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.addEventListener("click", () => deletePost(btn.dataset.id));
-      });
-    } catch (err) {
-      listEl.innerHTML =
-        '<tr><td colspan="5">서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요 (무료 서버는 깨어나는 데 최대 1분 정도 걸릴 수 있습니다).</td></tr>';
-    }
-  }
-
-  function openPost(id) {
-    const post = postsCache.find(p => String(p.id) === String(id));
-    if (!post) return;
-
-    document.getElementById("modal-title").textContent = post.title;
-    document.getElementById("modal-meta").textContent = `번호 ${post.id} · 작성자 ${post.author_name || "미등록"} · 작성일 ${post.created_at || ""}`;
-    document.getElementById("modal-content").textContent = post.content;
-    document.getElementById("post-modal").hidden = false;
-  }
-
-  function closePost() {
-    document.getElementById("post-modal").hidden = true;
-  }
-
-  async function deletePost(id) {
-    await SAPAuth.apiFetch(`${API_BASE}/${id}`, { method: "DELETE" });
-    loadPosts();
-  }
+  let editingId = null;
+  let currentPostId = null;
 
   function escapeHtml(str) {
     const div = document.createElement("div");
@@ -178,30 +183,199 @@
     return div.innerHTML;
   }
 
-  function canDelete(authorName) {
+  function canModify(authorName) {
     const user = SAPAuth.getUser();
     return Boolean(user && (user.isAdmin || user.username === authorName));
   }
 
+  async function loadPosts() {
+    const listEl = document.getElementById("post-list");
+    const filterStatus = document.getElementById("filter-status");
+    const params = new URLSearchParams();
+    const keyword = document.getElementById("search").value.trim();
+    const category = document.getElementById("filter-category").value;
+    if (keyword) params.set("q", keyword);
+    if (category) params.set("category", category);
+    const url = params.toString() ? `${API_BASE}?${params}` : API_BASE;
+    try {
+      const res = await SAPAuth.apiFetch(url);
+      if (!res.ok) throw new Error("서버 응답 오류");
+      const posts = await res.json();
+      postsCache = posts;
+      filterStatus.textContent = keyword || category ? `${posts.length}건을 찾았습니다.` : "";
+
+      if (posts.length === 0) {
+        listEl.innerHTML = `<tr><td colspan="6">${keyword || category ? "조건에 맞는 글이 없습니다." : "등록된 글이 없습니다."}</td></tr>`;
+        return;
+      }
+
+      listEl.innerHTML = posts.map(p => `
+        <tr>
+          <td>${p.id}</td>
+          <td>${p.category ? `<span class="tag">${escapeHtml(p.category)}</span>` : "-"}</td>
+          <td><button type="button" class="post-title-btn" data-id="${p.id}">${escapeHtml(p.title)}</button></td>
+          <td>${escapeHtml(p.author_name || "-")}</td>
+          <td>${escapeHtml(p.created_at || "")}</td>
+          <td><div class="row-actions">
+            ${canModify(p.author_name) ? `<button data-id="${p.id}" class="edit-btn edit">수정</button>` : ""}
+            ${canModify(p.author_name) ? `<button data-id="${p.id}" class="delete-btn delete">삭제</button>` : ""}
+          </div></td>
+        </tr>
+      `).join("");
+
+      document.querySelectorAll(".post-title-btn").forEach(btn => {
+        btn.addEventListener("click", () => openPost(btn.dataset.id));
+      });
+      document.querySelectorAll(".delete").forEach(btn => {
+        btn.addEventListener("click", () => deletePost(btn.dataset.id));
+      });
+      document.querySelectorAll(".edit").forEach(btn => {
+        btn.addEventListener("click", () => startEdit(btn.dataset.id));
+      });
+    } catch (err) {
+      listEl.innerHTML =
+        '<tr><td colspan="6">서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요 (무료 서버는 깨어나는 데 최대 1분 정도 걸릴 수 있습니다).</td></tr>';
+    }
+  }
+
+  function startEdit(id) {
+    const post = postsCache.find(p => String(p.id) === String(id));
+    if (!post) return;
+    editingId = post.id;
+    document.getElementById("category").value = post.category || "자유";
+    document.getElementById("title").value = post.title;
+    document.getElementById("content").value = post.content;
+    document.getElementById("post-form-title").textContent = `글 수정 (#${post.id})`;
+    document.getElementById("post-submit").textContent = "수정 저장";
+    document.getElementById("post-cancel").hidden = false;
+    document.getElementById("form-status").textContent = "";
+    document.getElementById("post-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function resetForm() {
+    editingId = null;
+    document.getElementById("post-form").reset();
+    document.getElementById("post-form-title").textContent = "새 글 쓰기";
+    document.getElementById("post-submit").textContent = "등록";
+    document.getElementById("post-cancel").hidden = true;
+  }
+
+  function openPost(id) {
+    const post = postsCache.find(p => String(p.id) === String(id));
+    if (!post) return;
+    currentPostId = post.id;
+
+    document.getElementById("modal-title").textContent = post.title;
+    document.getElementById("modal-meta").textContent =
+      `번호 ${post.id} · 분류 ${post.category || "미지정"} · 작성자 ${post.author_name || "미등록"} · 작성일 ${post.created_at || ""}`;
+    document.getElementById("modal-content").textContent = post.content;
+    document.getElementById("comment-status").textContent = "";
+    document.getElementById("comment-form").reset();
+    document.getElementById("post-modal").hidden = false;
+    loadComments();
+  }
+
+  function closePost() {
+    document.getElementById("post-modal").hidden = true;
+    currentPostId = null;
+  }
+
+  async function loadComments() {
+    const listEl = document.getElementById("comment-list");
+    listEl.innerHTML = "<li>불러오는 중...</li>";
+    try {
+      const res = await SAPAuth.apiFetch(`${API_BASE}/${currentPostId}/comments`);
+      if (!res.ok) throw new Error();
+      const items = await res.json();
+      if (items.length === 0) {
+        listEl.innerHTML = '<li class="comment-empty">아직 댓글이 없습니다.</li>';
+        return;
+      }
+      listEl.innerHTML = items.map(c => `
+        <li>
+          <span class="comment-body">${escapeHtml(c.content)}<br><span class="comment-meta">${escapeHtml(c.author_name || "-")} · ${escapeHtml(c.created_at || "")}</span></span>
+          ${canModify(c.author_name) ? `<button type="button" class="delete-btn" data-comment-id="${c.id}">삭제</button>` : ""}
+        </li>
+      `).join("");
+      listEl.querySelectorAll("[data-comment-id]").forEach(btn => {
+        btn.addEventListener("click", () => deleteComment(btn.dataset.commentId));
+      });
+    } catch {
+      listEl.innerHTML = '<li class="comment-empty">댓글을 불러오지 못했습니다.</li>';
+    }
+  }
+
+  async function deleteComment(commentId) {
+    await SAPAuth.apiFetch(`${API_BASE}/${currentPostId}/comments/${commentId}`, { method: "DELETE" });
+    loadComments();
+  }
+
+  async function deletePost(id) {
+    if (!confirm("이 글을 삭제할까요? 달린 댓글도 함께 삭제됩니다.")) return;
+    await SAPAuth.apiFetch(`${API_BASE}/${id}`, { method: "DELETE" });
+    if (editingId === id) resetForm();
+    loadPosts();
+  }
+
   document.getElementById("post-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const category = document.getElementById("category").value;
     const title = document.getElementById("title").value.trim();
     const content = document.getElementById("content").value.trim();
     const statusEl = document.getElementById("form-status");
+    const editing = editingId;
 
     try {
-      const res = await SAPAuth.apiFetch(API_BASE, {
-        method: "POST",
+      const res = await SAPAuth.apiFetch(editing ? `${API_BASE}/${editing}` : API_BASE, {
+        method: editing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content }),
+        body: JSON.stringify({ title, content, category }),
       });
       if (!res.ok) throw new Error();
 
-      statusEl.textContent = "등록되었습니다.";
-      document.getElementById("post-form").reset();
+      statusEl.textContent = editing ? "수정되었습니다." : "등록되었습니다.";
+      resetForm();
       loadPosts();
     } catch (err) {
-      statusEl.textContent = "등록 실패 — 서버 연결을 확인하세요.";
+      statusEl.textContent = editing ? "수정 실패 — 서버 연결을 확인하세요." : "등록 실패 — 서버 연결을 확인하세요.";
+    }
+  });
+
+  document.getElementById("post-cancel").addEventListener("click", () => {
+    resetForm();
+    document.getElementById("form-status").textContent = "";
+  });
+
+  document.getElementById("filter-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    loadPosts();
+  });
+  document.getElementById("filter-reset").addEventListener("click", () => {
+    document.getElementById("search").value = "";
+    document.getElementById("filter-category").value = "";
+    document.getElementById("filter-status").textContent = "";
+    loadPosts();
+  });
+  document.getElementById("filter-category").addEventListener("change", loadPosts);
+
+  document.getElementById("comment-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const input = document.getElementById("comment-input");
+    const statusEl = document.getElementById("comment-status");
+    const content = input.value.trim();
+    if (!content || !currentPostId) return;
+    try {
+      const res = await SAPAuth.apiFetch(`${API_BASE}/${currentPostId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error();
+      statusEl.textContent = "";
+      input.value = "";
+      loadComments();
+    } catch (err) {
+      statusEl.textContent = "댓글 등록에 실패했습니다.";
     }
   });
 
@@ -212,7 +386,7 @@
 
   SAPAuth.requireSession().then(user => {
     if (user?.unavailable) {
-      document.getElementById("post-list").innerHTML = '<tr><td colspan="5">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>';
+      document.getElementById("post-list").innerHTML = '<tr><td colspan="6">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>';
       return;
     }
     if (user) loadPosts();

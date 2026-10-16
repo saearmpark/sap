@@ -29,6 +29,9 @@ public class Post {
     @Column(length = 30)
     private String authorName;
 
+    @Column(length = 20)
+    private String category;
+
     @Column(name = "created_at", nullable = false)
     private String createdAt;
 
@@ -36,10 +39,15 @@ public class Post {
     }
 
     public Post(String title, String content, String createdAt, String authorName) {
+        this(title, content, createdAt, authorName, null);
+    }
+
+    public Post(String title, String content, String createdAt, String authorName, String category) {
         this.title = title;
         this.content = content;
         this.createdAt = createdAt;
         this.authorName = authorName;
+        this.category = category;
     }
 
     public Long getId() {
@@ -68,6 +76,9 @@ public class Post {
 
     public String getAuthorName() { return authorName; }
     public void setAuthorName(String authorName) { this.authorName = authorName; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
     public String getCreatedAt() {
         return createdAt;

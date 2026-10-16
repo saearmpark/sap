@@ -23,6 +23,10 @@ public class FileItem {
     private String fileType;
     private String uploadedAt;
     private String authorName;
+    @Column(name = "download_count")
+    private Long downloadCount = 0L;
+    @Column(length = 200)
+    private String tags;
     @Column(name = "file_data")
     private byte[] data;
 
@@ -98,6 +102,16 @@ public class FileItem {
     public String getAuthorName() { return authorName; }
 
     public void setAuthorName(String authorName) { this.authorName = authorName; }
+
+    @JsonProperty("download_count")
+    public long getDownloadCount() { return downloadCount == null ? 0L : downloadCount; }
+
+    public void setDownloadCount(long downloadCount) { this.downloadCount = downloadCount; }
+
+    @JsonProperty("tags")
+    public String getTags() { return tags; }
+
+    public void setTags(String tags) { this.tags = tags; }
 
     @JsonIgnore
     public byte[] getData() { return data; }

@@ -32,7 +32,7 @@
 
   function loginUrl(sessionExpired = false) {
     const next = location.pathname.split("/").pop();
-    const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html"];
+    const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html"];
     const params = new URLSearchParams();
     if (allowed.includes(next)) params.set("next", next);
     if (sessionExpired) params.set("expired", "1");
@@ -94,6 +94,29 @@
 
   function updateAuthLink() {
     const link = document.querySelector("[data-auth-link]");
+
+    if (link && !document.querySelector("[data-search-link]")) {
+      const nav = link.closest(".nav-group") || document.querySelector(".nav-group");
+      const homeLink = nav?.querySelector('a[href="index.html"]');
+      if (homeLink) {
+        const searchLink = document.createElement("a");
+        searchLink.href = "search.html";
+        searchLink.dataset.searchLink = "";
+        searchLink.textContent = "통합 검색";
+        homeLink.insertAdjacentElement("afterend", searchLink);
+      }
+    }
+
+    const submenu = document.querySelector(".nav-submenu");
+    if (submenu && !submenu.querySelector("[data-quiz-link]")) {
+      const quizLink = document.createElement("a");
+      quizLink.href = "quiz.html";
+      quizLink.dataset.quizLink = "";
+      quizLink.textContent = "퀴즈";
+      const conceptsLink = submenu.querySelector('a[href="concepts.html"]');
+      if (conceptsLink) conceptsLink.insertAdjacentElement("afterend", quizLink);
+      else submenu.appendChild(quizLink);
+    }
     const user = getUser();
     if (link && link.dataset.logoutHandler !== "attached") {
       link.addEventListener("click", handleAuthLinkClick);
@@ -105,6 +128,17 @@
     } else if (link) {
       link.textContent = "로그인 / 회원가입";
       link.href = "login.html";
+    }
+
+    let mypageLink = document.querySelector("[data-mypage-link]");
+    if (getToken() && user && !mypageLink) {
+      mypageLink = document.createElement("a");
+      mypageLink.href = "mypage.html";
+      mypageLink.dataset.mypageLink = "";
+      mypageLink.textContent = "마이페이지";
+      link?.insertAdjacentElement("afterend", mypageLink);
+    } else if (mypageLink) {
+      mypageLink.hidden = !(getToken() && user);
     }
 
     let chatLink = document.querySelector("[data-chat-link]");

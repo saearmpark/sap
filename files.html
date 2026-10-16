@@ -6,6 +6,32 @@
 <title>codestudio — 자료실</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
 <link rel="stylesheet" href="assets/style.css?v=learning-sidebar-menu-1">
+<style>
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 14px;
+    cursor: pointer;
+    background: var(--bg);
+    margin-bottom: 12px;
+  }
+  .drop-zone.is-over { border-color: var(--accent); color: var(--ink); background: var(--accent-soft); }
+  .file-toolbar input[type="search"] {
+    flex: 1 1 240px;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+  }
+  .file-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .file-tag { display: inline-block; font-family: var(--mono); font-size: 11px; color: var(--accent); background: var(--accent-soft); padding: 2px 7px; border-radius: 5px; margin: 2px 3px 2px 0; }
+</style>
 </head>
 <body>
 <div class="layout">
@@ -39,19 +65,32 @@
 
     <form id="upload-form" class="card">
       <h3>파일 업로드</h3>
+      <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="파일을 이곳으로 끌어다 놓거나 눌러서 선택하세요">
+        파일을 이곳으로 끌어다 놓거나 눌러서 선택하세요
+      </div>
       <div class="form-row">
-        <input type="file" id="file-input" required>
+        <input type="file" id="file-input">
+      </div>
+      <div class="form-row">
+        <input type="text" id="file-tags" maxlength="200" placeholder="태그 (쉼표로 구분, 선택)">
       </div>
       <button type="submit">업로드</button>
-      <span id="form-status" class="form-status"></span>
+      <span id="form-status" class="form-status" aria-live="polite"></span>
+    </form>
+
+    <form id="search-form" class="card file-toolbar" role="search">
+      <input id="file-search" type="search" placeholder="파일명·태그·작성자 검색" autocomplete="off" aria-label="자료 검색">
+      <button type="submit">검색</button>
+      <button type="button" id="search-reset" class="delete-btn">초기화</button>
+      <span id="search-status" class="form-status" aria-live="polite"></span>
     </form>
 
     <table>
       <thead>
-        <tr><th>파일명</th><th>크기</th><th>작성자</th><th>업로드일</th><th></th></tr>
+        <tr><th>파일명</th><th>크기</th><th>태그</th><th>다운로드</th><th>작성자</th><th>업로드일</th><th></th></tr>
       </thead>
       <tbody id="file-list">
-        <tr><td colspan="5">불러오는 중...</td></tr>
+        <tr><td colspan="7">불러오는 중...</td></tr>
       </tbody>
     </table>
   </main>
@@ -60,6 +99,7 @@
 <script src="assets/auth.js?v=connection-feedback-1"></script>
 <script>
   const API_BASE = "https://board-backend-nngx.onrender.com/api/files";
+  let pendingFile = null;
 
   function formatSize(numBytes) {
     const units = ["B", "KB", "MB", "GB"];
@@ -72,15 +112,36 @@
     return unitIndex === 0 ? `${size.toFixed(0)}${units[unitIndex]}` : `${size.toFixed(1)}${units[unitIndex]}`;
   }
 
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function canDelete(authorName) {
+    const user = SAPAuth.getUser();
+    return Boolean(user && (user.isAdmin || user.username === authorName));
+  }
+
+  function renderTags(tags) {
+    if (!tags) return "-";
+    return String(tags).split(",").map(tag => tag.trim()).filter(Boolean)
+      .map(tag => `<span class="file-tag">${escapeHtml(tag)}</span>`).join("");
+  }
+
   async function loadFiles() {
     const listEl = document.getElementById("file-list");
+    const searchStatus = document.getElementById("search-status");
+    const keyword = document.getElementById("file-search").value.trim();
+    const url = keyword ? `${API_BASE}?q=${encodeURIComponent(keyword)}` : API_BASE;
     try {
-      const res = await SAPAuth.apiFetch(API_BASE);
+      const res = await SAPAuth.apiFetch(url);
       if (!res.ok) throw new Error("서버 응답 오류");
       const files = await res.json();
+      searchStatus.textContent = keyword ? `${files.length}건을 찾았습니다.` : "";
 
       if (files.length === 0) {
-        listEl.innerHTML = '<tr><td colspan="5">아직 업로드된 자료가 없습니다.</td></tr>';
+        listEl.innerHTML = `<tr><td colspan="7">${keyword ? "조건에 맞는 자료가 없습니다." : "아직 업로드된 자료가 없습니다."}</td></tr>`;
         return;
       }
 
@@ -96,6 +157,8 @@
           <tr>
             <td class="file-name-cell">${preview}<a class="download-link" href="#download" data-id="${escapeHtml(String(f.id))}" data-name="${name}">${name}</a></td>
             <td>${formatSize(f.size_bytes ?? f.fileSize ?? 0)}</td>
+            <td>${renderTags(f.tags)}</td>
+            <td>${f.download_count ?? 0}</td>
             <td>${escapeHtml(f.author_name || "-")}</td>
             <td>${escapeHtml(f.uploaded_at || f.uploadedAt || "")}</td>
             <td>${canDelete(f.author_name) ? `<button data-id="${escapeHtml(String(f.id))}" class="delete-btn">삭제</button>` : ""}</td>
@@ -103,7 +166,7 @@
         `;
       }).join("");
 
-      document.querySelectorAll(".delete-btn").forEach(btn => {
+      document.querySelectorAll(".delete-btn[data-id]").forEach(btn => {
         btn.addEventListener("click", () => deleteFile(btn.dataset.id));
       });
       document.querySelectorAll("[data-preview-url]").forEach(button => {
@@ -124,24 +187,13 @@
       });
     } catch (err) {
       listEl.innerHTML =
-        '<tr><td colspan="5">서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요 (무료 서버는 깨어나는 데 최대 1분 정도 걸릴 수 있습니다).</td></tr>';
+        '<tr><td colspan="7">서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요 (무료 서버는 깨어나는 데 최대 1분 정도 걸릴 수 있습니다).</td></tr>';
     }
   }
 
   async function deleteFile(id) {
     await SAPAuth.apiFetch(`${API_BASE}/${id}`, { method: "DELETE" });
     loadFiles();
-  }
-
-  function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-  }
-
-  function canDelete(authorName) {
-    const user = SAPAuth.getUser();
-    return Boolean(user && (user.isAdmin || user.username === authorName));
   }
 
   async function downloadFile(id, fileName) {
@@ -153,17 +205,56 @@
     link.download = fileName;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+    loadFiles();
   }
+
+  const dropZone = document.getElementById("drop-zone");
+  const fileInput = document.getElementById("file-input");
+
+  function showPending() {
+    const file = pendingFile || fileInput.files[0];
+    dropZone.textContent = file
+      ? `선택된 파일: ${file.name} (${formatSize(file.size)})`
+      : "파일을 이곳으로 끌어다 놓거나 눌러서 선택하세요";
+  }
+
+  dropZone.addEventListener("click", () => fileInput.click());
+  dropZone.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      fileInput.click();
+    }
+  });
+  fileInput.addEventListener("change", () => { pendingFile = null; showPending(); });
+  dropZone.addEventListener("dragover", event => {
+    event.preventDefault();
+    dropZone.classList.add("is-over");
+  });
+  dropZone.addEventListener("dragleave", () => dropZone.classList.remove("is-over"));
+  dropZone.addEventListener("drop", event => {
+    event.preventDefault();
+    dropZone.classList.remove("is-over");
+    if (event.dataTransfer.files.length) {
+      pendingFile = event.dataTransfer.files[0];
+      fileInput.value = "";
+      showPending();
+    }
+  });
 
   document.getElementById("upload-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const input = document.getElementById("file-input");
     const statusEl = document.getElementById("form-status");
+    const file = pendingFile || fileInput.files[0];
 
-    if (!input.files.length) return;
+    if (!file) {
+      statusEl.textContent = "업로드할 파일을 선택하세요.";
+      return;
+    }
 
     const formData = new FormData();
-    formData.append("file", input.files[0]);
+    formData.append("file", file);
+    const tags = document.getElementById("file-tags").value.trim();
+    if (tags) formData.append("tags", tags);
 
     statusEl.textContent = "업로드 중...";
     try {
@@ -177,6 +268,8 @@
 
       statusEl.textContent = "업로드되었습니다.";
       document.getElementById("upload-form").reset();
+      pendingFile = null;
+      showPending();
       loadFiles();
     } catch (err) {
       statusEl.textContent = err instanceof TypeError
@@ -185,9 +278,19 @@
     }
   });
 
+  document.getElementById("search-form").addEventListener("submit", event => {
+    event.preventDefault();
+    loadFiles();
+  });
+  document.getElementById("search-reset").addEventListener("click", () => {
+    document.getElementById("file-search").value = "";
+    document.getElementById("search-status").textContent = "";
+    loadFiles();
+  });
+
   SAPAuth.requireSession().then(user => {
     if (user?.unavailable) {
-      document.getElementById("file-list").innerHTML = '<tr><td colspan="5">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>';
+      document.getElementById("file-list").innerHTML = '<tr><td colspan="7">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>';
       return;
     }
     if (user) loadFiles();

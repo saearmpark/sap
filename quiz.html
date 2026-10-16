@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 퀴즈</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=learning-sidebar-menu-1">
+<style>
+  .quiz-stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .quiz-stat-value { font-size: 28px; font-weight: 700; color: var(--ink); line-height: 1.1; }
+  .quiz-stat-label { color: var(--ink-soft); font-size: 13px; margin-top: 4px; }
+  .quiz-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .quiz-stage { min-height: 200px; }
+  .flashcard {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+  }
+  .flashcard .flashcard-face { color: var(--ink-soft); font-size: 12px; font-family: var(--mono); }
+  .flashcard .flashcard-term { font-size: 22px; font-weight: 700; }
+  .flashcard .flashcard-back { color: var(--ink); line-height: 1.6; }
+  .quiz-question { font-size: 17px; line-height: 1.6; }
+  .quiz-options { display: grid; gap: 8px; margin: 14px 0; }
+  .quiz-options button { text-align: left; }
+  .quiz-options button.correct { border-color: #2e7d32; color: #2e7d32; }
+  .quiz-options button.wrong { border-color: #c62828; color: #c62828; }
+  .quiz-muted { color: var(--ink-soft); font-size: 13px; }
+</style>
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="calendar.html">일정</a>
+      <details class="nav-learning" open>
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱제작</a>
+          <a href="game.html">게임제작</a>
+          <a href="concepts.html">개념학습</a>
+          <a href="web.html">웹제작</a>
+        </div>
+      </details>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">QUIZ &amp; FLASHCARDS</div>
+    <h1>퀴즈 / 플래시카드</h1>
+    <p class="lead">개념학습의 용어를 플래시카드와 4지선다 퀴즈로 복습합니다. 학습 진도는 이 브라우저에 저장됩니다.</p>
+
+    <section class="grid quiz-stats" aria-label="학습 진도">
+      <div class="card"><div class="quiz-stat-value" id="stat-total">-</div><div class="quiz-stat-label">전체 카드</div></div>
+      <div class="card"><div class="quiz-stat-value" id="stat-due">-</div><div class="quiz-stat-label">오늘 복습할 카드</div></div>
+      <div class="card"><div class="quiz-stat-value" id="stat-mastered">-</div><div class="quiz-stat-label">익힌 카드</div></div>
+    </section>
+
+    <div class="quiz-actions">
+      <button type="button" id="start-flashcards">플래시카드 시작</button>
+      <button type="button" id="start-quiz">4지선다 퀴즈 시작</button>
+      <button type="button" id="reset-progress" class="delete-btn">진도 초기화</button>
+    </div>
+
+    <section id="quiz-card" class="card quiz-stage">
+      <p id="quiz-status" class="quiz-muted" role="status" aria-live="polite">개념 용어를 불러오는 중입니다.</p>
+    </section>
+  </main>
+</div>
+<script src="assets/auth.js?v=connection-feedback-1"></script>
+<script src="assets/theme.js"></script>
+<script>
+  (() => {
+    const STORAGE_KEY = "sap-quiz-v1";
+    // 복습 간격(분 단위) — Leitner 단계별로 다음 복습 시점을 정합니다.
+    const INTERVALS_MIN = [0, 10, 1440, 4320, 10080, 30240];
+
+    const status = document.getElementById("quiz-status");
+    const stage = document.getElementById("quiz-card");
+    const statTotal = document.getElementById("stat-total");
+    const statDue = document.getElementById("stat-due");
+    const statMastered = document.getElementById("stat-mastered");
+
+    let cards = [];
+    let progress = readProgress();
+
+    function readProgress() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+    }
+
+    function saveProgress() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch {}
+    }
+
+    function cardState(term) {
+      return progress[term] || { box: 0, due: 0 };
+    }
+
+    function isDue(term) {
+      const state = cardState(term);
+      return state.due <= Date.now();
+    }
+
+    function grade(term, remembered) {
+      const state = cardState(term);
+      const box = remembered ? Math.min(state.box + 1, INTERVALS_MIN.length - 1) : 0;
+      progress[term] = { box, due: Date.now() + INTERVALS_MIN[box] * 60000 };
+      saveProgress();
+    }
+
+    function updateStats() {
+      const due = cards.filter(card => isDue(card.term)).length;
+      const mastered = cards.filter(card => cardState(card.term).box >= 4).length;
+      statTotal.textContent = cards.length;
+      statDue.textContent = due;
+      statMastered.textContent = mastered;
+    }
+
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function truncate(text, max) {
+      return text.length > max ? `${text.slice(0, max)}…` : text;
+    }
+
+    async function loadCards() {
+      try {
+        const response = await fetch("concepts.html", { cache: "no-store" });
+        const doc = new DOMParser().parseFromString(await response.text(), "text/html");
+        const seen = new Set();
+        doc.querySelectorAll(".concept-card").forEach(card => {
+          const term = card.querySelector("h3")?.textContent.trim();
+          const paragraph = card.querySelector("p")?.textContent.replace(/\s+/g, " ").trim();
+          if (term && paragraph && !seen.has(term)) {
+            seen.add(term);
+            cards.push({ term, definition: paragraph });
+          }
+        });
+        status.textContent = cards.length
+          ? `${cards.length}개 카드를 준비했습니다. 원하는 학습을 시작하세요.`
+          : "학습 카드를 찾지 못했습니다.";
+      } catch {
+        status.textContent = "개념 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
+      }
+      updateStats();
+    }
+
+    function showFlashcards() {
+      const queue = shuffle(cards.filter(card => isDue(card.term)));
+      const list = queue.length ? queue : shuffle(cards);
+      if (!list.length) { status.textContent = "복습할 카드가 없습니다."; return; }
+      let index = 0;
+      let flipped = false;
+
+      function render() {
+        const card = list[index];
+        stage.replaceChildren();
+        status.textContent = `플래시카드 ${index + 1} / ${list.length}${queue.length ? " · 복습 예정 카드" : " · 전체 복습"}`;
+
+        const box = document.createElement("div");
+        box.className = "flashcard";
+        box.setAttribute("role", "button");
+        box.tabIndex = 0;
+        const face = document.createElement("div");
+        face.className = "flashcard-face";
+        face.textContent = flipped ? "정의 (클릭하면 질문으로)" : "개념 (클릭하면 정의 보기)";
+        const body = document.createElement("div");
+        if (flipped) {
+          body.className = "flashcard-back";
+          body.textContent = card.definition;
+        } else {
+          body.className = "flashcard-term";
+          body.textContent = card.term;
+        }
+        box.append(face, body);
+        const toggle = () => { flipped = !flipped; render(); };
+        box.addEventListener("click", toggle);
+        box.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggle(); }
+        });
+
+        const controls = document.createElement("div");
+        controls.className = "quiz-actions";
+        const again = document.createElement("button");
+        again.type = "button";
+        again.textContent = "몰랐어요";
+        again.className = "delete-btn";
+        again.addEventListener("click", () => { grade(card.term, false); next(); });
+        const good = document.createElement("button");
+        good.type = "button";
+        good.textContent = "알았어요";
+        good.addEventListener("click", () => { grade(card.term, true); next(); });
+
+        function next() {
+          index += 1;
+          flipped = false;
+          if (index >= list.length) {
+            status.textContent = "복습을 마쳤습니다. 수고했어요!";
+            stage.replaceChildren();
+            updateStats();
+            return;
+          }
+          render();
+        }
+
+        controls.append(again, good);
+        stage.append(box, controls);
+      }
+
+      render();
+    }
+
+    function showQuiz() {
+      const pool = shuffle(cards).slice(0, Math.min(10, cards.length));
+      if (pool.length < 2) { status.textContent = "퀴즈를 만들 카드가 부족합니다."; return; }
+      let index = 0;
+      let score = 0;
+
+      function render() {
+        const card = pool[index];
+        const distractors = shuffle(cards.filter(item => item.term !== card.term)).slice(0, 3).map(item => item.term);
+        const options = shuffle([card.term, ...distractors]);
+        stage.replaceChildren();
+        status.textContent = `퀴즈 ${index + 1} / ${pool.length} · 정답 ${score}개`;
+
+        const question = document.createElement("p");
+        question.className = "quiz-question";
+        question.textContent = `다음 설명이 뜻하는 개념은? "${truncate(card.definition, 200)}"`;
+        const optionBox = document.createElement("div");
+        optionBox.className = "quiz-options";
+
+        options.forEach(option => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = option;
+          button.addEventListener("click", () => {
+            if (optionBox.dataset.answered) return;
+            optionBox.dataset.answered = "1";
+            const correct = option === card.term;
+            if (correct) score += 1;
+            grade(card.term, correct);
+            optionBox.querySelectorAll("button").forEach(btn => {
+              if (btn.textContent === card.term) btn.classList.add("correct");
+            });
+            if (!correct) button.classList.add("wrong");
+            const next = document.createElement("button");
+            next.type = "button";
+            next.textContent = index + 1 >= pool.length ? "결과 보기" : "다음 문제";
+            next.addEventListener("click", () => {
+              index += 1;
+              if (index >= pool.length) {
+                status.textContent = `퀴즈 결과: ${pool.length}문제 중 ${score}개 정답`;
+                stage.replaceChildren();
+                updateStats();
+                return;
+              }
+              render();
+            });
+            optionBox.appendChild(next);
+          });
+          optionBox.appendChild(button);
+        });
+
+        stage.append(question, optionBox);
+      }
+
+      render();
+    }
+
+    document.getElementById("start-flashcards").addEventListener("click", () => {
+      if (cards.length) showFlashcards();
+    });
+    document.getElementById("start-quiz").addEventListener("click", () => {
+      if (cards.length) showQuiz();
+    });
+    document.getElementById("reset-progress").addEventListener("click", () => {
+      if (!confirm("학습 진도를 초기화할까요?")) return;
+      progress = {};
+      saveProgress();
+      updateStats();
+      status.textContent = "학습 진도를 초기화했습니다.";
+      stage.replaceChildren();
+    });
+
+    loadCards();
+  })();
+</script>
+</body>
+</html>

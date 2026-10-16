@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codestudio — 통합 검색</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=learning-sidebar-menu-1">
+<style>
+  .search-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .search-form input[type="search"] {
+    flex: 1 1 260px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+  }
+  .search-status { color: var(--ink-soft); font-size: 14px; }
+  .search-group { margin-bottom: 14px; }
+  .search-group h3 { display: flex; align-items: baseline; gap: 8px; }
+  .search-count { color: var(--ink-soft); font-size: 13px; font-family: var(--mono); }
+  .search-results { display: grid; gap: 8px; padding: 0; margin: 10px 0 0; list-style: none; }
+  .search-results li { padding: 10px 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); }
+  .search-results a { font-weight: 600; }
+  .search-snippet { display: block; margin-top: 4px; color: var(--ink-soft); font-size: 13px; overflow-wrap: anywhere; }
+  .search-empty { color: var(--ink-soft); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+    <nav class="nav-group">
+      <div class="nav-label">MENU</div>
+      <a href="index.html">홈</a>
+      <a href="calendar.html">일정</a>
+      <details class="nav-learning">
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱제작</a>
+          <a href="game.html">게임제작</a>
+          <a href="concepts.html">개념학습</a>
+          <a href="web.html">웹제작</a>
+        </div>
+      </details>
+      <a href="board.html">게시판</a>
+      <a href="files.html">자료실</a>
+      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+    </nav>
+    <div class="sidebar-footer">v0.1 · local build</div>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">SEARCH</div>
+    <h1>통합 검색</h1>
+    <p class="lead">개념 학습, 게임제작, 앱제작, 게시판, 자료실의 내용을 한 번에 검색합니다.</p>
+
+    <form id="search-form" class="card search-form" role="search">
+      <input id="search-input" type="search" placeholder="예: 변수, 봄버맨, 폭발, 파이썬, 할 일" autocomplete="off" aria-label="검색어">
+      <button type="submit">검색</button>
+    </form>
+
+    <p id="search-status" class="search-status" role="status" aria-live="polite">검색어를 입력하세요.</p>
+    <div id="search-results"></div>
+  </main>
+</div>
+<script src="assets/auth.js?v=connection-feedback-1"></script>
+<script>
+  (() => {
+    const form = document.getElementById("search-form");
+    const input = document.getElementById("search-input");
+    const status = document.getElementById("search-status");
+    const resultsEl = document.getElementById("search-results");
+    const staticIndex = [];
+    let staticReady = null;
+
+    const GROUPS = [
+      { key: "concept", label: "개념학습" },
+      { key: "game", label: "게임제작" },
+      { key: "learn", label: "앱제작" },
+      { key: "board", label: "게시판" },
+      { key: "file", label: "자료실" }
+    ];
+
+    function escapeHtml(value) {
+      const div = document.createElement("div");
+      div.textContent = value ?? "";
+      return div.innerHTML;
+    }
+
+    async function parsePage(path) {
+      const response = await fetch(path, { cache: "no-store" });
+      if (!response.ok) throw new Error(path);
+      return new DOMParser().parseFromString(await response.text(), "text/html");
+    }
+
+    async function buildStaticIndex() {
+      if (staticReady) return staticReady;
+      staticReady = (async () => {
+        try {
+          const concepts = await parsePage("concepts.html");
+          concepts.querySelectorAll(".concept-section").forEach(section => {
+            const anchor = section.id ? `concepts.html#${section.id}` : "concepts.html";
+            section.querySelectorAll(".concept-card").forEach(card => {
+              staticIndex.push({
+                key: "concept",
+                title: card.querySelector("h3")?.textContent.trim() || "개념",
+                text: card.textContent.replace(/\s+/g, " ").trim(),
+                href: anchor
+              });
+            });
+          });
+        } catch {}
+
+        try {
+          const games = await parsePage("game.html");
+          games.querySelectorAll(".game-list-item[data-target]").forEach(button => {
+            staticIndex.push({
+              key: "game",
+              title: button.textContent.trim(),
+              text: "게임제작 실습 · 코드 보기 포함",
+              href: "game.html"
+            });
+          });
+        } catch {}
+
+        try {
+          const learn = await parsePage("learn.html");
+          learn.querySelectorAll("[data-app]").forEach(button => {
+            staticIndex.push({
+              key: "learn",
+              title: button.textContent.trim(),
+              text: "앱제작 실습 앱",
+              href: "learn.html"
+            });
+          });
+        } catch {}
+      })();
+      return staticReady;
+    }
+
+    async function searchDynamic(query) {
+      const dynamic = [];
+      if (!SAPAuth.getToken()) return dynamic;
+
+      try {
+        const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/posts?q=${encodeURIComponent(query)}`);
+        if (response.ok) {
+          (await response.json()).forEach(post => dynamic.push({
+            key: "board",
+            title: post.title,
+            text: `${post.category || "미지정"} · ${post.author_name || "-"} · ${post.content}`,
+            href: "board.html"
+          }));
+        }
+      } catch {}
+
+      try {
+        const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/files`);
+        if (response.ok) {
+          const lower = query.toLowerCase();
+          (await response.json())
+            .filter(file => (file.original_name || file.originalFileName || "").toLowerCase().includes(lower))
+            .forEach(file => dynamic.push({
+              key: "file",
+              title: file.original_name || file.originalFileName || "이름 없는 파일",
+              text: `자료실 파일 · ${file.author_name || "-"}`,
+              href: "files.html"
+            }));
+        }
+      } catch {}
+
+      return dynamic;
+    }
+
+    function render(matches, query) {
+      resultsEl.replaceChildren();
+      if (!matches.length) {
+        const p = document.createElement("p");
+        p.className = "search-empty";
+        p.textContent = `"${query}"에 대한 결과가 없습니다.`;
+        resultsEl.appendChild(p);
+        return;
+      }
+
+      GROUPS.forEach(group => {
+        const items = matches.filter(match => match.key === group.key);
+        if (!items.length) return;
+        const section = document.createElement("section");
+        section.className = "card search-group";
+        const heading = document.createElement("h3");
+        heading.textContent = group.label;
+        const count = document.createElement("span");
+        count.className = "search-count";
+        count.textContent = `${items.length}건`;
+        heading.appendChild(count);
+        section.appendChild(heading);
+
+        const list = document.createElement("ul");
+        list.className = "search-results";
+        items.slice(0, 20).forEach(item => {
+          const li = document.createElement("li");
+          const anchor = document.createElement("a");
+          anchor.href = item.href;
+          anchor.textContent = item.title;
+          const snippet = document.createElement("span");
+          snippet.className = "search-snippet";
+          snippet.textContent = snippetText(item.text, query);
+          li.append(anchor, snippet);
+          list.appendChild(li);
+        });
+        section.appendChild(list);
+        resultsEl.appendChild(section);
+      });
+    }
+
+    function snippetText(text, query) {
+      const flat = text.replace(/\s+/g, " ").trim();
+      const index = flat.toLowerCase().indexOf(query.toLowerCase());
+      if (index < 0) return flat.slice(0, 120);
+      const start = Math.max(0, index - 40);
+      return `${start > 0 ? "…" : ""}${flat.slice(start, start + 140)}${start + 140 < flat.length ? "…" : ""}`;
+    }
+
+    async function runSearch(query) {
+      if (!query) {
+        status.textContent = "검색어를 입력하세요.";
+        resultsEl.replaceChildren();
+        return;
+      }
+      status.textContent = "검색 중...";
+      await buildStaticIndex();
+      const lower = query.toLowerCase();
+      const localMatches = staticIndex.filter(item =>
+        item.title.toLowerCase().includes(lower) || item.text.toLowerCase().includes(lower));
+      const dynamicMatches = await searchDynamic(query);
+      const matches = [...localMatches, ...dynamicMatches];
+      status.textContent = `"${query}" 검색 결과 ${matches.length}건`;
+      render(matches, query);
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      runSearch(input.value.trim());
+    });
+
+    const initial = new URLSearchParams(location.search).get("q");
+    if (initial) {
+      input.value = initial;
+      runSearch(initial.trim());
+    } else {
+      buildStaticIndex();
+    }
+  })();
+</script>
+<script src="assets/theme.js"></script>
+</body>
+</html>

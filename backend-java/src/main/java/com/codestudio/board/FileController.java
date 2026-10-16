@@ -34,12 +34,25 @@ public class FileController {
     }
 
     @GetMapping
-    public List<FileItemSummary> getAllFiles() {
-        return files.findAllByOrderByIdDesc();
+    public List<FileItemSummary> getAllFiles(@RequestParam(required = false) String q) {
+        List<FileItemSummary> all = files.findAllByOrderByIdDesc();
+        if (q == null || q.isBlank()) return all;
+        String keyword = q.trim().toLowerCase();
+        return all.stream()
+                .filter(item -> contains(item.getOriginalFileName(), keyword)
+                        || contains(item.getTags(), keyword)
+                        || contains(item.getAuthorName(), keyword))
+                .toList();
+    }
+
+    private static boolean contains(String value, String keyword) {
+        return value != null && value.toLowerCase().contains(keyword);
     }
 
     @PostMapping({"", "/upload"})
-    public ResponseEntity<FileItem> uploadFile(@RequestParam("file") MultipartFile file, Authentication authentication) {
+    public ResponseEntity<FileItem> uploadFile(@RequestParam("file") MultipartFile file,
+                                               @RequestParam(value = "tags", required = false) String tags,
+                                               Authentication authentication) {
         String authorName = users.findById((Long) authentication.getPrincipal())
                 .map(UserAccount::getUsername)
                 .orElseThrow(() -> new IllegalStateException("로그인 사용자 정보를 찾을 수 없습니다."));
@@ -62,6 +75,10 @@ public class FileController {
                     authorName,
                     file.getBytes()
             );
+            if (tags != null && !tags.isBlank()) {
+                String normalized = tags.trim();
+                fileItem.setTags(normalized.length() > 200 ? normalized.substring(0, 200) : normalized);
+            }
             return ResponseEntity.ok(files.save(fileItem));
         } catch (java.io.IOException ex) {
             return ResponseEntity.internalServerError().build();
@@ -90,6 +107,10 @@ public class FileController {
         }
 
         String disposition = inline ? "inline" : "attachment";
+        if (!inline) {
+            fileItem.setDownloadCount(fileItem.getDownloadCount() + 1);
+            files.save(fileItem);
+        }
         Resource resource = new ByteArrayResource(fileItem.getData());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))

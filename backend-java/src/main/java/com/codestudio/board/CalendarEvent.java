@@ -38,15 +38,24 @@ public class CalendarEvent {
     @Column(name = "is_public")
     private Boolean publicEvent = false;
 
+    // none | daily | weekly | monthly
+    @Column(name = "repeat_rule", length = 10)
+    private String repeatRule = "none";
+
     protected CalendarEvent() {}
 
     public CalendarEvent(Long ownerId, String title, String description, LocalDate startDate, LocalDate endDate, boolean publicEvent) {
+        this(ownerId, title, description, startDate, endDate, publicEvent, "none");
+    }
+
+    public CalendarEvent(Long ownerId, String title, String description, LocalDate startDate, LocalDate endDate, boolean publicEvent, String repeatRule) {
         this.ownerId = ownerId;
         this.title = title;
         this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
         this.publicEvent = publicEvent;
+        this.repeatRule = repeatRule;
     }
 
     public Long getId() { return id; }
@@ -56,12 +65,14 @@ public class CalendarEvent {
     public LocalDate getStartDate() { return startDate; }
     public LocalDate getEndDate() { return endDate; }
     public boolean getPublicEvent() { return Boolean.TRUE.equals(publicEvent); }
+    public String getRepeatRule() { return repeatRule == null ? "none" : repeatRule; }
 
-    public void update(String title, String description, LocalDate startDate, LocalDate endDate, boolean publicEvent) {
+    public void update(String title, String description, LocalDate startDate, LocalDate endDate, boolean publicEvent, String repeatRule) {
         this.title = title;
         this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
         this.publicEvent = publicEvent;
+        this.repeatRule = repeatRule;
     }
 }
