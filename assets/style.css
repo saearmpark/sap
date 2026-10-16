@@ -100,7 +100,8 @@ body, .sidebar, .card, .game-list-item, .mobile-btn, input, textarea, button {
   color: #ffffff;
 }
 
-.nav-learning > summary {
+.nav-learning > summary,
+.nav-files > summary {
   list-style: none;
   cursor: pointer;
   color: var(--sidebar-text);
@@ -112,11 +113,16 @@ body, .sidebar, .card, .game-list-item, .mobile-btn, input, textarea, button {
   border-radius: 6px;
   transition: background 0.15s ease, color 0.15s ease;
 }
-.nav-learning > summary::-webkit-details-marker { display: none; }
-.nav-learning > summary::after { content: "+"; float: right; color: var(--sidebar-text-dim); }
-.nav-learning[open] > summary::after { content: "−"; }
+.nav-learning > summary::-webkit-details-marker,
+.nav-files > summary::-webkit-details-marker { display: none; }
+.nav-learning > summary::after,
+.nav-files > summary::after { content: "+"; float: right; color: var(--sidebar-text-dim); }
+.nav-learning[open] > summary::after,
+.nav-files[open] > summary::after { content: "−"; }
 .nav-learning > summary:hover,
-.nav-learning[open] > summary { background: rgba(255, 255, 255, 0.06); color: #ffffff; }
+.nav-learning[open] > summary,
+.nav-files > summary:hover,
+.nav-files[open] > summary { background: rgba(255, 255, 255, 0.06); color: #ffffff; }
 .nav-submenu {
   display: flex;
   flex-direction: column;
@@ -521,7 +527,7 @@ code {
   .calendar-event.is-shared small { white-space: normal; overflow-wrap: anywhere; font-size: 8px; }
   .calendar-legend { font-size: 11px; }
   .nav-group { gap:4px; }
-  .nav-group a, .nav-learning > summary, .nav-submenu a { min-height:44px; }
+  .nav-group a, .nav-learning > summary, .nav-files > summary, .nav-submenu a { min-height:44px; }
   .game-panel { min-width:0; overflow-wrap:anywhere; }
   .ttt-controls { flex-wrap:wrap; }
   canvas { max-width:100%; height:auto; }

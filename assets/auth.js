@@ -113,17 +113,6 @@
       }
     }
 
-    const toolsNav = document.querySelector(".nav-group");
-    if (toolsNav && !toolsNav.querySelector("[data-apps-link]")) {
-      const filesLink = toolsNav.querySelector('a[href="files.html"]');
-      const appsLink = document.createElement("a");
-      appsLink.href = "apps.html";
-      appsLink.dataset.appsLink = "";
-      appsLink.textContent = "데스크톱 도구";
-      if (filesLink) filesLink.insertAdjacentElement("afterend", appsLink);
-      else toolsNav.appendChild(appsLink);
-    }
-
     const submenu = document.querySelector(".nav-submenu");
     if (submenu && !submenu.querySelector("[data-quiz-link]")) {
       const quizLink = document.createElement("a");

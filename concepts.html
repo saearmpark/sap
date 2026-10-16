@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codestudio — 학습(개념)</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=concept-learning-1">
+<link rel="stylesheet" href="assets/style.css?v=files-menu-1">
 <style>
   .concept-intro { max-width:800px; }
   .concept-search { display:grid; gap:6px; max-width:560px; margin:20px 0; }
@@ -48,7 +48,13 @@
         </div>
       </details>
       <a href="board.html">게시판</a>
-      <a href="files.html">자료실</a>
+      <details class="nav-files">
+        <summary>자료실</summary>
+        <div class="nav-submenu">
+          <a href="files.html">개인자료</a>
+          <a href="apps.html">공용자료</a>
+        </div>
+      </details>
       <a href="login.html" data-auth-link>로그인 / 회원가입</a>
     </nav>
     <div class="sidebar-footer">v0.1 · local build</div>
@@ -423,7 +429,7 @@ print(random.randint(1, 6))</code></pre>
     filterConcepts();
   })();
 </script>
-<script src="assets/auth.js?v=no-logout-data-401"></script>
+<script src="assets/auth.js?v=files-menu-1"></script>
 <script src="assets/theme.js"></script>
 </body>
 </html>
