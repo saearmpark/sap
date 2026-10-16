@@ -228,6 +228,9 @@
   .janggi-cell:disabled { opacity:1; }
   .janggi-piece.is-red { color:#b42318 !important; }
   .janggi-piece.is-blue { color:#174ea6 !important; }
+  .chess-cell { position:relative; }
+  .chess-cell.is-last-from::after, .janggi-cell.is-last-from::after { content:""; position:absolute; inset:0; pointer-events:none; background:rgba(224,124,0,.30); }
+  .chess-cell.is-last-move::after, .janggi-cell.is-last-move::after { content:""; position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 0 3px #e07c00; }
   .yut-board-wrap { position:relative; width:min(100%, 480px); aspect-ratio:1; margin:14px 0; border:1px solid #c6ad82; border-radius:14px; background:#ead9b8; overflow:visible; }
   .yut-board-svg { position:absolute; inset:0; width:100%; height:100%; }
   .yut-node { position:absolute; z-index:1; display:grid; place-items:center; width:9%; aspect-ratio:1; padding:0; transform:translate(-50%, -50%); border:2px solid #735b3b; border-radius:50%; background:#fff8e8; color:#33291c; font-size:clamp(9px, 2.6vw, 14px); }
@@ -6726,6 +6729,7 @@
     let active = false;
     let finished = false;
     let computerTimer = null;
+    let lastMove = null;
 
     function initialState() {
       const board = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
@@ -6980,6 +6984,8 @@
           if (selected?.row === row && selected?.col === col) cell.classList.add("is-selected");
           if (targets.has(`${row},${col}`)) cell.classList.add("is-legal");
           if (checkedKing?.row === row && checkedKing?.col === col) cell.classList.add("is-selected");
+          if (lastMove && lastMove.fromRow === row && lastMove.fromCol === col) cell.classList.add("is-last-from");
+          if (lastMove && lastMove.row === row && lastMove.col === col) cell.classList.add("is-last-move");
           const piece = state.board[row][col];
           if (piece) {
             const glyph = document.createElement("span");
@@ -7025,6 +7031,7 @@
     }
 
     function makeMove(move) {
+      lastMove = { fromRow: move.fromRow, fromCol: move.fromCol, row: move.row, col: move.col };
       state = applyMove(state, move);
       finishMove();
     }
@@ -7059,6 +7066,7 @@
       computerTimer = null;
       state = initialState();
       selected = null;
+      lastMove = null;
       legal = legalMoves(state);
       finished = false;
       active = true;
@@ -7104,6 +7112,7 @@
     let finished = false;
     let active = false;
     let aiTimer = null;
+    let lastMove = null;
 
     function palace(row, col, color) {
       return col >= 3 && col <= 5 && (color === BLUE ? row <= 2 : row >= 7);
@@ -7330,6 +7339,8 @@
         cell.setAttribute("aria-label", `행 ${row + 1}, 열 ${col + 1}`);
         if (selected?.row === row && selected?.col === col) cell.classList.add("is-selected");
         if (targets.has(`${row},${col}`)) cell.classList.add("is-legal");
+        if (lastMove && lastMove.fromRow === row && lastMove.fromCol === col) cell.classList.add("is-last-from");
+        if (lastMove && lastMove.row === row && lastMove.col === col) cell.classList.add("is-last-move");
         const piece = board[row][col];
         if (piece) {
           const label = document.createElement("span");
@@ -7393,6 +7404,7 @@
         return;
       }
       const move = chooseComputerMove(legal);
+      lastMove = { fromRow: move.fromRow, fromCol: move.fromCol, row: move.row, col: move.col };
       board = applyMove(board, move);
       completeTurn();
     }
@@ -7400,6 +7412,7 @@
       if (!active || finished || turn !== RED) return;
       const move = selected && legal.find(candidate => candidate.row === row && candidate.col === col);
       if (move) {
+        lastMove = { fromRow: move.fromRow, fromCol: move.fromCol, row: move.row, col: move.col };
         board = applyMove(board, move);
         completeTurn();
       } else if (board[row][col]?.color === RED) {
@@ -7424,7 +7437,7 @@
         board[backRow][3] = { type: "guard", color };
         board[backRow][5] = { type: "guard", color };
         board[backRow][8] = { type: "chariot", color };
-        board[backRow][4] = { type: "general", color };
+        board[color === BLUE ? 1 : 8][4] = { type: "general", color };
         for (const [index, col] of [1, 2, 6, 7].entries()) {
           board[backRow][col] = { type: formation[index] === "H" ? "horse" : "elephant", color };
         }
@@ -7436,6 +7449,7 @@
       }
       turn = RED;
       selected = null;
+      lastMove = null;
       finished = false;
       active = true;
       legal = legalMoves(RED);
