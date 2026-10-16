@@ -188,6 +188,20 @@ a { color: var(--ink); }
   font-size: 14px;
 }
 
+a.card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+a.card:hover {
+  border-color: var(--accent);
+}
+
+.home-grid .card {
+  margin-bottom: 0;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

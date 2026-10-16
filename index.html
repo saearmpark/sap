@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codestudio — 홈</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=sidebar-5">
+<link rel="stylesheet" href="assets/style.css?v=labels-7">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <nav class="nav-group">
       <a href="index.html" class="active" aria-current="page">홈</a>
-      <a href="search.html">통합 검색</a>
+      <a href="search.html">검색</a>
       <details class="nav-menu">
         <summary>제작</summary>
         <div class="nav-submenu">
@@ -21,7 +21,7 @@
         </div>
       </details>
       <details class="nav-menu">
-        <summary>커뮤니티</summary>
+        <summary>소통</summary>
         <div class="nav-submenu">
           <a href="board.html">게시판</a>
           <a href="chat.html">실시간 대화</a>
@@ -35,7 +35,7 @@
         </div>
       </details>
       <details class="nav-menu">
-        <summary>내 공간</summary>
+        <summary>계정</summary>
         <div class="nav-submenu">
           <a href="calendar.html">일정</a>
           <a href="login.html" data-auth-link>로그인 / 회원가입</a>
@@ -47,10 +47,42 @@
   <main class="main">
     <div class="eyebrow">WELCOME</div>
     <h1>코드스튜디오</h1>
-    <p class="lead">일정·커뮤니티·자료실과 제작 실습을 한곳에서 관리합니다.</p>
+    <p class="lead">일정·소통·자료실과 제작 실습을 한곳에서 관리합니다.</p>
+    <div class="grid home-grid">
+      <a class="card" href="search.html">
+        <span class="tag">FIND</span>
+        <h3>검색</h3>
+        <p>게임·앱·게시판·자료실 내용을 한 번에 검색합니다.</p>
+      </a>
+      <a class="card" href="learn.html">
+        <span class="tag">MAKE</span>
+        <h3>앱제작</h3>
+        <p>할 일·메모·계산기 등 앱을 직접 만들고 실행합니다.</p>
+      </a>
+      <a class="card" href="game.html">
+        <span class="tag">PLAY</span>
+        <h3>게임 개발</h3>
+        <p>만든 게임을 브라우저에서 바로 실행해 봅니다.</p>
+      </a>
+      <a class="card" href="board.html">
+        <span class="tag">BOARD</span>
+        <h3>게시판</h3>
+        <p>학습일지·질문·공지를 남기는 공간입니다.</p>
+      </a>
+      <a class="card" href="files.html">
+        <span class="tag">FILE</span>
+        <h3>자료실</h3>
+        <p>문서·이미지·소스코드를 최대 20MB까지 관리합니다.</p>
+      </a>
+      <a class="card" href="calendar.html">
+        <span class="tag">PLAN</span>
+        <h3>일정</h3>
+        <p>학습 계획과 작업 일정을 달력에 기록합니다.</p>
+      </a>
+    </div>
   </main>
 </div>
-<script src="assets/auth.js?v=sidebar-5"></script>
+<script src="assets/auth.js?v=labels-7"></script>
 <script src="assets/theme.js"></script>
 </body>
 </html>
