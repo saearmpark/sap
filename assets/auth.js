@@ -100,82 +100,54 @@
 
   function updateAuthLink() {
     const link = document.querySelector("[data-auth-link]");
+    const user = getUser();
+    const authed = Boolean(getToken() && user);
 
-    if (link && !document.querySelector("[data-search-link]")) {
-      const nav = link.closest(".nav-group") || document.querySelector(".nav-group");
-      const homeLink = nav?.querySelector('a[href="index.html"]');
-      if (homeLink) {
-        const searchLink = document.createElement("a");
-        searchLink.href = "search.html";
-        searchLink.dataset.searchLink = "";
-        searchLink.textContent = "통합 검색";
-        homeLink.insertAdjacentElement("afterend", searchLink);
+    if (link) {
+      if (link.dataset.logoutHandler !== "attached") {
+        link.addEventListener("click", handleAuthLinkClick);
+        link.dataset.logoutHandler = "attached";
+      }
+      if (authed) {
+        link.textContent = `${user.displayName || user.username} · 로그아웃`;
+        link.href = "#logout";
+      } else {
+        link.textContent = "로그인 / 회원가입";
+        link.href = "login.html";
       }
     }
 
-    const submenu = document.querySelector(".nav-submenu");
-    if (submenu && !submenu.querySelector("[data-quiz-link]")) {
-      const quizLink = document.createElement("a");
-      quizLink.href = "quiz.html";
-      quizLink.dataset.quizLink = "";
-      quizLink.textContent = "퀴즈";
-      const conceptsLink = submenu.querySelector('a[href="concepts.html"]');
-      if (conceptsLink) conceptsLink.insertAdjacentElement("afterend", quizLink);
-      else submenu.appendChild(quizLink);
-    }
-    const user = getUser();
-    if (link && link.dataset.logoutHandler !== "attached") {
-      link.addEventListener("click", handleAuthLinkClick);
-      link.dataset.logoutHandler = "attached";
-    }
-    if (link && getToken() && user) {
-      link.textContent = `${user.displayName || user.username} · 로그아웃`;
-      link.href = "#logout";
-    } else if (link) {
-      link.textContent = "로그인 / 회원가입";
-      link.href = "login.html";
-    }
+    const accountMenu = link?.closest(".nav-submenu");
 
-    let mypageLink = document.querySelector("[data-mypage-link]");
-    if (getToken() && user && !mypageLink) {
+    let mypageLink = accountMenu?.querySelector("[data-mypage-link]");
+    if (authed && accountMenu && !mypageLink) {
       mypageLink = document.createElement("a");
       mypageLink.href = "mypage.html";
       mypageLink.dataset.mypageLink = "";
       mypageLink.textContent = "마이페이지";
-      link?.insertAdjacentElement("afterend", mypageLink);
+      accountMenu.appendChild(mypageLink);
     } else if (mypageLink) {
-      mypageLink.hidden = !(getToken() && user);
+      mypageLink.hidden = !authed;
     }
 
-    let chatLink = document.querySelector("[data-chat-link]");
-    if (getToken() && !chatLink) {
-      chatLink = document.createElement("a");
-      chatLink.href = "chat.html";
-      chatLink.dataset.chatLink = "";
-      chatLink.textContent = "실시간 대화";
-      link?.insertAdjacentElement("afterend", chatLink);
-    } else if (chatLink) {
-      chatLink.hidden = !getToken();
-    }
-
-    let passwordLink = document.querySelector("[data-password-link]");
-    if (user && getToken() && !passwordLink) {
+    let passwordLink = accountMenu?.querySelector("[data-password-link]");
+    if (authed && accountMenu && !passwordLink) {
       passwordLink = document.createElement("a");
       passwordLink.href = "login.html?mode=password-change#password-change";
       passwordLink.dataset.passwordLink = "";
       passwordLink.textContent = "비밀번호 변경";
-      link?.insertAdjacentElement("afterend", passwordLink);
+      accountMenu.appendChild(passwordLink);
     } else if (passwordLink) {
-      passwordLink.hidden = !(user && getToken());
+      passwordLink.hidden = !authed;
     }
 
-    let adminLink = document.querySelector("[data-admin-link]");
-    if (user?.isAdmin && !adminLink) {
+    let adminLink = accountMenu?.querySelector("[data-admin-link]");
+    if (user?.isAdmin && accountMenu && !adminLink) {
       adminLink = document.createElement("a");
       adminLink.href = "admin.html";
       adminLink.dataset.adminLink = "";
       adminLink.textContent = "회원가입 승인";
-      link?.insertAdjacentElement("afterend", adminLink);
+      accountMenu.appendChild(adminLink);
     } else if (adminLink) {
       adminLink.hidden = !user?.isAdmin;
     }

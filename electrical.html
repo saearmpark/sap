@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codestudio — 학습(전기)</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=files-menu-1">
+<link rel="stylesheet" href="assets/style.css?v=menu-structure-2">
 </head>
 <body class="learning-page">
 <div class="layout">
@@ -14,25 +14,45 @@
     <nav class="nav-group">
       <div class="nav-label">MENU</div>
       <a href="index.html">홈</a>
+      <a href="search.html">통합 검색</a>
       <a href="calendar.html">일정</a>
-      <details class="nav-learning" open>
-        <summary>학습</summary>
+      <details class="nav-menu">
+        <summary>제작</summary>
         <div class="nav-submenu">
-          <a href="learn.html">앱제작</a>
-          <a href="game.html">게임제작</a>
-          <a href="concepts.html">개념학습</a>
-          <a href="web.html">웹제작</a>
+          <a href="learn.html">앱</a>
+          <a href="game.html">게임</a>
+          <a href="web.html">웹</a>
         </div>
       </details>
-      <a href="board.html">게시판</a>
-      <details class="nav-files">
+      <details class="nav-menu" open>
+        <summary>학습</summary>
+        <div class="nav-submenu">
+          <a href="concepts.html">컴퓨터 개념</a>
+          <a href="electrical.html" class="active" aria-current="page">전기</a>
+          <a href="language.html">외국어</a>
+          <a href="quiz.html">퀴즈</a>
+        </div>
+      </details>
+      <details class="nav-menu">
+        <summary>커뮤니티</summary>
+        <div class="nav-submenu">
+          <a href="board.html">게시판</a>
+          <a href="chat.html">실시간 대화</a>
+        </div>
+      </details>
+      <details class="nav-menu">
         <summary>자료실</summary>
         <div class="nav-submenu">
           <a href="files.html">개인자료</a>
           <a href="apps.html">공용자료</a>
         </div>
       </details>
-      <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+      <details class="nav-menu">
+        <summary>계정</summary>
+        <div class="nav-submenu">
+          <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+        </div>
+      </details>
     </nav>
     <div class="sidebar-footer">v0.1 · local build</div>
   </aside>
@@ -53,7 +73,7 @@
     </section>
   </main>
 </div>
-<script src="assets/auth.js?v=files-menu-1"></script>
+<script src="assets/auth.js?v=menu-structure-2"></script>
 <script src="assets/theme.js"></script>
 </body>
 </html>
