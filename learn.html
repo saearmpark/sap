@@ -43,6 +43,13 @@
   .app-muted { color:var(--ink-soft); font-size:13px; }
   :root[data-theme="dark"] .app-list button, :root[data-theme="dark"] .app-back { color:var(--ink) !important; }
   :root[data-theme="dark"] .app-items button { color:var(--ink-soft) !important; }
+  input[type="range"] { width: 150px; }
+  .habit-list { display: grid; gap: 10px; margin-top: 12px; }
+  .habit-row { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--surface); }
+  .habit-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .habit-days { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .habit-day { padding: 6px 8px; font-size: 12px; background: transparent; color: var(--ink-soft); border: 1px solid var(--border); border-radius: 6px; }
+  .habit-day.is-done { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body class="learning-page">
@@ -78,6 +85,11 @@
       <div class="app-entry"><button class="app-surface-button" type="button" data-app="calculator">간단 계산기</button><button type="button" data-code-range="calculator">코드 보기</button></div>
       <div class="app-entry"><button class="app-surface-button" type="button" data-app="drawing">그림판</button><button type="button" data-code-range="drawing">코드 보기</button></div>
       <div class="app-entry"><button class="app-surface-button" type="button" data-app="timer">타이머</button><button type="button" data-code-range="timer">코드 보기</button></div>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="unit">단위 변환기</button><button type="button" data-code-range="unit">코드 보기</button></div>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="password">비밀번호 생성기</button><button type="button" data-code-range="password">코드 보기</button></div>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="random">랜덤 추첨기</button><button type="button" data-code-range="random">코드 보기</button></div>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="contacts">연락처 관리</button><button type="button" data-code-range="contacts">코드 보기</button></div>
+      <div class="app-entry"><button class="app-surface-button" type="button" data-app="habit">습관 트래커</button><button type="button" data-code-range="habit">코드 보기</button></div>
     </div>
     <section id="app-todo" class="card app-panel" hidden>
       <button class="app-back app-surface-button" type="button">← 앱 목록</button>
@@ -144,6 +156,77 @@
         <button id="timer-reset" type="button">초기화</button>
       </div>
       <p id="timer-status" class="app-muted" aria-live="polite">시작을 눌러 집중 시간을 기록하세요.</p>
+    </section>
+    <section id="app-unit" class="card app-panel" hidden>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
+      <h3>단위 변환기</h3>
+      <div class="app-form">
+        <select id="unit-category" aria-label="단위 종류">
+          <option value="길이">길이</option>
+          <option value="무게">무게</option>
+          <option value="온도">온도</option>
+        </select>
+        <input id="unit-value" type="number" step="any" value="1" aria-label="변환할 값">
+        <select id="unit-from" aria-label="변환 전 단위"></select>
+        <span class="app-muted">→</span>
+        <select id="unit-to" aria-label="변환 후 단위"></select>
+      </div>
+      <p id="unit-result" class="app-total" aria-live="polite">결과: -</p>
+      <p class="app-muted">길이·무게·온도를 자주 쓰는 단위로 변환합니다.</p>
+    </section>
+    <section id="app-password" class="card app-panel" hidden>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
+      <h3>비밀번호 생성기</h3>
+      <div class="app-form">
+        <label class="app-muted">길이 <input id="password-length" type="range" min="6" max="32" value="16"><span id="password-length-label">16</span></label>
+        <label class="app-muted"><input id="password-lower" type="checkbox" checked> 소문자</label>
+        <label class="app-muted"><input id="password-upper" type="checkbox" checked> 대문자</label>
+        <label class="app-muted"><input id="password-digit" type="checkbox" checked> 숫자</label>
+        <label class="app-muted"><input id="password-symbol" type="checkbox"> 특수문자</label>
+      </div>
+      <div class="app-form">
+        <input id="password-output" type="text" readonly placeholder="생성 버튼을 누르세요" aria-label="생성된 비밀번호">
+        <button id="password-generate" type="button">생성</button>
+        <button id="password-copy" type="button">복사</button>
+      </div>
+      <p id="password-status" class="app-muted" aria-live="polite">조건을 고르고 생성을 누르세요.</p>
+    </section>
+    <section id="app-random" class="card app-panel" hidden>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
+      <h3>랜덤 추첨기</h3>
+      <p class="app-muted">후보를 한 줄에 하나씩 입력하세요. 메뉴 정하기, 제비뽑기에 좋습니다.</p>
+      <textarea id="random-input" placeholder="예:&#10;김철수&#10;이영희&#10;박민수"></textarea>
+      <div class="app-form">
+        <label class="app-muted">뽑을 개수 <input id="random-count" type="number" min="1" max="20" value="1"></label>
+        <label class="app-muted"><input id="random-unique" type="checkbox" checked> 중복 없이</label>
+        <button id="random-draw" type="button">추첨</button>
+      </div>
+      <p id="random-result" class="app-total" aria-live="polite">결과: -</p>
+    </section>
+    <section id="app-contacts" class="card app-panel" hidden>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
+      <h3>연락처 관리</h3>
+      <form id="contacts-form" class="app-form">
+        <input id="contacts-name" type="text" maxlength="40" placeholder="이름" required>
+        <input id="contacts-phone" type="text" maxlength="30" placeholder="전화번호">
+        <input id="contacts-email" type="text" maxlength="80" placeholder="이메일">
+        <button type="submit">추가</button>
+      </form>
+      <div class="app-form">
+        <input id="contacts-search" type="text" maxlength="40" placeholder="이름·전화번호 검색" aria-label="연락처 검색">
+      </div>
+      <ul id="contacts-list" class="app-items"></ul>
+      <p class="app-muted">연락처는 이 브라우저에 저장됩니다.</p>
+    </section>
+    <section id="app-habit" class="card app-panel" hidden>
+      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
+      <h3>습관 트래커</h3>
+      <form id="habit-form" class="app-form">
+        <input id="habit-input" type="text" maxlength="40" placeholder="습관 이름 (예: 물 2L 마시기)" required>
+        <button type="submit">추가</button>
+      </form>
+      <div id="habit-list" class="habit-list"></div>
+      <p class="app-muted">요일 버튼을 눌러 최근 7일 실천을 기록하세요. 기록은 이 브라우저에 저장됩니다.</p>
     </section>
     <dialog id="app-code-dialog" class="app-code-dialog">
       <button id="app-code-close" type="button">닫기</button>
@@ -600,6 +683,304 @@
       timerStatus.textContent = "시작을 눌러 집중 시간을 기록하세요.";
     });
     // APP_CODE_END: timer
+
+    // APP_CODE_START: unit
+    const unitCategory = document.getElementById("unit-category");
+    const unitValue = document.getElementById("unit-value");
+    const unitFrom = document.getElementById("unit-from");
+    const unitTo = document.getElementById("unit-to");
+    const unitResult = document.getElementById("unit-result");
+    const unitGroups = {
+      "길이": { "밀리미터": 0.001, "센티미터": 0.01, "미터": 1, "킬로미터": 1000, "인치": 0.0254, "피트": 0.3048, "마일": 1609.344 },
+      "무게": { "밀리그램": 0.000001, "그램": 0.001, "킬로그램": 1, "톤": 1000, "파운드": 0.45359237, "온스": 0.028349523125 },
+    };
+    function toCelsius(value, unit) {
+      if (unit === "섭씨") return value;
+      if (unit === "화씨") return (value - 32) * 5 / 9;
+      return value - 273.15;
+    }
+    function fromCelsius(celsius, unit) {
+      if (unit === "섭씨") return celsius;
+      if (unit === "화씨") return celsius * 9 / 5 + 32;
+      return celsius + 273.15;
+    }
+    function convertUnit() {
+      const value = Number(unitValue.value);
+      if (unitValue.value === "" || !Number.isFinite(value)) {
+        unitResult.textContent = "결과: 값을 입력하세요.";
+        return;
+      }
+      const from = unitFrom.value;
+      const to = unitTo.value;
+      let result;
+      if (unitCategory.value === "온도") {
+        result = fromCelsius(toCelsius(value, from), to);
+      } else {
+        const group = unitGroups[unitCategory.value];
+        result = value * group[from] / group[to];
+      }
+      const rounded = Number(result.toFixed(6));
+      unitResult.textContent = `결과: ${rounded.toLocaleString("ko-KR", { maximumSignificantDigits: 10 })} ${to}`;
+    }
+    function fillUnitOptions() {
+      const names = unitCategory.value === "온도" ? ["섭씨", "화씨", "켈빈"] : Object.keys(unitGroups[unitCategory.value]);
+      [unitFrom, unitTo].forEach((select, index) => {
+        select.replaceChildren();
+        names.forEach(name => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          select.appendChild(option);
+        });
+        select.selectedIndex = index === 0 ? 0 : (names.length > 1 ? 1 : 0);
+      });
+      convertUnit();
+    }
+    unitCategory.addEventListener("change", fillUnitOptions);
+    unitFrom.addEventListener("change", convertUnit);
+    unitTo.addEventListener("change", convertUnit);
+    unitValue.addEventListener("input", convertUnit);
+    fillUnitOptions();
+    // APP_CODE_END: unit
+
+    // APP_CODE_START: password
+    const passwordLength = document.getElementById("password-length");
+    const passwordLengthLabel = document.getElementById("password-length-label");
+    const passwordOutput = document.getElementById("password-output");
+    const passwordStatus = document.getElementById("password-status");
+    const passwordSets = {
+      lower: "abcdefghijklmnopqrstuvwxyz",
+      upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      digit: "0123456789",
+      symbol: "!@#$%^&*()-_=+[]{};:,.?",
+    };
+    function secureInt(max) {
+      const range = new Uint32Array(1);
+      const limit = Math.floor(0x100000000 / max) * max;
+      let value;
+      do { crypto.getRandomValues(range); value = range[0]; } while (value >= limit);
+      return value % max;
+    }
+    function generatePassword() {
+      const pool = [
+        ["lower", document.getElementById("password-lower").checked],
+        ["upper", document.getElementById("password-upper").checked],
+        ["digit", document.getElementById("password-digit").checked],
+        ["symbol", document.getElementById("password-symbol").checked],
+      ].filter(([, on]) => on).map(([key]) => passwordSets[key]).join("");
+      if (!pool) {
+        passwordOutput.value = "";
+        passwordStatus.textContent = "문자 종류를 하나 이상 선택하세요.";
+        return;
+      }
+      const length = Number(passwordLength.value);
+      let result = "";
+      for (let i = 0; i < length; i += 1) result += pool[secureInt(pool.length)];
+      passwordOutput.value = result;
+      passwordStatus.textContent = `길이 ${length} · 사용 문자 ${pool.length}종`;
+    }
+    passwordLength.addEventListener("input", () => { passwordLengthLabel.textContent = passwordLength.value; });
+    document.getElementById("password-generate").addEventListener("click", generatePassword);
+    document.getElementById("password-copy").addEventListener("click", async () => {
+      if (!passwordOutput.value) {
+        passwordStatus.textContent = "먼저 비밀번호를 생성하세요.";
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(passwordOutput.value);
+      } catch {
+        passwordOutput.select();
+        document.execCommand("copy");
+      }
+      passwordStatus.textContent = "클립보드에 복사했습니다.";
+    });
+    generatePassword();
+    // APP_CODE_END: password
+
+    // APP_CODE_START: random
+    const randomInput = document.getElementById("random-input");
+    const randomCount = document.getElementById("random-count");
+    const randomUnique = document.getElementById("random-unique");
+    const randomResult = document.getElementById("random-result");
+    function randomIndex(max) {
+      const range = new Uint32Array(1);
+      crypto.getRandomValues(range);
+      return range[0] % max;
+    }
+    randomInput.value = storage.read("sap-app-random-input", "");
+    randomInput.addEventListener("input", () => storage.write("sap-app-random-input", randomInput.value));
+    document.getElementById("random-draw").addEventListener("click", () => {
+      const pool = randomInput.value.split("\n").map(item => item.trim()).filter(Boolean);
+      if (!pool.length) {
+        randomResult.textContent = "결과: 후보를 입력하세요.";
+        return;
+      }
+      let count = Number(randomCount.value);
+      if (!Number.isSafeInteger(count) || count < 1) count = 1;
+      let winners;
+      if (randomUnique.checked) {
+        count = Math.min(count, pool.length);
+        const remaining = [...pool];
+        winners = [];
+        for (let i = 0; i < count; i += 1) winners.push(remaining.splice(randomIndex(remaining.length), 1)[0]);
+      } else {
+        winners = [];
+        for (let i = 0; i < count; i += 1) winners.push(pool[randomIndex(pool.length)]);
+      }
+      randomResult.textContent = `결과: ${winners.join(", ")}`;
+    });
+    // APP_CODE_END: random
+
+    // APP_CODE_START: contacts
+    const contactsForm = document.getElementById("contacts-form");
+    const contactsName = document.getElementById("contacts-name");
+    const contactsPhone = document.getElementById("contacts-phone");
+    const contactsEmail = document.getElementById("contacts-email");
+    const contactsSearch = document.getElementById("contacts-search");
+    const contactsList = document.getElementById("contacts-list");
+    let contacts = storage.read("sap-app-contacts", []);
+    function renderContacts() {
+      const query = contactsSearch.value.trim().toLowerCase();
+      contactsList.replaceChildren();
+      const visible = contacts.filter(contact =>
+        !query || contact.name.toLowerCase().includes(query) || (contact.phone || "").toLowerCase().includes(query));
+      if (!visible.length) {
+        const item = document.createElement("li");
+        item.textContent = contacts.length ? "검색 결과가 없습니다." : "추가된 연락처가 없습니다.";
+        contactsList.appendChild(item);
+        return;
+      }
+      visible.forEach(contact => {
+        const item = document.createElement("li");
+        const info = document.createElement("span");
+        info.textContent = `${contact.name} · ${contact.phone || "-"} · ${contact.email || "-"}`;
+        const remove = document.createElement("button");
+        remove.className = "app-surface-button";
+        remove.type = "button";
+        remove.textContent = "삭제";
+        remove.setAttribute("aria-label", `${contact.name} 삭제`);
+        remove.addEventListener("click", () => {
+          contacts = contacts.filter(entry => entry.id !== contact.id);
+          storage.write("sap-app-contacts", contacts);
+          renderContacts();
+        });
+        item.append(info, remove);
+        contactsList.appendChild(item);
+      });
+    }
+    contactsSearch.addEventListener("input", renderContacts);
+    contactsForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const name = contactsName.value.trim();
+      if (!name) return;
+      contacts.unshift({
+        id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
+        name,
+        phone: contactsPhone.value.trim(),
+        email: contactsEmail.value.trim(),
+      });
+      storage.write("sap-app-contacts", contacts);
+      contactsForm.reset();
+      contactsName.focus();
+      renderContacts();
+    });
+    renderContacts();
+    // APP_CODE_END: contacts
+
+    // APP_CODE_START: habit
+    const habitForm = document.getElementById("habit-form");
+    const habitInput = document.getElementById("habit-input");
+    const habitList = document.getElementById("habit-list");
+    let habits = storage.read("sap-app-habits", []);
+    function habitDateKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+    function recentDays(count) {
+      const days = [];
+      const today = new Date();
+      for (let i = count - 1; i >= 0; i -= 1) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        days.push(date);
+      }
+      return days;
+    }
+    function habitStreak(habit, todayKey) {
+      let streak = 0;
+      const cursor = new Date(`${todayKey}T00:00:00`);
+      while (habit.days?.[habitDateKey(cursor)]) {
+        streak += 1;
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      return streak;
+    }
+    function renderHabits() {
+      const days = recentDays(7);
+      const todayKey = habitDateKey(new Date());
+      habitList.replaceChildren();
+      if (!habits.length) {
+        const empty = document.createElement("p");
+        empty.className = "app-muted";
+        empty.textContent = "추가된 습관이 없습니다.";
+        habitList.appendChild(empty);
+        return;
+      }
+      habits.forEach(habit => {
+        const row = document.createElement("div");
+        row.className = "habit-row";
+        const head = document.createElement("div");
+        head.className = "habit-head";
+        const title = document.createElement("strong");
+        title.textContent = habit.name;
+        const streak = document.createElement("span");
+        streak.className = "app-muted";
+        streak.textContent = `연속 ${habitStreak(habit, todayKey)}일`;
+        head.append(title, streak);
+        const grid = document.createElement("div");
+        grid.className = "habit-days";
+        days.forEach(day => {
+          const key = habitDateKey(day);
+          const done = Boolean(habit.days?.[key]);
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = `habit-day${done ? " is-done" : ""}`;
+          cell.textContent = `${"일월화수목금토"[day.getDay()]} ${day.getDate()}`;
+          cell.setAttribute("aria-pressed", String(done));
+          cell.addEventListener("click", () => {
+            habit.days = habit.days || {};
+            if (habit.days[key]) delete habit.days[key];
+            else habit.days[key] = true;
+            storage.write("sap-app-habits", habits);
+            renderHabits();
+          });
+          grid.appendChild(cell);
+        });
+        const remove = document.createElement("button");
+        remove.className = "app-surface-button";
+        remove.type = "button";
+        remove.textContent = "삭제";
+        remove.setAttribute("aria-label", `${habit.name} 삭제`);
+        remove.addEventListener("click", () => {
+          habits = habits.filter(entry => entry.id !== habit.id);
+          storage.write("sap-app-habits", habits);
+          renderHabits();
+        });
+        row.append(head, grid, remove);
+        habitList.appendChild(row);
+      });
+    }
+    habitForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const name = habitInput.value.trim();
+      if (!name) return;
+      habits.push({ id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`, name, days: {} });
+      storage.write("sap-app-habits", habits);
+      habitInput.value = "";
+      habitInput.focus();
+      renderHabits();
+    });
+    renderHabits();
+    // APP_CODE_END: habit
   })();
 </script>
 <script src="assets/theme.js"></script>
