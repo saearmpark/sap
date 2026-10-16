@@ -32,7 +32,7 @@
 
   function loginUrl(sessionExpired = false) {
     const next = location.pathname.split("/").pop();
-    const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html"];
+    const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html", "quiz.html"];
     const params = new URLSearchParams();
     if (allowed.includes(next)) params.set("next", next);
     if (sessionExpired) params.set("expired", "1");
@@ -55,19 +55,20 @@
   }
 
   async function apiFetch(url, options = {}) {
-    const headers = new Headers(options.headers || {});
+    const { suppressAuthRedirect = false, ...fetchOptions } = options;
+    const headers = new Headers(fetchOptions.headers || {});
     const token = getToken();
     if (token) headers.set("Authorization", `Bearer ${token}`);
     let response;
     try {
-      response = await fetch(url, { ...options, headers });
+      response = await fetch(url, { ...fetchOptions, headers });
     } catch (error) {
       if (error instanceof TypeError) {
         throw new TypeError("인증 서버에 연결할 수 없습니다. 인터넷 연결을 확인한 뒤 다시 시도해주세요.", { cause: error });
       }
       throw error;
     }
-    if (response.status === 401 && token && !url.includes("/api/auth/login")) {
+    if (response.status === 401 && token && !suppressAuthRedirect && !url.includes("/api/auth/login")) {
       clearSession();
       location.replace(loginUrl(true));
     }
@@ -105,6 +106,17 @@
         searchLink.textContent = "통합 검색";
         homeLink.insertAdjacentElement("afterend", searchLink);
       }
+    }
+
+    const toolsNav = document.querySelector(".nav-group");
+    if (toolsNav && !toolsNav.querySelector("[data-apps-link]")) {
+      const filesLink = toolsNav.querySelector('a[href="files.html"]');
+      const appsLink = document.createElement("a");
+      appsLink.href = "apps.html";
+      appsLink.dataset.appsLink = "";
+      appsLink.textContent = "데스크톱 도구";
+      if (filesLink) filesLink.insertAdjacentElement("afterend", appsLink);
+      else toolsNav.appendChild(appsLink);
     }
 
     const submenu = document.querySelector(".nav-submenu");

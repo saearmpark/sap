@@ -153,7 +153,7 @@
         return;
       }
       const requested = params.get("next") || "index.html";
-      const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html"];
+      const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html", "quiz.html"];
       location.replace(allowed.includes(requested) ? requested : "index.html");
     } catch (error) {
       status.textContent = error instanceof TypeError

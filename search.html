@@ -141,13 +141,22 @@
       return staticReady;
     }
 
+    let authBlocked = false;
+
     async function searchDynamic(query) {
       const dynamic = [];
-      if (!SAPAuth.getToken()) return dynamic;
+      authBlocked = false;
+      if (!SAPAuth.getToken()) {
+        authBlocked = true;
+        return dynamic;
+      }
 
       try {
-        const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/posts?q=${encodeURIComponent(query)}`);
-        if (response.ok) {
+        const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/posts?q=${encodeURIComponent(query)}`, { suppressAuthRedirect: true });
+        if (response.status === 401) {
+          authBlocked = true;
+          SAPAuth.clearSession();
+        } else if (response.ok) {
           (await response.json()).forEach(post => dynamic.push({
             key: "board",
             title: post.title,
@@ -157,9 +166,14 @@
         }
       } catch {}
 
+      if (authBlocked) return dynamic;
+
       try {
-        const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/files`);
-        if (response.ok) {
+        const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/files`, { suppressAuthRedirect: true });
+        if (response.status === 401) {
+          authBlocked = true;
+          SAPAuth.clearSession();
+        } else if (response.ok) {
           const lower = query.toLowerCase();
           (await response.json())
             .filter(file => (file.original_name || file.originalFileName || "").toLowerCase().includes(lower))
@@ -237,7 +251,9 @@
         item.title.toLowerCase().includes(lower) || item.text.toLowerCase().includes(lower));
       const dynamicMatches = await searchDynamic(query);
       const matches = [...localMatches, ...dynamicMatches];
-      status.textContent = `"${query}" 검색 결과 ${matches.length}건`;
+      status.textContent = authBlocked
+        ? `"${query}" 검색 결과 ${matches.length}건 · 게시판·자료실 결과는 로그인 후 표시됩니다.`
+        : `"${query}" 검색 결과 ${matches.length}건`;
       render(matches, query);
     }
 

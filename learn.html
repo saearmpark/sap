@@ -44,12 +44,6 @@
   :root[data-theme="dark"] .app-list button, :root[data-theme="dark"] .app-back { color:var(--ink) !important; }
   :root[data-theme="dark"] .app-items button { color:var(--ink-soft) !important; }
   input[type="range"] { width: 150px; }
-  .habit-list { display: grid; gap: 10px; margin-top: 12px; }
-  .habit-row { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--surface); }
-  .habit-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-  .habit-days { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-  .habit-day { padding: 6px 8px; font-size: 12px; background: transparent; color: var(--ink-soft); border: 1px solid var(--border); border-radius: 6px; }
-  .habit-day.is-done { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body class="learning-page">
@@ -89,7 +83,6 @@
       <div class="app-entry"><button class="app-surface-button" type="button" data-app="password">비밀번호 생성기</button><button type="button" data-code-range="password">코드 보기</button></div>
       <div class="app-entry"><button class="app-surface-button" type="button" data-app="random">랜덤 추첨기</button><button type="button" data-code-range="random">코드 보기</button></div>
       <div class="app-entry"><button class="app-surface-button" type="button" data-app="contacts">연락처 관리</button><button type="button" data-code-range="contacts">코드 보기</button></div>
-      <div class="app-entry"><button class="app-surface-button" type="button" data-app="habit">습관 트래커</button><button type="button" data-code-range="habit">코드 보기</button></div>
     </div>
     <section id="app-todo" class="card app-panel" hidden>
       <button class="app-back app-surface-button" type="button">← 앱 목록</button>
@@ -217,16 +210,6 @@
       </div>
       <ul id="contacts-list" class="app-items"></ul>
       <p class="app-muted">연락처는 이 브라우저에 저장됩니다.</p>
-    </section>
-    <section id="app-habit" class="card app-panel" hidden>
-      <button class="app-back app-surface-button" type="button">← 앱 목록</button>
-      <h3>습관 트래커</h3>
-      <form id="habit-form" class="app-form">
-        <input id="habit-input" type="text" maxlength="40" placeholder="습관 이름 (예: 물 2L 마시기)" required>
-        <button type="submit">추가</button>
-      </form>
-      <div id="habit-list" class="habit-list"></div>
-      <p class="app-muted">요일 버튼을 눌러 최근 7일 실천을 기록하세요. 기록은 이 브라우저에 저장됩니다.</p>
     </section>
     <dialog id="app-code-dialog" class="app-code-dialog">
       <button id="app-code-close" type="button">닫기</button>
@@ -886,101 +869,6 @@
     });
     renderContacts();
     // APP_CODE_END: contacts
-
-    // APP_CODE_START: habit
-    const habitForm = document.getElementById("habit-form");
-    const habitInput = document.getElementById("habit-input");
-    const habitList = document.getElementById("habit-list");
-    let habits = storage.read("sap-app-habits", []);
-    function habitDateKey(date) {
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-    }
-    function recentDays(count) {
-      const days = [];
-      const today = new Date();
-      for (let i = count - 1; i >= 0; i -= 1) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        days.push(date);
-      }
-      return days;
-    }
-    function habitStreak(habit, todayKey) {
-      let streak = 0;
-      const cursor = new Date(`${todayKey}T00:00:00`);
-      while (habit.days?.[habitDateKey(cursor)]) {
-        streak += 1;
-        cursor.setDate(cursor.getDate() - 1);
-      }
-      return streak;
-    }
-    function renderHabits() {
-      const days = recentDays(7);
-      const todayKey = habitDateKey(new Date());
-      habitList.replaceChildren();
-      if (!habits.length) {
-        const empty = document.createElement("p");
-        empty.className = "app-muted";
-        empty.textContent = "추가된 습관이 없습니다.";
-        habitList.appendChild(empty);
-        return;
-      }
-      habits.forEach(habit => {
-        const row = document.createElement("div");
-        row.className = "habit-row";
-        const head = document.createElement("div");
-        head.className = "habit-head";
-        const title = document.createElement("strong");
-        title.textContent = habit.name;
-        const streak = document.createElement("span");
-        streak.className = "app-muted";
-        streak.textContent = `연속 ${habitStreak(habit, todayKey)}일`;
-        head.append(title, streak);
-        const grid = document.createElement("div");
-        grid.className = "habit-days";
-        days.forEach(day => {
-          const key = habitDateKey(day);
-          const done = Boolean(habit.days?.[key]);
-          const cell = document.createElement("button");
-          cell.type = "button";
-          cell.className = `habit-day${done ? " is-done" : ""}`;
-          cell.textContent = `${"일월화수목금토"[day.getDay()]} ${day.getDate()}`;
-          cell.setAttribute("aria-pressed", String(done));
-          cell.addEventListener("click", () => {
-            habit.days = habit.days || {};
-            if (habit.days[key]) delete habit.days[key];
-            else habit.days[key] = true;
-            storage.write("sap-app-habits", habits);
-            renderHabits();
-          });
-          grid.appendChild(cell);
-        });
-        const remove = document.createElement("button");
-        remove.className = "app-surface-button";
-        remove.type = "button";
-        remove.textContent = "삭제";
-        remove.setAttribute("aria-label", `${habit.name} 삭제`);
-        remove.addEventListener("click", () => {
-          habits = habits.filter(entry => entry.id !== habit.id);
-          storage.write("sap-app-habits", habits);
-          renderHabits();
-        });
-        row.append(head, grid, remove);
-        habitList.appendChild(row);
-      });
-    }
-    habitForm.addEventListener("submit", event => {
-      event.preventDefault();
-      const name = habitInput.value.trim();
-      if (!name) return;
-      habits.push({ id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`, name, days: {} });
-      storage.write("sap-app-habits", habits);
-      habitInput.value = "";
-      habitInput.focus();
-      renderHabits();
-    });
-    renderHabits();
-    // APP_CODE_END: habit
   })();
 </script>
 <script src="assets/theme.js"></script>
