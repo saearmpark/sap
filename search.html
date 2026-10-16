@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>codestudio — 통합 검색</title>
+<title>codestudio — 검색</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=sidebar-5">
+<link rel="stylesheet" href="assets/style.css?v=labels-7">
 <style>
   .search-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .search-form input[type="search"] {
@@ -34,7 +34,7 @@
   <aside class="sidebar">
     <nav class="nav-group">
       <a href="index.html">홈</a>
-      <a href="search.html" class="active" aria-current="page">통합 검색</a>
+      <a href="search.html" class="active" aria-current="page">검색</a>
       <details class="nav-menu">
         <summary>제작</summary>
         <div class="nav-submenu">
@@ -43,7 +43,7 @@
         </div>
       </details>
       <details class="nav-menu">
-        <summary>커뮤니티</summary>
+        <summary>소통</summary>
         <div class="nav-submenu">
           <a href="board.html">게시판</a>
           <a href="chat.html">실시간 대화</a>
@@ -57,7 +57,7 @@
         </div>
       </details>
       <details class="nav-menu">
-        <summary>내 공간</summary>
+        <summary>계정</summary>
         <div class="nav-submenu">
           <a href="calendar.html">일정</a>
           <a href="login.html" data-auth-link>로그인 / 회원가입</a>
@@ -68,7 +68,7 @@
   </aside>
   <main class="main">
     <div class="eyebrow">SEARCH</div>
-    <h1>통합 검색</h1>
+    <h1>검색</h1>
     <p class="lead">게임제작, 앱제작, 게시판, 자료실의 내용을 한 번에 검색합니다.</p>
 
     <form id="search-form" class="card search-form" role="search">
@@ -80,7 +80,7 @@
     <div id="search-results"></div>
   </main>
 </div>
-<script src="assets/auth.js?v=sidebar-5"></script>
+<script src="assets/auth.js?v=labels-7"></script>
 <script>
   (() => {
     const form = document.getElementById("search-form");

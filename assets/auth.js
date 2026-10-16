@@ -124,7 +124,7 @@
       mypageLink = document.createElement("a");
       mypageLink.href = "mypage.html";
       mypageLink.dataset.mypageLink = "";
-      mypageLink.textContent = "마이페이지";
+      mypageLink.textContent = "나의정보";
       accountMenu.appendChild(mypageLink);
     } else if (mypageLink) {
       mypageLink.hidden = !authed;

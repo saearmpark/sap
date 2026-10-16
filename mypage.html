@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>codestudio — 마이페이지</title>
+<title>codestudio — 나의정보</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=sidebar-5">
+<link rel="stylesheet" href="assets/style.css?v=labels-7">
 <style>
   .mypage-stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
   .mypage-stat .mypage-stat-value { font-size: 30px; font-weight: 700; color: var(--ink); line-height: 1.1; }
@@ -28,7 +28,7 @@
   <aside class="sidebar">
     <nav class="nav-group">
       <a href="index.html">홈</a>
-      <a href="search.html">통합 검색</a>
+      <a href="search.html">검색</a>
       <details class="nav-menu">
         <summary>제작</summary>
         <div class="nav-submenu">
@@ -37,7 +37,7 @@
         </div>
       </details>
       <details class="nav-menu">
-        <summary>커뮤니티</summary>
+        <summary>소통</summary>
         <div class="nav-submenu">
           <a href="board.html">게시판</a>
           <a href="chat.html">실시간 대화</a>
@@ -51,7 +51,7 @@
         </div>
       </details>
       <details class="nav-menu" open>
-        <summary>내 공간</summary>
+        <summary>계정</summary>
         <div class="nav-submenu">
           <a href="calendar.html">일정</a>
           <a href="login.html" data-auth-link>로그인 / 회원가입</a>
@@ -62,7 +62,7 @@
   </aside>
   <main class="main">
     <div class="eyebrow">MY PAGE</div>
-    <h1 id="mypage-greeting">마이페이지</h1>
+    <h1 id="mypage-greeting">나의정보</h1>
     <p class="lead">내가 남긴 글·자료·그림과 게임 학습 진행도, 다가오는 일정을 한눈에 확인합니다.</p>
 
     <section class="grid mypage-stats" aria-label="내 활동 요약">
@@ -116,7 +116,7 @@
     </section>
   </main>
 </div>
-<script src="assets/auth.js?v=sidebar-5"></script>
+<script src="assets/auth.js?v=labels-7"></script>
 <script>
   (() => {
     const API = SAPAuth.API_ROOT;
