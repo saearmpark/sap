@@ -32,7 +32,7 @@
 
   function loginUrl(sessionExpired = false) {
     const next = location.pathname.split("/").pop();
-    const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html", "quiz.html"];
+    const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html"];
     const params = new URLSearchParams();
     if (allowed.includes(next)) params.set("next", next);
     if (sessionExpired) params.set("expired", "1");

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codestudio — 로그인</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=menu-categories-3">
+<link rel="stylesheet" href="assets/style.css?v=menu-cleanup-4">
 </head>
 <body>
 <div class="layout">
@@ -80,7 +80,7 @@
     </section>
   </main>
 </div>
-<script src="assets/auth.js?v=menu-categories-3"></script>
+<script src="assets/auth.js?v=menu-cleanup-4"></script>
 <script>
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
@@ -169,7 +169,7 @@
         return;
       }
       const requested = params.get("next") || "index.html";
-      const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html", "quiz.html"];
+      const allowed = ["index.html", "board.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html"];
       location.replace(allowed.includes(requested) ? requested : "index.html");
     } catch (error) {
       status.textContent = error instanceof TypeError
