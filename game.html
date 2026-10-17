@@ -321,6 +321,12 @@
   .typing-form button { min-height:44px; }
   .runner-canvas { width:min(100%, 520px); height:auto; border:1px solid var(--border); border-radius:8px; background:var(--bg); touch-action:manipulation; }
   .game-panel { scroll-margin-top:16px; }
+  .match3-hud { display:flex; flex-wrap:wrap; gap:14px; margin:10px 0; color:var(--ink-soft); font-weight:600; }
+  .match3-board { display:grid; grid-template-columns:repeat(8, minmax(0, 1fr)); gap:3px; width:min(100%, 420px); aspect-ratio:1; margin:12px 0; padding:6px; border-radius:10px; background:var(--accent-soft); }
+  .match3-cell { display:grid; place-items:center; min-width:0; min-height:0; padding:0; border:1px solid var(--border); border-radius:6px; background:var(--surface); cursor:pointer; }
+  .match3-cell.is-selected { outline:3px solid var(--accent); outline-offset:-3px; }
+  .match3-cell.is-clearing { background:var(--accent); opacity:.35; }
+  .match3-gem { font-size:clamp(15px, 4.6vw, 26px); line-height:1; pointer-events:none; }
   .breakout-canvas {
     touch-action: none; /* 캔버스 위에서 드래그/스와이프할 때 화면 자체가 스크롤되지 않게 한다 */
     min-width: 0; /* flex 안에서도 화면 폭에 맞게 줄어들 수 있도록 (기본값 auto면 줄어들지 않는다) */
@@ -453,6 +459,7 @@
       <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pac">팩맨 (미로 탈출)</button><button class="game-code-button" type="button" data-game-code-view="panel-pac">코드 보기</button></div>
       <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-frog">개구리 건너기</button><button class="game-code-button" type="button" data-game-code-view="panel-frog">코드 보기</button></div>
       <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bomber">봄버맨</button><button class="game-code-button" type="button" data-game-code-view="panel-bomber">코드 보기</button></div>
+      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-match3">보석 맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-match3">코드 보기</button></div>
     </div>
 
     <div id="panel-ttt" class="card game-panel" hidden>
@@ -1140,6 +1147,19 @@
         <button id="bomber-bomb" class="mobile-btn wide" type="button">폭탄</button>
         <button id="bomber-start" class="mobile-btn wide" type="button">시작</button>
       </div>
+    </div>
+    <div id="panel-match3" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 47</span>
+      <h3>보석 맞추기 (JavaScript)</h3>
+      <p>이웃한 보석을 눌러 자리를 바꾸고, 가로나 세로로 같은 보석을 세 개 이상 맞추세요. 맞춘 보석은 사라지고 위에서 새 보석이 떨어져 다시 채워지며, 연쇄가 이어질수록 점수가 더 커집니다. 25번의 이동 안에 최고 점수에 도전하세요.</p>
+      <div class="match3-hud" aria-label="게임 현황">
+        <span>점수 <span id="match3-score">0</span></span>
+        <span>남은 이동 <span id="match3-moves">25</span></span>
+      </div>
+      <div id="match3-board" class="match3-board" aria-label="보석 맞추기 게임판"></div>
+      <p id="match3-status" class="extra-game-status" aria-live="polite">새 게임을 시작하세요.</p>
+      <button id="match3-reset" type="button">새 게임</button>
     </div>
     <dialog id="game-code-dialog" class="game-code-dialog">
       <button id="game-code-close" type="button">닫기</button>
@@ -9516,6 +9536,232 @@
   })();
 </script>
 
+<script data-game-code="panel-match3">
+  // ── STEP 47: 보석 맞추기 (매치 3) ─────────────────
+  // 격자에서 "가로나 세로로 같은 보석이 3개 이상 연속"인 곳을 찾아 지우고,
+  // 위에서 새 보석이 떨어져 다시 채워지는 연쇄를 반복하는 게임입니다.
+  // 핵심은 ① 연속 찾기(findMatches) ② 지우고 아래로 내리기(collapse)
+  // ③ 빈 칸 위에서 채우기 ④ 연쇄가 끝날 때까지 반복(resolve)입니다.
+  (function () {
+    const SIZE = 8;
+    const START_MOVES = 25;
+    const GEMS = ["🍎", "🍇", "🍋", "🍊", "🥝", "🫐"];
+
+    const boardEl = document.getElementById("match3-board");
+    const scoreEl = document.getElementById("match3-score");
+    const movesEl = document.getElementById("match3-moves");
+    const statusEl = document.getElementById("match3-status");
+    const resetBtn = document.getElementById("match3-reset");
+
+    let grid = [];
+    let selected = null;
+    let score = 0;
+    let movesLeft = START_MOVES;
+    let busy = false;
+    let runId = 0;
+
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    function newGrid() {
+      // 처음부터 3개가 연속되지 않도록 칸을 하나씩 채웁니다.
+      const g = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          let choices = GEMS.map((_, i) => i);
+          if (c >= 2 && g[r][c - 1] === g[r][c - 2]) choices = choices.filter(t => t !== g[r][c - 1]);
+          if (r >= 2 && g[r - 1][c] === g[r - 2][c]) choices = choices.filter(t => t !== g[r - 1][c]);
+          g[r][c] = choices[Math.floor(Math.random() * choices.length)];
+        }
+      }
+      return g;
+    }
+
+    function findMatches(g) {
+      const marks = new Set();
+      for (let r = 0; r < SIZE; r++) {
+        let run = 1;
+        for (let c = 1; c <= SIZE; c++) {
+          if (c < SIZE && g[r][c] !== null && g[r][c] === g[r][c - 1]) run++;
+          else {
+            if (run >= 3) for (let k = c - run; k < c; k++) marks.add(r * SIZE + k);
+            run = 1;
+          }
+        }
+      }
+      for (let c = 0; c < SIZE; c++) {
+        let run = 1;
+        for (let r = 1; r <= SIZE; r++) {
+          if (r < SIZE && g[r][c] !== null && g[r][c] === g[r - 1][c]) run++;
+          else {
+            if (run >= 3) for (let k = r - run; k < r; k++) marks.add(k * SIZE + c);
+            run = 1;
+          }
+        }
+      }
+      return marks;
+    }
+
+    function hasMove(g) {
+      // 아무 이웃한 두 칸을 바꿔봤을 때 3개가 만들어지는 조합이 하나라도 있는지 검사합니다.
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          if (c + 1 < SIZE) {
+            [g[r][c], g[r][c + 1]] = [g[r][c + 1], g[r][c]];
+            const ok = findMatches(g).size > 0;
+            [g[r][c], g[r][c + 1]] = [g[r][c + 1], g[r][c]];
+            if (ok) return true;
+          }
+          if (r + 1 < SIZE) {
+            [g[r][c], g[r + 1][c]] = [g[r + 1][c], g[r][c]];
+            const ok = findMatches(g).size > 0;
+            [g[r][c], g[r + 1][c]] = [g[r + 1][c], g[r][c]];
+            if (ok) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function collapse() {
+      // 각 열에서 살아남은 보석을 아래로 내리고, 남은 위쪽 칸을 새 보석으로 채웁니다.
+      for (let c = 0; c < SIZE; c++) {
+        let write = SIZE - 1;
+        for (let r = SIZE - 1; r >= 0; r--) {
+          if (grid[r][c] !== null) {
+            if (write !== r) grid[write][c] = grid[r][c];
+            write--;
+          }
+        }
+        for (let r = write; r >= 0; r--) grid[r][c] = Math.floor(Math.random() * GEMS.length);
+      }
+    }
+
+    function renderHud() {
+      scoreEl.textContent = score;
+      movesEl.textContent = movesLeft;
+    }
+
+    function render(clearing) {
+      boardEl.replaceChildren();
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "match3-cell";
+          if (selected && selected.r === r && selected.c === c) cell.classList.add("is-selected");
+          if (clearing && clearing.has(r * SIZE + c)) cell.classList.add("is-clearing");
+          const value = grid[r][c];
+          if (value !== null) {
+            const gem = document.createElement("span");
+            gem.className = "match3-gem";
+            gem.textContent = GEMS[value];
+            cell.appendChild(gem);
+          }
+          cell.setAttribute("aria-label", `${r + 1}행 ${c + 1}열 보석`);
+          cell.addEventListener("click", () => handleClick(r, c));
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    async function resolve() {
+      const myRun = runId;
+      let combo = 0;
+      let reshuffled = false;
+      while (true) {
+        const marks = findMatches(grid);
+        if (marks.size === 0) break;
+        combo++;
+        score += marks.size * 10 * combo;
+        marks.forEach(key => { grid[Math.floor(key / SIZE)][key % SIZE] = null; });
+        renderHud();
+        render(marks);
+        await sleep(150);
+        if (myRun !== runId) return null; // 새 게임이 시작되면 진행 중이던 연쇄를 중단합니다.
+        collapse();
+        render();
+        await sleep(150);
+        if (myRun !== runId) return null;
+      }
+      if (!hasMove(grid)) {
+        do { grid = newGrid(); } while (!hasMove(grid));
+        reshuffled = true;
+        render();
+      }
+      return { combo, reshuffled };
+    }
+
+    async function handleClick(r, c) {
+      if (busy || movesLeft <= 0) return;
+      if (!selected) {
+        selected = { r, c };
+        render();
+        return;
+      }
+      if (selected.r === r && selected.c === c) {
+        selected = null;
+        render();
+        return;
+      }
+      if (Math.abs(selected.r - r) + Math.abs(selected.c - c) !== 1) {
+        selected = { r, c };
+        render();
+        return;
+      }
+
+      const a = selected;
+      const b = { r, c };
+      selected = null;
+      [grid[a.r][a.c], grid[b.r][b.c]] = [grid[b.r][b.c], grid[a.r][a.c]];
+      if (findMatches(grid).size === 0) {
+        [grid[a.r][a.c], grid[b.r][b.c]] = [grid[b.r][b.c], grid[a.r][a.c]];
+        statusEl.textContent = "그 방향으로는 세 개를 맞출 수 없어요.";
+        render();
+        return;
+      }
+
+      movesLeft--;
+      busy = true;
+      renderHud();
+      render();
+
+      const result = await resolve();
+      if (result === null) return;
+      busy = false;
+
+      if (movesLeft <= 0) {
+        statusEl.textContent = `이동을 모두 사용했습니다. 최종 점수 ${score}점!`;
+      } else {
+        const comboText = result.combo >= 2 ? `연쇄 ${result.combo}콤보! ` : "";
+        const shuffleText = result.reshuffled ? "새로 섞었습니다. " : "";
+        statusEl.textContent = `${comboText}${shuffleText}남은 이동 ${movesLeft}회 · ${score}점`;
+      }
+      render();
+    }
+
+    function newGame() {
+      runId++;
+      do { grid = newGrid(); } while (!hasMove(grid));
+      selected = null;
+      score = 0;
+      movesLeft = START_MOVES;
+      busy = false;
+      renderHud();
+      statusEl.textContent = "보석을 눌러 이웃한 보석과 바꾸세요. 세 개 이상을 맞추면 사라집니다.";
+      render();
+    }
+
+    resetBtn.addEventListener("click", newGame);
+    registerGame("panel-match3", {
+      init: newGame,
+      stop() {
+        runId++; // 진행 중인 연쇄 애니메이션을 취소합니다.
+        busy = false;
+      },
+    });
+  })();
+</script>
+
 <script>
   // ── 게임 목록 ↔ 선택한 게임 화면 전환 ─────────────────
   (function () {
@@ -9564,7 +9810,8 @@
       "panel-fighter": { level:"기본", goal:"키 입력, 애니메이션 프레임, 충돌과 체력 상태로 격투 게임을 구성합니다.", hints:["누르는 동안 이동 키 상태를 유지하고 프레임마다 위치를 갱신하세요.","공격 사거리 안에 있을 때만 상대 체력을 감소시키세요.","체력이 0이 되면 게임 루프와 입력을 멈추세요."] },
       "panel-pac": { level:"도전", goal:"격자 미로, 타일 단위 이동, 추격 AI로 실시간 게임을 구성합니다.", hints:["이동은 현재 칸에서 다음 칸으로 진행률을 더해 좌표를 보간하세요.","유령은 교차로에서 되돌아가지 않고 목표에 가까운 칸을 고르세요.","파워 알약을 먹은 동안에는 유령과의 충돌 판정을 뒤집으세요."] },
       "panel-frog": { level:"기본", goal:"여러 레인의 이동 물체와 격자 이동을 결합해 실시간 게임을 구성합니다.", hints:["물 위에서는 탄 발판의 속도만큼 개구리 x좌표를 함께 이동시키세요.","자동차와 개구리의 가로 겹침으로 충돌을 판정하세요.","단계가 오르면 레인 속도를 높여 난이도를 조절하세요."] },
-      "panel-bomber": { level:"도전", goal:"격자 맵, 폭탄 타이머, 폭발 확산과 적 AI를 결합해 실시간 게임을 구성합니다.", hints:["폭탄은 일정 시간 뒤 상하좌우로 퍼지며, 처음 만난 벽돌을 부수고 멈춥니다.","폭발이 다른 폭탄에 닿으면 연쇄 폭발하므로 폭발 목록을 따로 관리하세요.","벽돌에서 나오는 아이템으로 성장하고, 적을 모두 물리치면 다음 단계로 넘어갑니다."] }
+      "panel-bomber": { level:"도전", goal:"격자 맵, 폭탄 타이머, 폭발 확산과 적 AI를 결합해 실시간 게임을 구성합니다.", hints:["폭탄은 일정 시간 뒤 상하좌우로 퍼지며, 처음 만난 벽돌을 부수고 멈춥니다.","폭발이 다른 폭탄에 닿으면 연쇄 폭발하므로 폭발 목록을 따로 관리하세요.","벽돌에서 나오는 아이템으로 성장하고, 적을 모두 물리치면 다음 단계로 넘어갑니다."] },
+      "panel-match3": { level:"기본", goal:"격자에서 같은 값의 연속(가로·세로 3개 이상)을 찾아 지우고 위에서 다시 채우는 연쇄를 구현합니다.", hints:["두 보석을 바꾼 뒤 가로·세로로 세 개 이상 이어진 줄이 있는지 먼저 확인하세요.","맞춘 칸을 지운 뒤 각 열의 보석을 아래로 내리고 빈 칸을 위에서 새 보석으로 채우세요.","다시 맞는 줄이 생기면 연쇄로 처리해 콤보가 커질수록 점수를 더 크게 주세요."] }
     };
     let completedLessons = readCompletedLessons();
     let progressSyncMessage = window.SAPAuth?.getToken()
