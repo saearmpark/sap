@@ -77,12 +77,6 @@ mvn spring-boot:run
 
 | WebSocket | `/ws/game` | 첫 프레임에 `{ "type": "auth", "token": "로그인 토큰" }`을 전송한 뒤 `create`, `join`, `move`, `rematch`, `leave` 요청을 주고받습니다. |
 
-### 온라인 턴제 대전
-
-4목, 오목, 동물쇼기는 `/ws/turn` WebSocket으로 로그인 사용자끼리 방 코드로 대전합니다. 서버가 차례·착수 가능 여부·승패를 검증하며, 방과 진행 상태는 DB에 저장되어 60초 안에 재접속하면 이어서 플레이할 수 있습니다.
-
-| WebSocket | `/ws/turn` | 첫 프레임에 `{ "type": "auth", "token": "로그인 토큰" }`을 전송한 뒤 `create`(`gameType`: `connect`/`gomoku`/`animal-shogi`), `join`, `move`, `rematch`, `leave` 요청을 주고받습니다. |
-
 ### 게임 점수 랭킹
 
 점수 게임의 최고 점수를 로그인 계정별로 저장하고 게임마다 상위 10명을 제공합니다. 점수는 갱신될 때마다 최고 기록만 유지됩니다.
