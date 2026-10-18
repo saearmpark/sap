@@ -104,12 +104,6 @@
       { key: "file", label: "자료실" }
     ];
 
-    function escapeHtml(value) {
-      const div = document.createElement("div");
-      div.textContent = value ?? "";
-      return div.innerHTML;
-    }
-
     function withTimeout(promise, ms) {
       return Promise.race([
         promise,
