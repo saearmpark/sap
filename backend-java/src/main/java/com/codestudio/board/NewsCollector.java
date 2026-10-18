@@ -24,7 +24,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-// 무료 RSS 피드를 한 시간마다 수집해 핫이슈/트렌드 소식을 자동으로 게시합니다.
+// 무료 RSS 피드를 10분마다 수집해 국내 핫이슈 소식을 자동으로 게시합니다.
 // 하루(24시간)보다 오래된 소식은 다음 수집 때 삭제해 항상 최신 내용만 남깁니다.
 @Component
 public class NewsCollector {
@@ -36,9 +36,7 @@ public class NewsCollector {
     }
 
     private static final List<Feed> FEEDS = List.of(
-            new Feed("https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko", "국내"),
-            new Feed("https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en", "해외"),
-            new Feed("https://trends.google.com/trending/rss?geo=KR", "트렌드"));
+            new Feed("https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko", "국내"));
 
     private final NewsItemRepository repository;
     private final HttpClient http = HttpClient.newBuilder()
@@ -50,7 +48,7 @@ public class NewsCollector {
         this.repository = repository;
     }
 
-    @Scheduled(fixedRate = 60 * 60 * 1000L, initialDelay = 15 * 1000L)
+    @Scheduled(fixedRate = 10 * 60 * 1000L, initialDelay = 15 * 1000L)
     @Transactional
     public void refresh() {
         int added = 0;
