@@ -60,6 +60,13 @@
   .ttt-online-controls input { width:150px; text-transform:uppercase; }
   .ttt-online-status { min-height:24px; color:var(--ink-soft); }
   .ttt-online-room { font-weight:700; letter-spacing:.08em; }
+  .game-leaderboard { margin:14px 0; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--bg); }
+  .game-leaderboard summary { min-height:40px; display:flex; align-items:center; cursor:pointer; font-weight:600; }
+  .game-leaderboard .lb-mine { margin:8px 0; font-weight:600; }
+  .game-leaderboard .lb-empty { margin:8px 0; color:var(--ink-soft); }
+  .game-leaderboard ol { margin:8px 0 0; padding-left:22px; }
+  .game-leaderboard li { padding:2px 0; }
+  .game-leaderboard li.lb-me { font-weight:700; color:var(--accent); }
   .baseball-form, .game-inline-controls { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
   .baseball-form input { width:140px; }
   .sequence-pads { display:grid; grid-template-columns:repeat(2, minmax(90px, 130px)); gap:8px; margin:14px 0; }
@@ -1680,6 +1687,7 @@
         lives--;
         if (lives <= 0) {
           running = false;
+          window.reportScore?.("panel-bo", score);
           updateStatus(`게임 오버 · 최종 점수 ${score}`);
           return;
         }
@@ -1852,6 +1860,7 @@
 
       if (lives <= 0) {
         running = false;
+        window.reportScore?.("panel-sh", score);
         updateStatus(`게임 오버 · 최종 점수 ${score}`);
         return;
       }
@@ -2081,6 +2090,7 @@
     function gameOver() {
       running = false;
       clearInterval(tickHandle);
+      window.reportScore?.("panel-sn", score);
       updateStatus(`게임 오버 · 최종 점수 ${score} (시작 버튼으로 재시작)`);
     }
 
@@ -2315,6 +2325,7 @@
       stopDAS();
       clearInterval(softDropHandle);
       softDropHandle = null;
+      window.reportScore?.("panel-tt", score);
       updateStatus(`게임 오버 · 최종 점수 ${score} (시작 버튼으로 재시작)`);
     }
 
@@ -2735,6 +2746,7 @@
 
       if (!hasMovesLeft()) {
         running = false;
+        window.reportScore?.("panel-2048", score);
         updateStatus(`게임 오버 · 최종 점수 ${score} (시작 버튼으로 재시작)`);
       } else {
         updateStatus();
@@ -2922,6 +2934,7 @@
       clearInterval(countdownTimer);
       holeTimers.forEach(t => clearTimeout(t));
       holeEls.forEach(el => el.classList.remove("mole-up", "mole-hit"));
+      window.reportScore?.("panel-mole", score);
       updateStatus(`게임 종료 · 최종 점수 ${score} (시작 버튼으로 재시작)`);
     }
 
@@ -3340,6 +3353,7 @@
         const dist = Math.hypot(pcx - dcx, pcy - dcy);
         if (dist < PLAYER_SIZE * 0.38 + d.size * 0.38) {
           running = false;
+          window.reportScore?.("panel-dodge", score);
           updateStatus(`게임 오버 · 버틴 시간 ${(elapsed / 60).toFixed(1)}초 · 점수 ${score} (시작 버튼으로 재시작)`);
           return;
         }
@@ -4379,6 +4393,7 @@
       submitBtn.disabled = true;
       startBtn.textContent = "다시 시작";
       problemEl.textContent = "시간 종료!";
+      window.reportScore?.("panel-math", score);
       statusEl.textContent = `최종 점수 ${score}점`;
     }
 
@@ -4631,6 +4646,7 @@
       cancelAnimationFrame(animationId);
       animationId = null;
       statusEl.textContent = `게임 종료 · 점수 ${score} · 시작을 눌러 다시 도전하세요.`;
+      window.reportScore?.("panel-runner", score);
       startBtn.disabled = false;
       draw();
     }
@@ -8469,6 +8485,7 @@
       statusEl.textContent = win
         ? `승리! 점수 ${score}점으로 미로를 탈출했습니다.`
         : `게임 오버! 점수 ${score}점. 다시 도전해 보세요.`;
+      window.reportScore?.("panel-pac", score);
       updateHud();
     }
     function frame(time) {
@@ -8788,6 +8805,7 @@
       statusEl.textContent = win
         ? `승리! 점수 ${score}점.`
         : `게임 오버! 점수 ${score}점. 다시 도전해 보세요.`;
+      window.reportScore?.("panel-frog", score);
       updateHud();
     }
     function tryMove(dx, dy) {
@@ -9264,6 +9282,7 @@
       startBtn.disabled = false;
       startBtn.textContent = "다시 시작";
       statusEl.textContent = `게임 오버! 점수 ${score}점. 다시 도전해 보세요.`;
+      window.reportScore?.("panel-bomber", score);
     }
 
     function frame(time) {
@@ -9684,6 +9703,7 @@
       busy = false;
 
       if (movesLeft <= 0) {
+        window.reportScore?.("panel-match3", score);
         statusEl.textContent = `이동을 모두 사용했습니다. 최종 점수 ${score}점!`;
       } else {
         const comboText = result.combo >= 2 ? `연쇄 ${result.combo}콤보! ` : "";
@@ -9796,6 +9816,110 @@
 
     addLearningGuides();
 
+    const SCORING_GAMES = {
+      "panel-bo": "벽돌깨기",
+      "panel-sh": "슈팅게임",
+      "panel-sn": "뱀 게임",
+      "panel-tt": "테트리스",
+      "panel-2048": "2048",
+      "panel-mole": "두더지 잡기",
+      "panel-dodge": "똥 피하기",
+      "panel-math": "암산 챌린지",
+      "panel-runner": "러너",
+      "panel-pac": "팩맨",
+      "panel-frog": "개구리 건너기",
+      "panel-bomber": "봄버맨",
+      "panel-match3": "보석 맞추기",
+    };
+
+    function addLeaderboards() {
+      panels.forEach(panel => {
+        if (!SCORING_GAMES[panel.id]) return;
+        const details = document.createElement("details");
+        details.className = "game-leaderboard";
+        details.id = `lb-${panel.id}`;
+        const summary = document.createElement("summary");
+        summary.textContent = "랭킹 — 내 최고 점수와 상위 10";
+        const mine = document.createElement("p");
+        mine.className = "lb-mine";
+        mine.textContent = "내 최고 점수: -";
+        const empty = document.createElement("p");
+        empty.className = "lb-empty";
+        empty.textContent = "로그인하면 점수가 기록됩니다.";
+        const list = document.createElement("ol");
+        list.className = "lb-list";
+        list.hidden = true;
+        details.append(summary, mine, empty, list);
+        panel.appendChild(details);
+      });
+    }
+
+    function renderLeaderboard(gameId, data) {
+      const details = document.getElementById(`lb-${gameId}`);
+      if (!details) return;
+      const me = window.SAPAuth?.getUser()?.displayName;
+      const mine = details.querySelector(".lb-mine");
+      const empty = details.querySelector(".lb-empty");
+      const list = details.querySelector(".lb-list");
+      mine.textContent = `내 최고 점수: ${data.mine || 0}`;
+      const top = Array.isArray(data.top) ? data.top : [];
+      if (!top.length) {
+        empty.hidden = false;
+        empty.textContent = "아직 기록이 없습니다.";
+        list.hidden = true;
+        list.replaceChildren();
+        return;
+      }
+      empty.hidden = true;
+      list.hidden = false;
+      list.replaceChildren(...top.map(entry => {
+        const li = document.createElement("li");
+        li.textContent = `${entry.playerName} — ${entry.score}`;
+        if (me && entry.playerName === me) li.classList.add("lb-me");
+        return li;
+      }));
+    }
+
+    function clearLeaderboard(gameId) {
+      const details = document.getElementById(`lb-${gameId}`);
+      if (!details) return;
+      details.querySelector(".lb-mine").textContent = "내 최고 점수: -";
+      const empty = details.querySelector(".lb-empty");
+      empty.hidden = false;
+      empty.textContent = "로그인하면 점수가 기록됩니다.";
+      const list = details.querySelector(".lb-list");
+      list.hidden = true;
+      list.replaceChildren();
+    }
+
+    async function refreshLeaderboard(gameId) {
+      if (!SCORING_GAMES[gameId]) return;
+      if (!window.SAPAuth?.getToken()) {
+        clearLeaderboard(gameId);
+        return;
+      }
+      try {
+        const res = await window.SAPAuth.apiFetch(`${window.SAPAuth.API_ROOT}/game-scores?gameId=${encodeURIComponent(gameId)}`);
+        if (res.ok) renderLeaderboard(gameId, await res.json());
+      } catch {}
+    }
+
+    async function reportScore(gameId, score) {
+      if (!SCORING_GAMES[gameId] || !Number.isFinite(score) || score <= 0) return;
+      if (!window.SAPAuth?.getToken()) return;
+      try {
+        const res = await window.SAPAuth.apiFetch(`${window.SAPAuth.API_ROOT}/game-scores`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gameId, score: Math.round(score) }),
+        });
+        if (res.ok) refreshLeaderboard(gameId);
+      } catch {}
+    }
+    window.reportScore = reportScore;
+
+    addLeaderboards();
+
     function openGame(id) {
       menuEl.hidden = true;
       panels.forEach(p => { p.hidden = p.id !== id; });
@@ -9808,6 +9932,7 @@
       } else {
         window.gamePanels[id]?.resume?.();
       }
+      if (SCORING_GAMES[id]) refreshLeaderboard(id);
       activeId = id;
       requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }));
     }

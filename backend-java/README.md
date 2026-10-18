@@ -77,6 +77,15 @@ mvn spring-boot:run
 
 | WebSocket | `/ws/game` | 첫 프레임에 `{ "type": "auth", "token": "로그인 토큰" }`을 전송한 뒤 `create`, `join`, `move`, `rematch`, `leave` 요청을 주고받습니다. |
 
+### 게임 점수 랭킹
+
+점수 게임의 최고 점수를 로그인 계정별로 저장하고 게임마다 상위 10명을 제공합니다. 점수는 갱신될 때마다 최고 기록만 유지됩니다.
+
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| GET | `/api/game-scores?gameId={id}` | 게임 점수 상위 10명과 내 최고 점수 |
+| POST | `/api/game-scores` | 점수 제출 (`gameId`, `score` JSON, 최고 점수만 갱신) |
+
 ### 계정과 일정
 
 | 메서드 | 경로 | 설명 |
