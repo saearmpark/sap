@@ -137,7 +137,7 @@ public class AnimalShogiRules implements TurnGameRules {
                 }
                 String type = cell.path("type").asText("");
                 int owner = cell.path("owner").asInt(0);
-                if (typeIndex(type) < 0 || (owner != 1 && owner != 2)) {
+                if (!isPieceType(type) || (owner != 1 && owner != 2)) {
                     return null;
                 }
                 board[row][col] = new Piece(owner, type, cell.path("promoted").asBoolean(false));
@@ -202,6 +202,10 @@ public class AnimalShogiRules implements TurnGameRules {
             }
         }
         return -1;
+    }
+
+    private boolean isPieceType(String type) {
+        return "lion".equals(type) || typeIndex(type) >= 0;
     }
 
     private int[][] directions(Piece piece) {
