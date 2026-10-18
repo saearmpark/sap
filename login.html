@@ -89,6 +89,13 @@
     status.textContent = "로그인 시간이 만료되었습니다. 다시 로그인해주세요.";
   }
 
+  // 로그인 화면이 열리면 백엔드를 미리 깨워 둡니다(무료 플랜 콜드 스타트 완화).
+  const warmupMessage = "서버를 준비하고 있습니다...";
+  if (!SAPAuth.getToken() && !status.textContent) status.textContent = warmupMessage;
+  SAPAuth.warmup().then(() => {
+    if (status.textContent === warmupMessage) status.textContent = "";
+  });
+
   async function showPasswordPanelForSignedInUser() {
     const token = SAPAuth.getToken();
     if (!token) return;

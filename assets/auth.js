@@ -77,6 +77,19 @@
     return response;
   }
 
+  let warmupRequest = null;
+
+  function warmup() {
+    // Render 무료 플랜은 일정 시간 요청이 없으면 잠들었다가 첫 요청에 30~60초가 걸립니다.
+    // 로그인 화면이 열리자마자 가벼운 요청을 미리 보내, 사용자가 아이디와 비밀번호를
+    // 입력하는 동안 서버를 깨워 두면 실제 로그인은 곧바로 처리됩니다.
+    if (!warmupRequest) {
+      warmupRequest = fetch(`${API_ROOT}/auth/me`, { method: "GET", cache: "no-store" })
+        .catch(error => console.warn("Could not warm up the auth server.", error));
+    }
+    return warmupRequest;
+  }
+
   async function requireSession() {
     const token = getToken();
     if (!token) {
@@ -153,6 +166,6 @@
     }
   }
 
-  window.SAPAuth = { API_ROOT, apiFetch, clearSession, getToken, getUser, loginUrl, requireSession, saveSession };
+  window.SAPAuth = { API_ROOT, apiFetch, clearSession, getToken, getUser, loginUrl, requireSession, saveSession, warmup };
   updateAuthLink();
 })();
