@@ -173,7 +173,7 @@ def draw_gem(screen, type_index, x, y, size):
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("보석 맞추기 — codestudio")
+    pygame.display.set_caption("보석 맞추기 — 사피엔스")
     hud_font = pygame.font.SysFont(FONT_NAMES, 20, bold=True)
     status_font = pygame.font.SysFont(FONT_NAMES, 15)
     clock = pygame.time.Clock()

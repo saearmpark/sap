@@ -1,5 +1,5 @@
 """
-codestudio 게시판 API 서버 (Flask + SQLite)
+사피엔스 게시판 API 서버 (Flask + SQLite)
 
 실행 방법:
   pip install -r requirements.txt

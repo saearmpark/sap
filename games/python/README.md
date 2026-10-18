@@ -1,4 +1,4 @@
-# codestudio 게임제작 실습 (Python)
+# 사피엔스 게임제작 실습 (Python)
 
 game.html의 "게임제작" 메뉴에 있는 STEP과 같은 순서로, 같은 게임을 Python(pygame-ce)으로
 직접 만들어보는 폴더입니다.

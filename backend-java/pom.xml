@@ -14,8 +14,8 @@
     <groupId>com.codestudio</groupId>
     <artifactId>board</artifactId>
     <version>0.1.0</version>
-    <name>codestudio-board</name>
-    <description>codestudio 게시판 API 서버 (Spring Boot)</description>
+    <name>sap-board</name>
+    <description>사피엔스 게시판 API 서버 (Spring Boot)</description>
 
     <properties>
         <!-- JDK 27로 실행하되 Java 17과의 소스/바이트코드 호환성을 유지합니다. -->

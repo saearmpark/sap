@@ -62,7 +62,7 @@ def draw_board(screen, cells):
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("틱택토 — codestudio")
+    pygame.display.set_caption("틱택토 — 사피엔스")
     clock = pygame.time.Clock()
 
     cells = [None] * 9

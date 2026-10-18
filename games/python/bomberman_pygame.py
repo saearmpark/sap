@@ -447,7 +447,7 @@ class Game:
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("봄버맨 — codestudio")
+    pygame.display.set_caption("봄버맨 — 사피엔스")
     clock = pygame.time.Clock()
     hud_font = pygame.font.SysFont(FONT_NAMES, 20, bold=True)
     status_font = pygame.font.SysFont(FONT_NAMES, 15)
