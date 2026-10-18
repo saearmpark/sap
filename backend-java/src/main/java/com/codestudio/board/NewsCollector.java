@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-// 무료 RSS 피드를 10분마다 수집해 국내 핫이슈 소식을 자동으로 게시합니다.
+// 무료 RSS(정치·경제·산업·사회 섹션)를 10분마다 수집해 스포츠·연예를 제외한 국내 핫이슈 소식을 자동으로 게시합니다.
 // 하루(24시간)보다 오래된 소식은 다음 수집 때 삭제해 항상 최신 내용만 남깁니다.
 @Component
 public class NewsCollector {
@@ -40,8 +40,11 @@ public class NewsCollector {
     }
 
     private static final List<Feed> FEEDS = List.of(
-            new Feed("https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko", "국내", "Google 뉴스"),
-            new Feed("https://www.yna.co.kr/rss/news.xml", "국내", "연합뉴스"));
+            new Feed("https://news.google.com/rss/headlines/section/topic/NATION?hl=ko&gl=KR&ceid=KR:ko", "국내", "Google 뉴스"),
+            new Feed("https://www.yna.co.kr/rss/politics.xml", "국내", "연합뉴스"),
+            new Feed("https://www.yna.co.kr/rss/economy.xml", "국내", "연합뉴스"),
+            new Feed("https://www.yna.co.kr/rss/industry.xml", "국내", "연합뉴스"),
+            new Feed("https://www.yna.co.kr/rss/society.xml", "국내", "연합뉴스"));
 
     private final NewsItemRepository repository;
     private final HttpClient http = HttpClient.newBuilder()
