@@ -20,7 +20,7 @@ public class NewsController {
 
     @GetMapping
     public List<Map<String, Object>> list() {
-        return repository.findTop150ByOrderByIdDesc().stream()
+        return repository.findTop20ByOrderByIdDesc().stream()
                 .map(item -> {
                     Map<String, Object> row = new LinkedHashMap<>();
                     row.put("id", item.getId());

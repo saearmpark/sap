@@ -7,11 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -20,31 +18,45 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-// Yahoo Finance 차트 API에서 국내·미국·기타 시세를 받아 30초간 캐시해 제공합니다.
+// 네이버·CNBC·업비트 시세 API에서 국내·미국·기타 시세를 받아 10초간 캐시해 제공합니다.
+// 야후 파이낸스는 일부 클라우드 IP를 차단해 국내(네이버)·미국(CNBC)·코인(업비트)으로 나눠 조회합니다.
 @Service
 public class StockQuoteService {
 
     private static final Logger log = LoggerFactory.getLogger(StockQuoteService.class);
-    private static final long CACHE_MILLIS = 30_000L;
-    private static final int SPARK_POINTS = 40;
-    private static final String BASE = "https://query1.finance.yahoo.com/v8/finance/chart/";
+    private static final long CACHE_MILLIS = 10_000L;
 
-    private record Symbol(String symbol, String name, String group) {
+    private static final String CNBC_URL = "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol"
+            + "?symbols=AAPL%7CNVDA%7CGOOGL%7C.IXIC%7C.SPX%7CGLD%7C%40CL.1"
+            + "&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1";
+    private static final String NAVER_KR_URL =
+            "https://polling.finance.naver.com/api/realtime/domestic/stock/005930,000660,069500";
+    private static final String NAVER_FX_URL = "https://api.stock.naver.com/marketindex/exchange/FX_USDKRW";
+    private static final String UPBIT_URL = "https://api.upbit.com/v1/ticker?markets=KRW-BTC";
+
+    private record Info(String name, String code, String group) {
     }
 
-    private static final List<Symbol> SYMBOLS = List.of(
-            new Symbol("005930.KS", "삼성전자", "국내"),
-            new Symbol("000660.KS", "SK하이닉스", "국내"),
-            new Symbol("069500.KS", "KODEX 200", "국내"),
-            new Symbol("^IXIC", "나스닥 지수", "미국"),
-            new Symbol("^GSPC", "S&P 500 지수", "미국"),
-            new Symbol("NVDA", "엔비디아", "미국"),
-            new Symbol("GOOGL", "알파벳 A", "미국"),
-            new Symbol("AAPL", "애플", "미국"),
-            new Symbol("GLD", "금 ETF", "기타"),
-            new Symbol("BTC-USD", "비트코인", "기타"),
-            new Symbol("KRW=X", "원/달러 환율", "기타"),
-            new Symbol("CL=F", "WTI 유가", "기타"));
+    private static final Map<String, Info> INFO = new LinkedHashMap<>();
+    private static final List<String> ORDER = List.of(
+            "005930", "000660", "069500",
+            ".IXIC", ".SPX", "NVDA", "GOOGL", "AAPL",
+            "GLD", "CL.F", "BTC", "USDKRW");
+
+    static {
+        INFO.put("005930", new Info("삼성전자", "005930", "국내"));
+        INFO.put("000660", new Info("SK하이닉스", "000660", "국내"));
+        INFO.put("069500", new Info("KODEX 200", "069500", "국내"));
+        INFO.put(".IXIC", new Info("나스닥 지수", "NASDAQ", "미국"));
+        INFO.put(".SPX", new Info("S&P 500 지수", "S&P 500", "미국"));
+        INFO.put("NVDA", new Info("엔비디아", "NVDA", "미국"));
+        INFO.put("GOOGL", new Info("알파벳 A", "GOOGL", "미국"));
+        INFO.put("AAPL", new Info("애플", "AAPL", "미국"));
+        INFO.put("GLD", new Info("금 ETF", "GLD", "기타"));
+        INFO.put("CL.F", new Info("WTI 유가", "WTI", "기타"));
+        INFO.put("BTC", new Info("비트코인", "BTC", "기타"));
+        INFO.put("USDKRW", new Info("원/달러 환율", "USD/KRW", "기타"));
+    }
 
     public record Board(List<Map<String, Object>> quotes, Instant updatedAt) {
     }
@@ -56,115 +68,165 @@ public class StockQuoteService {
             .build();
 
     private volatile Board cache;
+    private volatile long cachedAt;
 
     public Board quotes() {
         Board current = cache;
-        long now = System.currentTimeMillis();
-        if (current != null && now - current.updatedAt().toEpochMilli() < CACHE_MILLIS) {
+        if (current != null && System.currentTimeMillis() - cachedAt < CACHE_MILLIS) {
             return current;
         }
-        List<Map<String, Object>> rows = fetchAll();
+        Map<String, Map<String, Object>> collected = new LinkedHashMap<>();
+        List<CompletableFuture<Void>> tasks = List.of(
+                task(() -> collectKr(collected)),
+                task(() -> collectCnbc(collected)),
+                task(() -> collectUpbit(collected)),
+                task(() -> collectFx(collected)));
+        for (CompletableFuture<Void> task : tasks) {
+            try {
+                task.join();
+            } catch (Exception error) {
+                log.warn("Quote task failed: {}", error.getMessage());
+            }
+        }
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (String id : ORDER) {
+            Map<String, Object> row = collected.get(id);
+            if (row != null) {
+                rows.add(row);
+            }
+        }
         if (rows.isEmpty()) {
             return current != null ? current : new Board(List.of(), Instant.now());
         }
         Board fresh = new Board(rows, Instant.now());
         cache = fresh;
+        cachedAt = System.currentTimeMillis();
         return fresh;
     }
 
-    private List<Map<String, Object>> fetchAll() {
-        List<CompletableFuture<Map<String, Object>>> pending = new ArrayList<>();
-        for (Symbol symbol : SYMBOLS) {
-            pending.add(http.sendAsync(request(symbol), HttpResponse.BodyHandlers.ofString())
-                    .thenApply(response -> parse(symbol, response))
-                    .exceptionally(error -> {
-                        log.warn("Could not load quote {}: {}", symbol.symbol(), error.getMessage());
-                        return null;
-                    }));
+    private CompletableFuture<Void> task(Runnable runnable) {
+        return CompletableFuture.runAsync(runnable);
+    }
+
+    private void collectKr(Map<String, Map<String, Object>> collected) {
+        JsonNode root = get(NAVER_KR_URL);
+        JsonNode datas = root.path("datas");
+        if (!datas.isArray()) {
+            return;
         }
-        List<Map<String, Object>> rows = new ArrayList<>();
-        for (CompletableFuture<Map<String, Object>> future : pending) {
-            try {
-                Map<String, Object> row = future.join();
-                if (row != null) {
-                    rows.add(row);
-                }
-            } catch (Exception error) {
-                log.warn("Quote task failed: {}", error.getMessage());
+        for (JsonNode data : datas) {
+            String code = data.path("itemCode").asText("");
+            Info info = INFO.get(code);
+            if (info == null) {
+                continue;
             }
+            double price = num(data.path("closePrice").asText(""));
+            double change = num(data.path("compareToPreviousClosePrice").asText(""));
+            double percent = num(data.path("fluctuationsRatio").asText(""));
+            String sign = data.path("compareToPreviousPrice").path("code").asText("");
+            if ("4".equals(sign) || "5".equals(sign)) {
+                change = -Math.abs(change);
+                percent = -Math.abs(percent);
+            } else if ("3".equals(sign)) {
+                change = 0;
+                percent = 0;
+            }
+            collected.put(code, row(info, price, change, percent, "KRW"));
         }
-        return rows;
     }
 
-    private HttpRequest request(Symbol symbol) {
-        String url = BASE + URLEncoder.encode(symbol.symbol(), StandardCharsets.UTF_8) + "?interval=5m&range=1d";
-        return HttpRequest.newBuilder(URI.create(url))
-                .timeout(Duration.ofSeconds(10))
-                .header("User-Agent", "Mozilla/5.0 (compatible; SapStockBot/1.0)")
-                .header("Accept", "application/json")
-                .GET()
-                .build();
+    private void collectCnbc(Map<String, Map<String, Object>> collected) {
+        JsonNode root = get(CNBC_URL);
+        JsonNode quotes = root.path("FormattedQuoteResult").path("FormattedQuote");
+        List<JsonNode> nodes = new ArrayList<>();
+        if (quotes.isArray()) {
+            quotes.forEach(nodes::add);
+        } else if (quotes.isObject()) {
+            nodes.add(quotes);
+        }
+        for (JsonNode quote : nodes) {
+            String symbol = quote.path("symbol").asText("");
+            String id = "@CL.1".equals(symbol) ? "CL.F" : symbol;
+            Info info = INFO.get(id);
+            if (info == null) {
+                continue;
+            }
+            double price = num(quote.path("last").asText(""));
+            double change = num(quote.path("change").asText(""));
+            double percent = num(quote.path("change_pct").asText(""));
+            collected.put(id, row(info, price, change, percent, quote.path("currencyCode").asText("USD")));
+        }
     }
 
-    private Map<String, Object> parse(Symbol symbol, HttpResponse<String> response) {
-        if (response.statusCode() != 200) {
-            throw new IllegalStateException("HTTP " + response.statusCode());
+    private void collectUpbit(Map<String, Map<String, Object>> collected) {
+        JsonNode root = get(UPBIT_URL);
+        if (!root.isArray() || root.isEmpty()) {
+            return;
+        }
+        JsonNode coin = root.get(0);
+        double price = coin.path("trade_price").asDouble();
+        double change = coin.path("signed_change_price").asDouble();
+        double percent = coin.path("signed_change_rate").asDouble() * 100;
+        collected.put("BTC", row(INFO.get("BTC"), price, change, percent, "KRW"));
+    }
+
+    private void collectFx(Map<String, Map<String, Object>> collected) {
+        JsonNode root = get(NAVER_FX_URL);
+        JsonNode exchange = root.path("exchangeInfo");
+        if (exchange.isMissingNode() || exchange.isEmpty()) {
+            return;
+        }
+        double price = num(exchange.path("closePrice").asText(""));
+        double change = num(exchange.path("fluctuations").asText(""));
+        double percent = num(exchange.path("fluctuationsRatio").asText(""));
+        collected.put("USDKRW", row(INFO.get("USDKRW"), price, change, percent, "KRW"));
+    }
+
+    private JsonNode get(String url) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .header("Accept", "application/json")
+                    .GET()
+                    .build();
+            HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new IllegalStateException("HTTP " + response.statusCode());
+            }
+            return mapper.readTree(response.body());
+        } catch (Exception error) {
+            log.warn("Could not load quotes from {}: {}", url, error.getMessage());
+            return mapper.createObjectNode();
+        }
+    }
+
+    private static Map<String, Object> row(Info info, double price, double change, double percent, String currency) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("symbol", info.code());
+        row.put("name", info.name());
+        row.put("group", info.group());
+        row.put("price", round(price));
+        row.put("change", round(change));
+        row.put("changePercent", round(percent));
+        row.put("currency", currency);
+        return row;
+    }
+
+    private static double num(String value) {
+        if (value == null) {
+            return 0;
+        }
+        String cleaned = value.replaceAll("[^0-9.+-]", "");
+        if (cleaned.isEmpty() || "+".equals(cleaned) || "-".equals(cleaned)) {
+            return 0;
         }
         try {
-            JsonNode result = mapper.readTree(response.body()).path("chart").path("result");
-            if (!result.isArray() || result.isEmpty() || result.get(0).isNull()) {
-                return null;
-            }
-            JsonNode data = result.get(0);
-            JsonNode meta = data.path("meta");
-            List<Double> spark = closes(data);
-            double price = number(meta, "regularMarketPrice", spark.isEmpty() ? Double.NaN : spark.get(spark.size() - 1));
-            if (!Double.isFinite(price)) {
-                return null;
-            }
-            double previousClose = number(meta, "chartPreviousClose", number(meta, "previousClose", price));
-            double change = price - previousClose;
-            double changePercent = meta.hasNonNull("regularMarketChangePercent")
-                    ? meta.path("regularMarketChangePercent").asDouble()
-                    : (previousClose == 0 ? 0 : change / previousClose * 100);
-
-            Map<String, Object> row = new LinkedHashMap<>();
-            row.put("symbol", symbol.symbol());
-            row.put("name", symbol.name());
-            row.put("group", symbol.group());
-            row.put("price", round(price));
-            row.put("change", round(change));
-            row.put("changePercent", round(changePercent));
-            row.put("previousClose", round(previousClose));
-            row.put("currency", meta.path("currency").asText(""));
-            row.put("marketTime", meta.hasNonNull("regularMarketTime") ? meta.path("regularMarketTime").asLong() : null);
-            row.put("spark", spark);
-            return row;
-        } catch (Exception error) {
-            log.warn("Could not parse quote {}: {}", symbol.symbol(), error.getMessage());
-            return null;
+            return Double.parseDouble(cleaned);
+        } catch (NumberFormatException error) {
+            return 0;
         }
-    }
-
-    private List<Double> closes(JsonNode data) {
-        List<Double> values = new ArrayList<>();
-        JsonNode close = data.path("indicators").path("quote").path(0).path("close");
-        if (close.isArray()) {
-            for (JsonNode point : close) {
-                if (point.isNumber()) {
-                    values.add(round(point.asDouble()));
-                }
-            }
-        }
-        if (values.size() > SPARK_POINTS) {
-            return new ArrayList<>(values.subList(values.size() - SPARK_POINTS, values.size()));
-        }
-        return values;
-    }
-
-    private static double number(JsonNode meta, String field, double fallback) {
-        JsonNode node = meta.path(field);
-        return node.isNumber() ? node.asDouble() : fallback;
     }
 
     private static double round(double value) {

@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,19 +21,20 @@ class NewsItemRepositoryTest {
     private NewsItemRepository news;
 
     @Test
-    void dedupesByLinkHashAndExpiresOldItems() {
+    void dedupesByLinkHashAndKeepsNewestTwenty() {
         Instant now = Instant.now();
-        news.save(new NewsItem("첫 소식", "https://example.com/a", "hash-a", "테스트", "국내", "요약",
-                "https://example.com/a.jpg", now, now));
-        news.save(new NewsItem("오래된 소식", "https://example.com/b", "hash-b", "테스트", "해외", "요약",
-                "", now, now.minus(48, ChronoUnit.HOURS)));
+        for (int i = 0; i < 25; i++) {
+            news.save(new NewsItem("소식 " + i, "https://example.com/" + i, "hash-" + i, "테스트", "국내", "요약",
+                    "", now, now));
+        }
 
-        assertTrue(news.existsByLinkHash("hash-a"));
-        assertFalse(news.existsByLinkHash("hash-c"));
+        assertTrue(news.existsByLinkHash("hash-0"));
+        assertFalse(news.existsByLinkHash("hash-x"));
 
-        int removed = news.deleteOlderThan(now.minus(24, ChronoUnit.HOURS));
-        assertEquals(1, removed);
-        assertTrue(news.existsByLinkHash("hash-a"));
-        assertFalse(news.existsByLinkHash("hash-b"));
+        List<NewsItem> newest = news.findTop20ByOrderByIdDesc();
+        assertEquals(20, newest.size());
+        long cutoff = newest.get(newest.size() - 1).getId();
+        assertEquals(5, news.deleteByIdLessThan(cutoff));
+        assertEquals(20, news.count());
     }
 }

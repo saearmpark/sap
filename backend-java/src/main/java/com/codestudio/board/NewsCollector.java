@@ -27,12 +27,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // 무료 RSS(정치·경제·산업·사회 섹션)를 10분마다 수집해 스포츠·연예를 제외한 국내 핫이슈 소식을 자동으로 게시합니다.
-// 하루(24시간)보다 오래된 소식은 다음 수집 때 삭제해 항상 최신 내용만 남깁니다.
+// 최신 20건만 남기고 오래된 소식은 다음 수집 때 삭제합니다.
 @Component
 public class NewsCollector {
 
     private static final Logger log = LoggerFactory.getLogger(NewsCollector.class);
-    private static final long RETENTION_HOURS = 24;
+    private static final int KEEP_ITEMS = 20;
     private static final Pattern IMAGE_PATTERN =
             Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
 
@@ -63,10 +63,19 @@ public class NewsCollector {
         for (Feed feed : FEEDS) {
             added += collect(feed);
         }
-        int removed = repository.deleteOlderThan(Instant.now().minus(Duration.ofHours(RETENTION_HOURS)));
+        int removed = trimToNewest();
         if (added > 0 || removed > 0) {
             log.info("News refresh: {} added, {} removed", added, removed);
         }
+    }
+
+    private int trimToNewest() {
+        List<NewsItem> newest = repository.findTop20ByOrderByIdDesc();
+        if (newest.size() < KEEP_ITEMS) {
+            return 0;
+        }
+        long cutoff = newest.get(newest.size() - 1).getId();
+        return repository.deleteByIdLessThan(cutoff);
     }
 
     private int collect(Feed feed) {
