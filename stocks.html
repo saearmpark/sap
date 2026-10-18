@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>사피엔스 — 주식정보</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-13">
+<link rel="stylesheet" href="assets/style.css?v=labels-14">
 </head>
 <body>
 <div class="layout">
@@ -55,13 +55,13 @@
   <main class="main">
     <div class="eyebrow">MARKETS</div>
     <h1>주식정보</h1>
-    <p>국내·미국 주요 종목과 지수, 금·비트코인·환율·유가 시세를 10초마다 갱신합니다.</p>
+    <p>국내·미국 주요 종목과 지수, 금·비트코인·환율·유가 시세를 10초마다 갱신합니다. 정규장 밖의 장전·시간외 값은 배지로 구분합니다.</p>
 
     <p id="stocks-status" class="stocks-status" role="status" aria-live="polite">시세를 불러오는 중입니다...</p>
     <div id="stocks-list" class="stocks-list"></div>
   </main>
 </div>
-<script src="assets/auth.js?v=labels-13"></script>
+<script src="assets/auth.js?v=labels-14"></script>
 <script>
   (() => {
     const API = window.SAPAuth?.API_ROOT || "https://board-backend-nngx.onrender.com/api";
@@ -122,6 +122,12 @@
       symbol.className = "stock-symbol";
       symbol.textContent = quote.symbol;
       names.append(name, symbol);
+      if (quote.session === "pre" || quote.session === "post") {
+        const badge = document.createElement("span");
+        badge.className = "stock-session";
+        badge.textContent = quote.session === "pre" ? "장전" : "시간외";
+        names.append(badge);
+      }
 
       const numbers = document.createElement("div");
       numbers.className = "stock-numbers";

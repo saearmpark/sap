@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -129,6 +130,16 @@ public class StockQuoteService {
             if (info == null) {
                 continue;
             }
+            JsonNode over = data.path("overMarketPriceInfo");
+            boolean regularOpen = "OPEN".equals(data.path("marketStatus").asText(""));
+            if (!regularOpen && over.isObject() && "OPEN".equals(over.path("overMarketStatus").asText(""))) {
+                double overPrice = num(over.path("overPrice").asText(""));
+                double overChange = num(over.path("compareToPreviousClosePrice").asText(""));
+                double overPercent = num(over.path("fluctuationsRatio").asText(""));
+                collected.put(code, row(info, overPrice, overChange, overPercent, "KRW",
+                        sessionOf(over.path("tradingSessionType").asText(""))));
+                continue;
+            }
             double price = num(data.path("closePrice").asText(""));
             double change = num(data.path("compareToPreviousClosePrice").asText(""));
             double percent = num(data.path("fluctuationsRatio").asText(""));
@@ -140,7 +151,7 @@ public class StockQuoteService {
                 change = 0;
                 percent = 0;
             }
-            collected.put(code, row(info, price, change, percent, "KRW"));
+            collected.put(code, row(info, price, change, percent, "KRW", "regular"));
         }
     }
 
@@ -160,10 +171,23 @@ public class StockQuoteService {
             if (info == null) {
                 continue;
             }
+            String market = quote.path("curmktstatus").asText("");
+            JsonNode extended = quote.path("ExtendedMktQuote");
+            if (("PRE_MKT".equals(market) || "POST_MKT".equals(market))
+                    && extended.isObject() && !extended.path("last").asText("").isEmpty()) {
+                double extPrice = num(extended.path("last").asText(""));
+                double extChange = num(extended.path("change").asText(""));
+                double extPercent = num(extended.path("change_pct").asText(""));
+                collected.put(id, row(info, extPrice, extChange, extPercent,
+                        quote.path("currencyCode").asText("USD"),
+                        sessionOf(extended.path("type").asText(market))));
+                continue;
+            }
             double price = num(quote.path("last").asText(""));
             double change = num(quote.path("change").asText(""));
             double percent = num(quote.path("change_pct").asText(""));
-            collected.put(id, row(info, price, change, percent, quote.path("currencyCode").asText("USD")));
+            collected.put(id, row(info, price, change, percent,
+                    quote.path("currencyCode").asText("USD"), "regular"));
         }
     }
 
@@ -176,7 +200,7 @@ public class StockQuoteService {
         double price = coin.path("trade_price").asDouble();
         double change = coin.path("signed_change_price").asDouble();
         double percent = coin.path("signed_change_rate").asDouble() * 100;
-        collected.put("BTC", row(INFO.get("BTC"), price, change, percent, "KRW"));
+        collected.put("BTC", row(INFO.get("BTC"), price, change, percent, "KRW", "regular"));
     }
 
     private void collectFx(Map<String, Map<String, Object>> collected) {
@@ -188,7 +212,7 @@ public class StockQuoteService {
         double price = num(exchange.path("closePrice").asText(""));
         double change = num(exchange.path("fluctuations").asText(""));
         double percent = num(exchange.path("fluctuationsRatio").asText(""));
-        collected.put("USDKRW", row(INFO.get("USDKRW"), price, change, percent, "KRW"));
+        collected.put("USDKRW", row(INFO.get("USDKRW"), price, change, percent, "KRW", "regular"));
     }
 
     private JsonNode get(String url) {
@@ -210,7 +234,8 @@ public class StockQuoteService {
         }
     }
 
-    private static Map<String, Object> row(Info info, double price, double change, double percent, String currency) {
+    private static Map<String, Object> row(Info info, double price, double change, double percent,
+                                           String currency, String session) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("symbol", info.code());
         row.put("name", info.name());
@@ -219,7 +244,19 @@ public class StockQuoteService {
         row.put("change", round(change));
         row.put("changePercent", round(percent));
         row.put("currency", currency);
+        row.put("session", session);
         return row;
+    }
+
+    private static String sessionOf(String tradingSessionType) {
+        String type = tradingSessionType == null ? "" : tradingSessionType.toUpperCase(Locale.ROOT);
+        if (type.startsWith("PRE")) {
+            return "pre";
+        }
+        if (type.startsWith("POST") || type.startsWith("AFTER")) {
+            return "post";
+        }
+        return "regular";
     }
 
     private static double num(String value) {

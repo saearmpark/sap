@@ -637,6 +637,17 @@ code {
   color: var(--ink-soft);
 }
 
+.stock-session {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--accent-soft);
+  border-radius: 4px;
+}
+
 .stock-numbers {
   flex-shrink: 0;
   text-align: right;
