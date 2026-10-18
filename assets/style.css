@@ -535,7 +535,9 @@ code {
 }
 
 .news-card {
-  display: block;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
   padding: 14px 16px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -546,6 +548,20 @@ code {
 
 .news-card:hover {
   border-color: var(--accent);
+}
+
+.news-thumb {
+  flex-shrink: 0;
+  width: 108px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.news-body {
+  min-width: 0;
+  flex: 1;
 }
 
 .news-card h3 {
@@ -571,4 +587,8 @@ code {
 
 .news-empty {
   color: var(--ink-soft);
+}
+
+@media (max-width: 380px) {
+  .news-thumb { width: 84px; height: 58px; }
 }

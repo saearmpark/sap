@@ -29,6 +29,7 @@ public class NewsController {
                     row.put("source", item.getSource());
                     row.put("category", item.getCategory());
                     row.put("summary", item.getSummary());
+                    row.put("imageUrl", item.getImageUrl());
                     row.put("publishedAt", item.getPublishedAt() == null ? null : item.getPublishedAt().toString());
                     row.put("fetchedAt", item.getFetchedAt().toString());
                     return row;

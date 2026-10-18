@@ -23,6 +23,8 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 // 무료 RSS 피드를 10분마다 수집해 국내 핫이슈 소식을 자동으로 게시합니다.
 // 하루(24시간)보다 오래된 소식은 다음 수집 때 삭제해 항상 최신 내용만 남깁니다.
@@ -31,12 +33,15 @@ public class NewsCollector {
 
     private static final Logger log = LoggerFactory.getLogger(NewsCollector.class);
     private static final long RETENTION_HOURS = 24;
+    private static final Pattern IMAGE_PATTERN =
+            Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
 
-    private record Feed(String url, String category) {
+    private record Feed(String url, String category, String name) {
     }
 
     private static final List<Feed> FEEDS = List.of(
-            new Feed("https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko", "국내"));
+            new Feed("https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko", "국내", "Google 뉴스"),
+            new Feed("https://www.yna.co.kr/rss/news.xml", "국내", "연합뉴스"));
 
     private final NewsItemRepository repository;
     private final HttpClient http = HttpClient.newBuilder()
@@ -87,13 +92,18 @@ public class NewsCollector {
             if (repository.existsByLinkHash(hash)) {
                 continue;
             }
+            String source = clean(text(item, "source"), 80);
+            if (source.isEmpty()) {
+                source = feed.name();
+            }
             repository.save(new NewsItem(
                     title,
                     link,
                     hash,
-                    clean(text(item, "source"), 80),
+                    source,
                     feed.category(),
-                    clean(text(item, "description"), 300),
+                    summary(text(item, "description")),
+                    imageUrl(extractImage(item)),
                     parseDate(text(item, "pubDate")),
                     now));
             added++;
@@ -130,6 +140,70 @@ public class NewsCollector {
         String text = value == null ? "" : value.replaceAll("<[^>]+>", " ");
         text = text.replaceAll("\\s+", " ").trim();
         return text.length() > maxLength ? text.substring(0, maxLength) : text;
+    }
+
+    private static String summary(String description) {
+        if (description == null) {
+            return "";
+        }
+        if (description.contains("<a ") || description.contains("<ol") || description.contains("<li")) {
+            return "";
+        }
+        return clean(description, 300);
+    }
+
+    private static String extractImage(Element item) {
+        String url = attribute(item, "media:content", "url");
+        if (url.isEmpty()) {
+            url = attribute(item, "media:thumbnail", "url");
+        }
+        if (url.isEmpty()) {
+            Element enclosure = firstElement(item, "enclosure");
+            if (enclosure != null) {
+                String type = enclosure.getAttribute("type");
+                if (type.isEmpty() || type.toLowerCase().startsWith("image")) {
+                    url = enclosure.getAttribute("url");
+                }
+            }
+        }
+        if (url.isEmpty()) {
+            url = firstImage(text(item, "content:encoded"));
+        }
+        if (url.isEmpty()) {
+            url = firstImage(text(item, "description"));
+        }
+        return url;
+    }
+
+    private static String imageUrl(String raw) {
+        String url = clean(raw, 1000);
+        if (url.startsWith("//")) {
+            url = "https:" + url;
+        }
+        boolean supported = url.startsWith("http://") || url.startsWith("https://");
+        return supported ? url : "";
+    }
+
+    private static String attribute(Element item, String tag, String name) {
+        Element element = firstElement(item, tag);
+        return element == null ? "" : element.getAttribute(name);
+    }
+
+    private static Element firstElement(Element item, String tag) {
+        NodeList nodes = item.getElementsByTagName(tag);
+        if (nodes.getLength() == 0) {
+            return null;
+        }
+        Node node = nodes.item(0);
+        return node.getNodeType() == Node.ELEMENT_NODE ? (Element) node : null;
+    }
+
+    private static String firstImage(String html) {
+        if (html == null || html.isEmpty()) {
+            return "";
+        }
+        Matcher matcher = IMAGE_PATTERN.matcher(html);
+        return matcher.find() ? matcher.group(1) : "";
     }
 
     private static Instant parseDate(String value) {

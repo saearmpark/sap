@@ -23,9 +23,10 @@ class NewsItemRepositoryTest {
     @Test
     void dedupesByLinkHashAndExpiresOldItems() {
         Instant now = Instant.now();
-        news.save(new NewsItem("첫 소식", "https://example.com/a", "hash-a", "테스트", "국내", "요약", now, now));
-        news.save(new NewsItem("오래된 소식", "https://example.com/b", "hash-b", "테스트", "해외", "요약", now,
-                now.minus(48, ChronoUnit.HOURS)));
+        news.save(new NewsItem("첫 소식", "https://example.com/a", "hash-a", "테스트", "국내", "요약",
+                "https://example.com/a.jpg", now, now));
+        news.save(new NewsItem("오래된 소식", "https://example.com/b", "hash-b", "테스트", "해외", "요약",
+                "", now, now.minus(48, ChronoUnit.HOURS)));
 
         assertTrue(news.existsByLinkHash("hash-a"));
         assertFalse(news.existsByLinkHash("hash-c"));

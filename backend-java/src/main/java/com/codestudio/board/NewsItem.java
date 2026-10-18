@@ -36,6 +36,9 @@ public class NewsItem {
     @Column(length = 500)
     private String summary;
 
+    @Column(name = "image_url", length = 1000)
+    private String imageUrl;
+
     private Instant publishedAt;
 
     @Column(name = "fetched_at", nullable = false)
@@ -45,13 +48,14 @@ public class NewsItem {
     }
 
     public NewsItem(String title, String link, String linkHash, String source, String category,
-                    String summary, Instant publishedAt, Instant fetchedAt) {
+                    String summary, String imageUrl, Instant publishedAt, Instant fetchedAt) {
         this.title = title;
         this.link = link;
         this.linkHash = linkHash;
         this.source = source;
         this.category = category;
         this.summary = summary;
+        this.imageUrl = imageUrl;
         this.publishedAt = publishedAt;
         this.fetchedAt = fetchedAt;
     }
@@ -82,6 +86,10 @@ public class NewsItem {
 
     public String getSummary() {
         return summary;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 
     public Instant getPublishedAt() {
