@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사피엔스 — 소식</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-7">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group">
+      <a href="index.html">홈</a>
+      <a href="search.html">검색</a>
+      <a href="news.html" class="active" aria-current="page">소식</a>
+      <details class="nav-menu">
+        <summary>제작</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱</a>
+          <a href="game.html">게임</a>
+        </div>
+      </details>
+      <details class="nav-menu">
+        <summary>소통</summary>
+        <div class="nav-submenu">
+          <a href="board.html">자유 게시판</a>
+          <a href="notice.html">공지사항</a>
+          <a href="chat.html">실시간 대화</a>
+        </div>
+      </details>
+      <details class="nav-menu">
+        <summary>자료실</summary>
+        <div class="nav-submenu">
+          <a href="files.html">개인자료</a>
+          <a href="apps.html">공용자료</a>
+        </div>
+      </details>
+      <details class="nav-menu">
+        <summary>계정</summary>
+        <div class="nav-submenu">
+          <a href="calendar.html">일정</a>
+          <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+        </div>
+      </details>
+    </nav>
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">NEWS</div>
+    <h1>소식</h1>
+    <p>핫이슈와 트렌드를 매시간 자동으로 모아 보여줍니다.</p>
+
+    <div id="news-filters" class="news-toolbar" role="tablist" aria-label="소식 분류"></div>
+    <p id="news-status" class="news-status" role="status" aria-live="polite">소식을 불러오는 중입니다...</p>
+    <div id="news-list" class="news-list"></div>
+  </main>
+</div>
+<script src="assets/auth.js?v=labels-7"></script>
+<script>
+  (() => {
+    const API = window.SAPAuth?.API_ROOT || "https://board-backend-nngx.onrender.com/api";
+    const listEl = document.getElementById("news-list");
+    const statusEl = document.getElementById("news-status");
+    const filtersEl = document.getElementById("news-filters");
+    const CATEGORIES = ["트렌드", "국내", "해외"];
+    let items = [];
+    let active = "전체";
+
+    function relTime(iso) {
+      if (!iso) return "";
+      const time = new Date(iso).getTime();
+      if (Number.isNaN(time)) return "";
+      const minutes = Math.round((Date.now() - time) / 60000);
+      if (minutes < 1) return "방금 전";
+      if (minutes < 60) return `${minutes}분 전`;
+      const hours = Math.round(minutes / 60);
+      if (hours < 24) return `${hours}시간 전`;
+      return `${Math.round(hours / 24)}일 전`;
+    }
+
+    function renderFilters() {
+      filtersEl.replaceChildren(...["전체", ...CATEGORIES].map(category => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "news-filter" + (category === active ? " is-active" : "");
+        button.textContent = category;
+        button.setAttribute("role", "tab");
+        button.setAttribute("aria-selected", String(category === active));
+        button.addEventListener("click", () => { active = category; renderFilters(); render(); });
+        return button;
+      }));
+    }
+
+    function card(item) {
+      const link = document.createElement("a");
+      link.className = "news-card";
+      link.href = item.link;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+
+      const title = document.createElement("h3");
+      title.textContent = item.title;
+
+      const meta = document.createElement("div");
+      meta.className = "news-meta";
+      const badge = document.createElement("span");
+      badge.className = "news-badge";
+      badge.textContent = item.category;
+      meta.appendChild(badge);
+      if (item.source) {
+        const source = document.createElement("span");
+        source.textContent = item.source;
+        meta.appendChild(source);
+      }
+      const time = document.createElement("span");
+      time.textContent = relTime(item.publishedAt || item.fetchedAt);
+      meta.appendChild(time);
+
+      link.append(title, meta);
+      if (item.summary) {
+        const summary = document.createElement("p");
+        summary.className = "news-summary";
+        summary.textContent = item.summary;
+        link.appendChild(summary);
+      }
+      return link;
+    }
+
+    function render() {
+      const visible = active === "전체" ? items : items.filter(item => item.category === active);
+      if (!visible.length) {
+        const empty = document.createElement("p");
+        empty.className = "news-empty";
+        empty.textContent = "표시할 소식이 없습니다.";
+        listEl.replaceChildren(empty);
+        return;
+      }
+      if (active !== "전체") {
+        listEl.replaceChildren(...visible.map(card));
+        return;
+      }
+      const nodes = [];
+      CATEGORIES.forEach(category => {
+        const group = visible.filter(item => item.category === category);
+        if (!group.length) return;
+        const heading = document.createElement("h2");
+        heading.className = "news-group-title";
+        heading.textContent = category;
+        nodes.push(heading);
+        group.forEach(item => nodes.push(card(item)));
+      });
+      listEl.replaceChildren(...nodes);
+    }
+
+    async function load() {
+      statusEl.textContent = "소식을 불러오는 중입니다...";
+      try {
+        const response = await fetch(`${API}/news`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        items = await response.json();
+        const updated = items[0]?.fetchedAt || items[0]?.publishedAt;
+        statusEl.textContent = items.length
+          ? `총 ${items.length}건 · ${relTime(updated)} 갱신`
+          : "아직 수집된 소식이 없습니다. 잠시 후 다시 확인해주세요.";
+        render();
+      } catch (error) {
+        statusEl.textContent = "소식을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
+        listEl.replaceChildren();
+      }
+    }
+
+    renderFilters();
+    load();
+    setInterval(load, 5 * 60 * 1000);
+  })();
+</script>
+<script src="assets/theme.js"></script>
+</body>
+</html>
