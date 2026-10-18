@@ -11,10 +11,13 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class ChatWebSocketConfig implements WebSocketConfigurer {
     private final ChatWebSocketHandler chatHandler;
     private final GameWebSocketHandler gameHandler;
+    private final TurnGameWebSocketHandler turnGameHandler;
 
-    public ChatWebSocketConfig(ChatWebSocketHandler chatHandler, GameWebSocketHandler gameHandler) {
+    public ChatWebSocketConfig(ChatWebSocketHandler chatHandler, GameWebSocketHandler gameHandler,
+            TurnGameWebSocketHandler turnGameHandler) {
         this.chatHandler = chatHandler;
         this.gameHandler = gameHandler;
+        this.turnGameHandler = turnGameHandler;
     }
 
     @Override
@@ -27,6 +30,13 @@ public class ChatWebSocketConfig implements WebSocketConfigurer {
                         "http://localhost:8080",
                         "http://127.0.0.1:8080");
         registry.addHandler(gameHandler, "/ws/game")
+                .setAllowedOrigins(
+                        "https://saearmpark.github.io",
+                        "http://localhost:5500",
+                        "http://127.0.0.1:5500",
+                        "http://localhost:8080",
+                        "http://127.0.0.1:8080");
+        registry.addHandler(turnGameHandler, "/ws/turn")
                 .setAllowedOrigins(
                         "https://saearmpark.github.io",
                         "http://localhost:5500",

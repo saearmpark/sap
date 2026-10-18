@@ -67,6 +67,25 @@
   .game-leaderboard ol { margin:8px 0 0; padding-left:22px; }
   .game-leaderboard li { padding:2px 0; }
   .game-leaderboard li.lb-me { font-weight:700; color:var(--accent); }
+  .turn-online-board { display:grid; justify-content:center; gap:4px; margin:12px 0; }
+  .connect-online-grid { grid-template-columns:repeat(7, 38px); }
+  .connect-online-cell { width:38px; height:38px; padding:0; border-radius:50%; border:1px solid var(--border); background:var(--bg); }
+  .connect-online-cell[data-value="1"] { background:#e05a5a; }
+  .connect-online-cell[data-value="2"] { background:#e0c34a; }
+  .gomoku-online-grid { grid-template-columns:repeat(15, 20px); }
+  .gomoku-online-cell { width:20px; height:20px; padding:0; border-radius:2px; border:1px solid var(--border); background:var(--bg); }
+  .gomoku-online-cell[data-value="1"] { background:#222; }
+  .gomoku-online-cell[data-value="2"] { background:#f4f4f4; }
+  .shogi-online-wrap { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .shogi-online-board { display:grid; grid-template-columns:repeat(3, 64px); gap:4px; }
+  .shogi-online-cell { width:64px; height:64px; padding:0; border:1px solid var(--border); background:var(--bg); display:flex; align-items:center; justify-content:center; }
+  .shogi-online-cell.is-selected { outline:3px solid var(--accent); outline-offset:-3px; }
+  .shogi-online-piece { font-weight:700; font-size:20px; }
+  .shogi-online-piece.theirs { color:#b3261e; }
+  .shogi-online-piece.mine { color:var(--ink); }
+  .shogi-online-piece.is-promoted { color:#d97706; }
+  .shogi-online-hands { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .shogi-online-hand-label { color:var(--ink-soft); font-size:13px; }
   .baseball-form, .game-inline-controls { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
   .baseball-form input { width:140px; }
   .sequence-pads { display:grid; grid-template-columns:repeat(2, minmax(90px, 130px)); gap:8px; margin:14px 0; }
@@ -9733,6 +9752,405 @@
         busy = false;
       },
     });
+  })();
+</script>
+
+<script>
+  // ── 온라인 턴제 대전 (4목·오목·동물쇼기) ────────────────
+  (function () {
+    function buildOnlineSection(panel, title) {
+      const section = document.createElement("section");
+      section.className = "ttt-online";
+      section.innerHTML = `
+        <h4>${title}</h4>
+        <p>로그인 후 방을 만들고, 방 코드를 상대에게 공유하세요. 방과 게임 상태는 서버에 임시로 보관됩니다.</p>
+        <div class="ttt-online-controls">
+          <button type="button" data-role="create">방 만들기</button>
+          <label>방 코드</label>
+          <input type="text" maxlength="6" autocomplete="off" placeholder="예: A2BCDE" data-role="code">
+          <button type="button" data-role="join">입장</button>
+        </div>
+        <p class="ttt-online-room" data-role="room" aria-live="polite">대전방에 입장하지 않았습니다.</p>
+        <div class="turn-online-board" data-role="board"></div>
+        <p class="ttt-online-status" data-role="status" aria-live="polite">온라인 대전을 시작하려면 로그인하세요.</p>
+        <div class="ttt-online-controls">
+          <button type="button" data-role="copy" hidden>방 코드 복사</button>
+          <button type="button" data-role="rematch" hidden>재대결 요청</button>
+          <button type="button" data-role="leave" hidden>방 나가기</button>
+          <a data-role="login" href="login.html?next=game.html">로그인</a>
+        </div>
+        <p class="ttt-online-status">연결이 잠시 끊기면 60초 안에 자동으로 재접속됩니다.</p>
+      `;
+      panel.appendChild(section);
+      const role = name => section.querySelector(`[data-role="${name}"]`);
+      return {
+        board: role("board"), status: role("status"), room: role("room"), code: role("code"),
+        create: role("create"), join: role("join"), leave: role("leave"),
+        rematch: role("rematch"), copy: role("copy"), login: role("login"),
+      };
+    }
+
+    function createTurnOnline(config) {
+      const panel = document.getElementById(config.panelId);
+      const noop = { init() {}, resume() {}, stop() {} };
+      if (!panel) return noop;
+      const els = buildOnlineSection(panel, config.title || "온라인 1:1 대전");
+      const resumeKey = config.resumeKey;
+      let socket = null, authenticated = false, readyPromise = null, state = null,
+          connected = false, panelActive = false, shouldReconnect = false,
+          retryTimer = null, retryCount = 0, reconnectDeadline = 0;
+
+      function savedCode() { try { return sessionStorage.getItem(resumeKey) || ""; } catch { return ""; } }
+      function saveCode(code) {
+        try { if (code) sessionStorage.setItem(resumeKey, code); else sessionStorage.removeItem(resumeKey); } catch {}
+      }
+      function showError(message) { els.status.textContent = message; }
+
+      function opponentConnected() {
+        return state ? (state.yourSeat === 1 ? state.p2Connected : state.p1Connected) : false;
+      }
+      function canMove() {
+        return Boolean(connected && state && state.status === "playing"
+          && state.currentPlayer === state.yourSeat && opponentConnected());
+      }
+      function send(packet) {
+        if (socket?.readyState !== WebSocket.OPEN || !authenticated) {
+          showError("온라인 서버에 연결되지 않았습니다. 방에 다시 입장해주세요.");
+          return;
+        }
+        socket.send(JSON.stringify(packet));
+      }
+      function sendMove(move) { send(Object.assign({ type: "move" }, move)); }
+
+      function render() {
+        const hasSession = Boolean(window.SAPAuth?.getToken());
+        els.login.hidden = hasSession;
+        els.board.replaceChildren();
+        if (!state) {
+          els.room.textContent = "대전방에 입장하지 않았습니다.";
+          els.status.textContent = hasSession
+            ? "방을 만들거나 상대의 방 코드로 입장하세요."
+            : "온라인 대전을 시작하려면 로그인하세요.";
+          els.leave.hidden = true;
+          els.rematch.hidden = true;
+          els.copy.hidden = true;
+          return;
+        }
+        els.code.value = state.roomCode;
+        els.room.textContent = `방 코드: ${state.roomCode} · 내 진영 ${state.yourSeat === 1 ? "1P" : "2P"}`
+          + ` · 1P ${state.p1Name}` + (state.p2Name ? ` · 2P ${state.p2Name}` : " · 상대 대기 중");
+        els.copy.hidden = false;
+        els.leave.hidden = false;
+        els.rematch.hidden = state.status !== "finished";
+        els.rematch.textContent = state.youRequestedRematch ? "재대결 요청 완료" : "재대결 요청";
+        els.rematch.disabled = state.youRequestedRematch;
+
+        if (!connected) {
+          els.status.textContent = "서버 연결이 끊겼습니다. 자동으로 다시 연결하고 있습니다...";
+        } else if (state.status !== "waiting" && !opponentConnected()) {
+          els.status.textContent = "상대 연결이 끊겼습니다. 60초 동안 재접속을 기다립니다.";
+        } else if (state.status === "waiting") {
+          els.status.textContent = "상대가 방 코드로 입장하기를 기다리는 중입니다.";
+        } else if (state.status === "finished") {
+          els.status.textContent = state.winner === 0 ? "무승부입니다."
+            : state.winner === state.yourSeat ? "이겼습니다!" : "상대가 이겼습니다.";
+          if (state.opponentRequestedRematch) els.status.textContent += " 상대가 재대결을 요청했습니다.";
+          else if (state.youRequestedRematch) els.status.textContent += " 상대의 응답을 기다리는 중입니다.";
+        } else {
+          els.status.textContent = state.currentPlayer === state.yourSeat ? "내 차례입니다." : "상대 차례입니다.";
+        }
+        config.render(els.board, { state, canMove: canMove(), sendMove });
+      }
+
+      function handlePacket(packet) {
+        if (packet.type === "state") {
+          state = packet;
+          connected = true;
+          shouldReconnect = true;
+          retryCount = 0;
+          reconnectDeadline = 0;
+          saveCode(packet.roomCode);
+          render();
+        } else if (packet.type === "error") {
+          showError(packet.message || "온라인 대전 요청을 처리하지 못했습니다.");
+        } else if (packet.type === "opponent-disconnected") {
+          if (state) { if (state.yourSeat === 1) state.p2Connected = false; else state.p1Connected = false; }
+          render();
+        } else if (packet.type === "opponent-reconnected") {
+          if (state) { if (state.yourSeat === 1) state.p2Connected = true; else state.p1Connected = true; }
+          render();
+        } else if (packet.type === "opponent-left") {
+          state = null; shouldReconnect = false; saveCode(""); render();
+          showError("상대가 대전방을 나갔습니다. 새 방을 만들거나 다시 입장해주세요.");
+        } else if (packet.type === "left") {
+          state = null; shouldReconnect = false; saveCode(""); render();
+        }
+      }
+
+      function connect() {
+        if (socket?.readyState === WebSocket.OPEN && authenticated) return Promise.resolve();
+        if (readyPromise) return readyPromise;
+        const token = window.SAPAuth?.getToken();
+        if (!token) return Promise.reject(new Error("온라인 대전을 이용하려면 먼저 로그인해주세요."));
+        readyPromise = new Promise((resolve, reject) => {
+          const apiUrl = new URL(window.SAPAuth.API_ROOT);
+          apiUrl.protocol = apiUrl.protocol === "https:" ? "wss:" : "ws:";
+          apiUrl.pathname = "/ws/turn";
+          apiUrl.search = "";
+          const ws = new WebSocket(apiUrl);
+          socket = ws;
+          let settled = false;
+          const timeout = setTimeout(() => {
+            if (!settled) { settled = true; ws.close(); reject(new Error("온라인 게임 서버의 응답이 없습니다. 잠시 후 다시 시도해주세요.")); }
+          }, 12000);
+          ws.addEventListener("open", () => ws.send(JSON.stringify({ type: "auth", token })));
+          ws.addEventListener("message", event => {
+            let packet;
+            try { packet = JSON.parse(event.data); } catch { showError("서버 응답을 읽을 수 없습니다."); return; }
+            if (packet.type === "ready" && !settled) {
+              settled = true;
+              clearTimeout(timeout);
+              authenticated = true;
+              connected = true;
+              if (!packet.resumed && savedCode()) {
+                saveCode("");
+                shouldReconnect = false;
+                showError("이전에 진행하던 대전방이 만료되었습니다. 새 방을 만들거나 코드를 입력해주세요.");
+              }
+              resolve();
+            } else {
+              handlePacket(packet);
+            }
+          });
+          ws.addEventListener("error", () => {
+            if (!settled) { settled = true; clearTimeout(timeout); reject(new Error("온라인 게임 서버에 연결할 수 없습니다.")); }
+          });
+          ws.addEventListener("close", event => {
+            clearTimeout(timeout);
+            if (!settled) { settled = true; reject(new Error("로그인 또는 온라인 서버 연결을 확인해주세요.")); }
+            if (socket === ws) {
+              socket = null;
+              authenticated = false;
+              connected = false;
+              if (state) {
+                if (event.code === 1008) {
+                  shouldReconnect = false; state = null; saveCode(""); render();
+                  showError("로그인 세션이 만료되었습니다. 다시 로그인한 뒤 방 코드로 입장해주세요.");
+                  return;
+                }
+                render();
+                scheduleReconnect();
+              }
+            }
+          });
+        }).finally(() => { readyPromise = null; });
+        return readyPromise;
+      }
+
+      function scheduleReconnect() {
+        if (!panelActive || !shouldReconnect || !window.SAPAuth?.getToken()) return;
+        if (retryTimer !== null) clearTimeout(retryTimer);
+        if (!reconnectDeadline) reconnectDeadline = Date.now() + 55_000;
+        if (Date.now() >= reconnectDeadline) {
+          shouldReconnect = false;
+          showError("재접속 시간이 만료되었습니다. 방 코드로 다시 입장해주세요.");
+          return;
+        }
+        const delays = [1000, 2000, 4000, 8000, 10000];
+        const delay = Math.min(delays[Math.min(retryCount++, delays.length - 1)], reconnectDeadline - Date.now());
+        retryTimer = setTimeout(async () => {
+          retryTimer = null;
+          try { await connect(); } catch { scheduleReconnect(); }
+        }, delay);
+      }
+
+      async function action(packet) {
+        showError("온라인 게임 서버에 연결 중입니다...");
+        try { await connect(); send(packet); } catch (error) { showError(error.message); }
+      }
+
+      els.create.addEventListener("click", () => action({ type: "create", gameType: config.gameType }));
+      els.join.addEventListener("click", () => action({ type: "join", roomCode: els.code.value }));
+      els.code.addEventListener("input", () => {
+        els.code.value = els.code.value.toUpperCase().replace(/[^A-HJ-NP-Z2-9]/g, "").slice(0, 6);
+      });
+      els.leave.addEventListener("click", () => {
+        shouldReconnect = false;
+        if (retryTimer !== null) clearTimeout(retryTimer);
+        retryTimer = null;
+        state = null;
+        saveCode("");
+        render();
+        send({ type: "leave" });
+      });
+      els.rematch.addEventListener("click", () => send({ type: "rematch" }));
+      els.copy.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(state.roomCode);
+          showError("방 코드를 복사했습니다.");
+        } catch {
+          els.code.focus();
+          els.code.select();
+          showError("방 코드를 선택했습니다. 복사해서 상대에게 공유해주세요.");
+        }
+      });
+
+      function resume() {
+        panelActive = true;
+        if (!savedCode() && !state) { render(); return; }
+        if (!window.SAPAuth?.getToken()) { render(); showError("이전 대전방에 다시 연결하려면 로그인해주세요."); return; }
+        shouldReconnect = true;
+        els.status.textContent = "이전 대전방에 다시 연결하는 중...";
+        connect().catch(error => { showError(error.message); scheduleReconnect(); });
+      }
+
+      function stop() {
+        panelActive = false;
+        if (retryTimer !== null) clearTimeout(retryTimer);
+        retryTimer = null;
+        if (socket) {
+          socket.close();
+          socket = null;
+          authenticated = false;
+          connected = false;
+        }
+      }
+
+      render();
+      return { init: resume, resume, stop };
+    }
+
+    function renderConnect(boardEl, ctx) {
+      boardEl.className = "turn-online-board connect-online-grid";
+      const { rows, cols, board } = ctx.state;
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "connect-online-cell";
+          cell.dataset.value = board[row][col];
+          cell.setAttribute("aria-label", `${col + 1}열 ${row + 1}행`);
+          cell.disabled = !ctx.canMove || board[0][col] !== 0;
+          cell.addEventListener("click", () => ctx.sendMove({ col }));
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    function renderGomoku(boardEl, ctx) {
+      boardEl.className = "turn-online-board gomoku-online-grid";
+      const { size, board } = ctx.state;
+      for (let row = 0; row < size; row++) {
+        for (let col = 0; col < size; col++) {
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "gomoku-online-cell";
+          cell.dataset.value = board[row][col];
+          cell.setAttribute("aria-label", `${row + 1}행 ${col + 1}열`);
+          cell.disabled = !ctx.canMove || board[row][col] !== 0;
+          cell.addEventListener("click", () => ctx.sendMove({ row, col }));
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    const SHOGI_LABELS = { lion: "사", giraffe: "기", elephant: "코", chick: "병", hen: "닭" };
+
+    function buildShogiRenderer() {
+      let selected = null;
+      return function renderShogi(boardEl, ctx) {
+        const state = ctx.state;
+        const mySeat = state.yourSeat;
+        if (!ctx.canMove) selected = null;
+        boardEl.className = "turn-online-board shogi-online-wrap";
+        boardEl.replaceChildren();
+
+        const boardWrap = document.createElement("div");
+        boardWrap.className = "shogi-online-board";
+        for (let row = 0; row < state.rows; row++) {
+          for (let col = 0; col < state.cols; col++) {
+            const piece = state.board[row][col];
+            const cell = document.createElement("button");
+            cell.type = "button";
+            cell.className = "shogi-online-cell";
+            if (selected?.kind === "board" && selected.row === row && selected.col === col) cell.classList.add("is-selected");
+            cell.setAttribute("aria-label", `${row + 1}행 ${col + 1}열${piece ? ` ${piece.owner}번 ${piece.promoted ? "승격 " : ""}${SHOGI_LABELS[piece.type]}` : " 빈칸"}`);
+            if (piece) {
+              const marker = document.createElement("span");
+              marker.className = "shogi-online-piece" + (piece.owner === mySeat ? " mine" : " theirs") + (piece.promoted ? " is-promoted" : "");
+              marker.textContent = SHOGI_LABELS[piece.type];
+              cell.appendChild(marker);
+            }
+            cell.disabled = !ctx.canMove;
+            cell.addEventListener("click", () => {
+              if (!ctx.canMove) return;
+              if (selected?.kind === "board" && selected.row === row && selected.col === col) {
+                selected = null;
+              } else if (selected?.kind === "board") {
+                ctx.sendMove({ kind: "move", from: [selected.row, selected.col], to: [row, col] });
+                selected = null;
+              } else if (selected?.kind === "hand") {
+                ctx.sendMove({ kind: "drop", type: selected.type, to: [row, col] });
+                selected = null;
+              } else if (piece && piece.owner === mySeat) {
+                selected = { kind: "board", row, col };
+              } else {
+                selected = null;
+              }
+              renderShogi(boardEl, ctx);
+            });
+            boardWrap.appendChild(cell);
+          }
+        }
+        boardEl.appendChild(boardWrap);
+
+        const handsWrap = document.createElement("div");
+        handsWrap.className = "shogi-online-hands";
+        const label = document.createElement("span");
+        label.className = "shogi-online-hand-label";
+        label.textContent = "내 손패";
+        handsWrap.appendChild(label);
+        const myHand = state.hands?.[String(mySeat)] || {};
+        for (const type of ["giraffe", "elephant", "chick"]) {
+          const count = myHand[type] || 0;
+          if (!count) continue;
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = `${SHOGI_LABELS[type]} ${count}`;
+          button.disabled = !ctx.canMove;
+          if (selected?.kind === "hand" && selected.type === type) button.classList.add("is-selected");
+          button.addEventListener("click", () => {
+            if (!ctx.canMove) return;
+            selected = selected?.kind === "hand" && selected.type === type ? null : { kind: "hand", type };
+            renderShogi(boardEl, ctx);
+          });
+          handsWrap.appendChild(button);
+        }
+        boardEl.appendChild(handsWrap);
+      };
+    }
+
+    function wrapGame(panelId, online) {
+      const original = window.gamePanels[panelId] || {};
+      window.gamePanels[panelId] = {
+        init() { original.init?.(); online.init(); },
+        resume() { original.resume?.(); online.resume(); },
+        stop() { original.stop?.(); online.stop(); },
+      };
+    }
+
+    wrapGame("panel-connect", createTurnOnline({
+      panelId: "panel-connect", gameType: "connect", resumeKey: "sap-online-connect-room",
+      title: "온라인 1:1 대전", render: renderConnect,
+    }));
+    wrapGame("panel-gomoku", createTurnOnline({
+      panelId: "panel-gomoku", gameType: "gomoku", resumeKey: "sap-online-gomoku-room",
+      title: "온라인 1:1 대전", render: renderGomoku,
+    }));
+    wrapGame("panel-animal-shogi", createTurnOnline({
+      panelId: "panel-animal-shogi", gameType: "animal-shogi", resumeKey: "sap-online-shogi-room",
+      title: "온라인 1:1 대전", render: buildShogiRenderer(),
+    }));
   })();
 </script>
 
