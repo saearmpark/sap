@@ -779,6 +779,64 @@ code {
   color: var(--ink-soft);
 }
 
+.weather-hourly {
+  margin-top: 12px;
+}
+
+.weather-hourly-title {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.weather-hourly-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.weather-hour {
+  flex: 0 0 auto;
+  min-width: 56px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.weather-hour.is-now {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.weather-hour-time {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.weather-hour.is-now .weather-hour-time {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.weather-hour-temp {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.weather-hour-rain {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
 .leaflet-container {
   font: inherit;
   background: var(--bg);

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>사피엔스 — 이슈사항</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-12">
+<link rel="stylesheet" href="assets/style.css?v=labels-13">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
 <body>
@@ -65,13 +65,17 @@
       </div>
       <div id="weather-map" class="weather-map" aria-label="대한민국 도시별 날씨 지도"></div>
       <div id="weather-grid" class="weather-grid" hidden></div>
+      <div id="weather-hourly" class="weather-hourly" hidden>
+        <h3 class="weather-hourly-title">천안 시간대별 예상</h3>
+        <div id="weather-hourly-strip" class="weather-hourly-strip"></div>
+      </div>
     </section>
 
     <p id="news-status" class="news-status" role="status" aria-live="polite">소식을 불러오는 중입니다...</p>
     <div id="news-list" class="news-list"></div>
   </main>
 </div>
-<script src="assets/auth.js?v=labels-12"></script>
+<script src="assets/auth.js?v=labels-13"></script>
 <script>
   (() => {
     const API = window.SAPAuth?.API_ROOT || "https://board-backend-nngx.onrender.com/api";
@@ -200,6 +204,8 @@
   (() => {
     const mapEl = document.getElementById("weather-map");
     const gridEl = document.getElementById("weather-grid");
+    const hourlyEl = document.getElementById("weather-hourly");
+    const stripEl = document.getElementById("weather-hourly-strip");
     const statusEl = document.getElementById("weather-status");
     const CACHE_KEY = "sap-weather-cache";
     const CITIES = [
@@ -351,6 +357,48 @@
         gridEl.hidden = false;
         render(items);
       }
+      renderHourly(items);
+    }
+
+    function seoulHour() {
+      try {
+        const hour = new Intl.DateTimeFormat("en-US", {
+          timeZone: "Asia/Seoul", hour: "numeric", hour12: false,
+        }).format(new Date());
+        return Number(hour) % 24;
+      } catch {
+        return new Date().getHours();
+      }
+    }
+
+    function hourChip(hour, isNow) {
+      const el = document.createElement("div");
+      el.className = isNow ? "weather-hour is-now" : "weather-hour";
+      const time = document.createElement("span");
+      time.className = "weather-hour-time";
+      time.textContent = isNow ? "지금" : `${hour.h}시`;
+      const temp = document.createElement("span");
+      temp.className = "weather-hour-temp";
+      temp.textContent = fmtTemp(hour.t);
+      const rain = document.createElement("span");
+      rain.className = "weather-hour-rain";
+      rain.textContent = Number.isFinite(hour.p) ? `${hour.p}%` : "-";
+      el.append(time, temp, rain);
+      return el;
+    }
+
+    function renderHourly(items) {
+      const cheonan = items.find((item) => item.name === "천안");
+      const hours = cheonan && Array.isArray(cheonan.hours) ? cheonan.hours : null;
+      if (!hours || !hours.length) {
+        hourlyEl.hidden = true;
+        return;
+      }
+      const now = seoulHour();
+      const start = hours.findIndex((hour) => hour.h === now);
+      const visible = start > 0 ? hours.slice(start) : hours;
+      stripEl.replaceChildren(...visible.map((hour) => hourChip(hour, hour.h === now)));
+      hourlyEl.hidden = false;
     }
 
     async function load() {
@@ -385,6 +433,13 @@
           precip: roundValue(entry.daily?.precipitation_probability_max?.[0]),
           morning: roundValue(hourValue(entry, 9, "temperature_2m")),
           afternoon: roundValue(hourValue(entry, 15, "temperature_2m")),
+          hours: CITIES[index]?.name === "천안" && Array.isArray(entry.hourly?.time)
+            ? entry.hourly.time.map((iso, i) => ({
+                h: Number(iso.slice(11, 13)),
+                t: roundValue(entry.hourly.temperature_2m?.[i]),
+                p: roundValue(entry.hourly.precipitation_probability?.[i]),
+              }))
+            : undefined,
         }));
         show(items);
         writeCache(items);
