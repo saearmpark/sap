@@ -725,3 +725,70 @@ code {
   font-size: 11px;
   color: var(--ink-soft);
 }
+
+.weather-map {
+  height: 420px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.weather-pin-wrap {
+  background: transparent;
+  border: 0;
+}
+
+.weather-pin {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 4px 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+  color: var(--ink);
+  font-size: 11px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.weather-pin-city {
+  color: var(--ink-soft);
+}
+
+.weather-pin-temp {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.leaflet-container {
+  font: inherit;
+  background: var(--bg);
+}
+
+[data-theme="dark"] .weather-map .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+
+[data-theme="dark"] .leaflet-popup-content-wrapper,
+[data-theme="dark"] .leaflet-popup-tip {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .leaflet-bar a,
+[data-theme="dark"] .leaflet-control-attribution {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+@media (max-width: 380px) {
+  .weather-map {
+    height: 320px;
+  }
+}
