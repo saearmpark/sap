@@ -1,6 +1,6 @@
 # Java 백엔드
 
-Spring Boot 기반 게시판·자료실 API입니다. 프로젝트 루트의 정적 화면(`board.html`, `files.html`)이 운영 API를 호출합니다.
+Spring Boot 기반 게시판·자료실 API입니다. 프로젝트 루트의 정적 화면(`board.html`, `notice.html`, `files.html`)이 운영 API를 호출합니다.
 
 ## 실행 환경
 
@@ -35,7 +35,7 @@ mvn spring-boot:run
 | POST | `/api/posts/{id}/comments` | 댓글 등록 (`content` JSON) |
 | DELETE | `/api/posts/{id}/comments/{commentId}` | 댓글 삭제 (작성자 또는 관리자) |
 
-글 분류(`category`)는 `공지`, `학습일지`, `질문`, `자유` 중 하나이며 비워 둘 수도 있습니다.
+글 분류(`category`)는 `공지`, `학습일지`, `질문`, `자유` 중 하나이며 비워 둘 수도 있습니다. 자유 게시판은 분류를 사용하지 않고, 공지사항 페이지는 `공지` 분류로 글을 조회·작성합니다.
 
 ### 자료실
 

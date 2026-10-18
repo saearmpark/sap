@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사피엔스 — 게시판</title>
+<title>사피엔스 — 자유 게시판</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
 <link rel="stylesheet" href="assets/style.css?v=labels-7">
 <style>
@@ -86,7 +86,8 @@
       <details class="nav-menu" open>
         <summary>소통</summary>
         <div class="nav-submenu">
-          <a href="board.html" class="active" aria-current="page">게시판</a>
+          <a href="board.html" class="active" aria-current="page">자유 게시판</a>
+          <a href="notice.html">공지사항</a>
           <a href="chat.html">실시간 대화</a>
         </div>
       </details>
@@ -109,18 +110,10 @@
   </aside>
   <main class="main">
     <div class="eyebrow">BOARD</div>
-    <h1>게시판</h1>
+    <h1>자유 게시판</h1>
 
     <form id="post-form" class="card">
       <h3 id="post-form-title">새 글 쓰기</h3>
-      <div class="form-row">
-        <select id="category">
-          <option value="자유">자유</option>
-          <option value="공지">공지</option>
-          <option value="학습일지">학습일지</option>
-          <option value="질문">질문</option>
-        </select>
-      </div>
       <div class="form-row">
         <input type="text" id="title" placeholder="제목" required>
       </div>
@@ -136,13 +129,6 @@
 
     <form id="filter-form" class="card board-toolbar">
       <input id="search" type="search" placeholder="제목·내용 검색" autocomplete="off">
-      <select id="filter-category" aria-label="분류 필터">
-        <option value="">전체 분류</option>
-        <option value="공지">공지</option>
-        <option value="학습일지">학습일지</option>
-        <option value="질문">질문</option>
-        <option value="자유">자유</option>
-      </select>
       <button type="submit">검색</button>
       <button type="button" id="filter-reset" class="edit-btn">초기화</button>
       <span id="filter-status" class="form-status" aria-live="polite"></span>
@@ -150,10 +136,10 @@
 
     <table>
       <thead>
-        <tr><th>번호</th><th>분류</th><th>제목</th><th>작성자</th><th>작성일</th><th></th></tr>
+        <tr><th>번호</th><th>제목</th><th>작성자</th><th>작성일</th><th></th></tr>
       </thead>
       <tbody id="post-list">
-        <tr><td colspan="6">불러오는 중...</td></tr>
+        <tr><td colspan="5">불러오는 중...</td></tr>
       </tbody>
     </table>
   </main>
@@ -203,26 +189,23 @@
     const filterStatus = document.getElementById("filter-status");
     const params = new URLSearchParams();
     const keyword = document.getElementById("search").value.trim();
-    const category = document.getElementById("filter-category").value;
     if (keyword) params.set("q", keyword);
-    if (category) params.set("category", category);
     const url = params.toString() ? `${API_BASE}?${params}` : API_BASE;
     try {
       const res = await SAPAuth.apiFetch(url);
       if (!res.ok) throw new Error("서버 응답 오류");
       const posts = await res.json();
       postsCache = posts;
-      filterStatus.textContent = keyword || category ? `${posts.length}건을 찾았습니다.` : "";
+      filterStatus.textContent = keyword ? `${posts.length}건을 찾았습니다.` : "";
 
       if (posts.length === 0) {
-        listEl.innerHTML = `<tr><td colspan="6">${keyword || category ? "조건에 맞는 글이 없습니다." : "등록된 글이 없습니다."}</td></tr>`;
+        listEl.innerHTML = `<tr><td colspan="5">${keyword ? "조건에 맞는 글이 없습니다." : "등록된 글이 없습니다."}</td></tr>`;
         return;
       }
 
       listEl.innerHTML = posts.map(p => `
         <tr>
           <td>${p.id}</td>
-          <td>${p.category ? `<span class="tag">${escapeHtml(p.category)}</span>` : "-"}</td>
           <td><button type="button" class="post-title-btn" data-id="${p.id}">${escapeHtml(p.title)}</button></td>
           <td>${escapeHtml(p.author_name || "-")}</td>
           <td>${escapeHtml(p.created_at || "")}</td>
@@ -244,7 +227,7 @@
       });
     } catch (err) {
       listEl.innerHTML =
-        '<tr><td colspan="6">서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요 (무료 서버는 깨어나는 데 최대 1분 정도 걸릴 수 있습니다).</td></tr>';
+        '<tr><td colspan="5">서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요 (무료 서버는 깨어나는 데 최대 1분 정도 걸릴 수 있습니다).</td></tr>';
     }
   }
 
@@ -252,7 +235,6 @@
     const post = postsCache.find(p => String(p.id) === String(id));
     if (!post) return;
     editingId = post.id;
-    document.getElementById("category").value = post.category || "자유";
     document.getElementById("title").value = post.title;
     document.getElementById("content").value = post.content;
     document.getElementById("post-form-title").textContent = `글 수정 (#${post.id})`;
@@ -277,7 +259,7 @@
 
     document.getElementById("modal-title").textContent = post.title;
     document.getElementById("modal-meta").textContent =
-      `번호 ${post.id} · 분류 ${post.category || "미지정"} · 작성자 ${post.author_name || "미등록"} · 작성일 ${post.created_at || ""}`;
+      `번호 ${post.id} · 작성자 ${post.author_name || "미등록"} · 작성일 ${post.created_at || ""}`;
     document.getElementById("modal-content").textContent = post.content;
     document.getElementById("comment-status").textContent = "";
     document.getElementById("comment-form").reset();
@@ -329,7 +311,6 @@
 
   document.getElementById("post-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const category = document.getElementById("category").value;
     const title = document.getElementById("title").value.trim();
     const content = document.getElementById("content").value.trim();
     const statusEl = document.getElementById("form-status");
@@ -339,7 +320,7 @@
       const res = await SAPAuth.apiFetch(editing ? `${API_BASE}/${editing}` : API_BASE, {
         method: editing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content, category }),
+        body: JSON.stringify({ title, content }),
       });
       if (!res.ok) throw new Error();
 
@@ -362,11 +343,9 @@
   });
   document.getElementById("filter-reset").addEventListener("click", () => {
     document.getElementById("search").value = "";
-    document.getElementById("filter-category").value = "";
     document.getElementById("filter-status").textContent = "";
     loadPosts();
   });
-  document.getElementById("filter-category").addEventListener("change", loadPosts);
 
   document.getElementById("comment-form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -396,7 +375,7 @@
 
   SAPAuth.requireSession().then(user => {
     if (user?.unavailable) {
-      document.getElementById("post-list").innerHTML = '<tr><td colspan="6">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>';
+      document.getElementById("post-list").innerHTML = '<tr><td colspan="5">인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.</td></tr>';
       return;
     }
     if (user) loadPosts();
