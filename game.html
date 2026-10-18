@@ -308,9 +308,6 @@
   .dots-edge.is-one::after { background:#2563eb; }
   .dots-edge.is-two::after { background:#ef4444; }
   .dots-box { background:transparent; font-size:clamp(14px, 5vw, 24px); font-weight:800; }
-  .dodge-game-canvas { display:block; width:min(100%, 420px); height:auto; border:1px solid var(--border); border-radius:8px; background:#111827; touch-action:none; }
-  .dodge-controls { display:flex; gap:12px; margin:10px 0; }
-  .dodge-controls button { min-width:64px; min-height:48px; touch-action:manipulation; }
   .typing-prompt { max-width:640px; padding:14px; border-radius:8px; background:var(--accent-soft); color:var(--ink) !important; font-size:clamp(18px, 4vw, 24px) !important; line-height:1.6; }
   .typing-form { display:flex; flex-wrap:wrap; gap:8px; max-width:640px; margin:12px 0; }
   .typing-form input { min-width:0; flex:1 1 220px; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:inherit; }
@@ -417,7 +414,7 @@
 
     <div id="game-menu">
       <h2 class="game-list-heading">기록 게임</h2>
-      <p class="game-list-note">점수나 생존 기록을 겨루는 게임입니다.</p>
+      <p class="game-list-note">점수나 생존 기록을 겨루는 게임입니다. 시작 버튼은 Enter 키로도 누를 수 있습니다.</p>
       <div class="game-list">
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bo">벽돌깨기</button><button class="game-code-button" type="button" data-game-code-view="panel-bo">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sh">슈팅게임</button><button class="game-code-button" type="button" data-game-code-view="panel-sh">코드 보기</button></div>
@@ -428,7 +425,6 @@
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dodge">똥피하기</button><button class="game-code-button" type="button" data-game-code-view="panel-dodge">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-math">암산 챌린지</button><button class="game-code-button" type="button" data-game-code-view="panel-math">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-runner">점프 달리기</button><button class="game-code-button" type="button" data-game-code-view="panel-runner">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dodge-rocks">운석 피하기</button><button class="game-code-button" type="button" data-game-code-view="panel-dodge-rocks">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pac">팩맨 (미로 탈출)</button><button class="game-code-button" type="button" data-game-code-view="panel-pac">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-frog">개구리 건너기</button><button class="game-code-button" type="button" data-game-code-view="panel-frog">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bomber">봄버맨</button><button class="game-code-button" type="button" data-game-code-view="panel-bomber">코드 보기</button></div>
@@ -877,15 +873,6 @@
       <p id="dots-box-status" class="extra-game-status" aria-live="polite">내 차례 · 나 0 : 컴퓨터 0</p>
       <div id="dots-box-board" class="dots-box-board" aria-label="점과 상자 게임판"></div>
       <button id="dots-box-reset" type="button">새 게임</button>
-    </div>
-    <div id="panel-dodge-rocks" class="card game-panel" hidden>
-      <button class="game-back" type="button">← 목록으로</button>
-      <span class="tag">STEP 30</span>
-      <h3>운석 피하기 (JavaScript)</h3>
-      <p>좌우 방향키 또는 아래 버튼으로 우주선을 움직여 운석을 피하세요. 30초 동안 버티면 성공입니다.</p>
-      <canvas id="dodge-rocks-canvas" class="dodge-game-canvas" width="420" height="360" aria-label="운석 피하기 게임 화면"></canvas>
-      <div class="dodge-controls"><button id="dodge-rocks-left" type="button" aria-label="왼쪽 이동">◀</button><button id="dodge-rocks-right" type="button" aria-label="오른쪽 이동">▶</button><button id="dodge-rocks-start" type="button">시작</button></div>
-      <p id="dodge-rocks-status" class="extra-game-status" aria-live="polite">시작을 눌러 게임을 시작하세요.</p>
     </div>
     <div id="panel-typing" class="card game-panel" hidden>
       <button class="game-back" type="button">← 목록으로</button>
@@ -3693,7 +3680,7 @@
       completedSeconds = null;
       scoreReported = false;
       updateTimer();
-      solution = createSolution();
+      solution = createSolution().flat();
       puzzle = solution.flat();
       notes = Array.from({ length: 81 }, () => new Set());
       const targets = { easy: 34, medium: 45, hard: 52 };
@@ -3862,7 +3849,7 @@
           opened = [];
           render();
           if (matchedPairs === symbols.length) {
-            window.reportScore?.("panel-memory", Math.max(1, 5000 - moves * 50));
+            window.reportScore?.("panel-memory", moves);
           }
         } else {
           locked = true;
@@ -3991,7 +3978,7 @@
       if (guess === answer) {
         finished = true;
         statusEl.textContent = `정답입니다! ${attempts}번 만에 맞혔습니다.`;
-        window.reportScore?.("panel-guess", Math.max(1, 1000 - attempts * 50));
+        window.reportScore?.("panel-guess", attempts);
         input.disabled = true;
         form.querySelector("button").disabled = true;
       } else {
@@ -4047,7 +4034,7 @@
       } else if (phase === "ready") {
         const elapsed = Math.round(performance.now() - readyAt);
         bestMs = bestMs === null ? elapsed : Math.min(bestMs, elapsed);
-        window.reportScore?.("panel-reaction", Math.max(1, 1000 - elapsed));
+        window.reportScore?.("panel-reaction", elapsed);
         resetRound();
         pad.textContent = `${elapsed}ms`;
         statusEl.textContent = `반응 시간 ${elapsed}ms · 최고 기록 ${bestMs}ms`;
@@ -4281,7 +4268,7 @@
       if (revealed === SIZE * SIZE - MINE_COUNT) {
         ended = true;
         statusEl.textContent = "성공! 모든 안전한 칸을 열었습니다.";
-        window.reportScore?.("panel-mines", Math.max(1, 3000 - Math.round((Date.now() - startedAt) / 1000)));
+        window.reportScore?.("panel-mines", Math.max(1, Math.round((Date.now() - startedAt) / 1000)));
       } else {
         statusEl.textContent = `지뢰 ${MINE_COUNT}개 · 깃발 ${flags}개`;
       }
@@ -5817,124 +5804,6 @@
   })();
 </script>
 
-<script data-game-code="panel-dodge-rocks">
-  (function () {
-    const canvas = document.getElementById("dodge-rocks-canvas");
-    const ctx = canvas.getContext("2d");
-    const statusEl = document.getElementById("dodge-rocks-status");
-    const startBtn = document.getElementById("dodge-rocks-start");
-    const leftBtn = document.getElementById("dodge-rocks-left");
-    const rightBtn = document.getElementById("dodge-rocks-right");
-    let x = canvas.width / 2;
-    let rocks = [];
-    let running = false;
-    let startTime = 0;
-    let lastTime = 0;
-    let spawnTime = 0;
-    let animationId = null;
-    let heldDirection = 0;
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#e5e7eb";
-      ctx.beginPath();
-      ctx.moveTo(x, canvas.height - 28);
-      ctx.lineTo(x - 16, canvas.height - 5);
-      ctx.lineTo(x + 16, canvas.height - 5);
-      ctx.closePath();
-      ctx.fill();
-      rocks.forEach(rock => {
-        ctx.fillStyle = "#9ca3af";
-        ctx.beginPath();
-        ctx.arc(rock.x, rock.y, rock.radius, 0, Math.PI * 2);
-        ctx.fill();
-      });
-    }
-    function finish(won) {
-      running = false;
-      cancelAnimationFrame(animationId);
-      animationId = null;
-      startBtn.disabled = false;
-      statusEl.textContent = won ? "성공! 30초 동안 운석을 피했습니다." : "우주선이 운석에 맞았습니다. 시작을 눌러 다시 도전하세요.";
-      draw();
-    }
-    function frame(time) {
-      if (!running) return;
-      const delta = Math.min(40, time - lastTime || 16);
-      lastTime = time;
-      x = Math.max(18, Math.min(canvas.width - 18, x + heldDirection * delta * 0.28));
-      spawnTime -= delta;
-      if (spawnTime <= 0) {
-        rocks.push({ x: 12 + Math.random() * (canvas.width - 24), y: -16, radius: 8 + Math.random() * 9, speed: 100 + Math.random() * 90 });
-        spawnTime = Math.max(180, 650 - (time - startTime) / 60) + Math.random() * 250;
-      }
-      rocks.forEach(rock => { rock.y += rock.speed * delta / 1000; });
-      rocks = rocks.filter(rock => rock.y < canvas.height + rock.radius);
-      if (rocks.some(rock => Math.hypot(rock.x - x, rock.y - (canvas.height - 16)) < rock.radius + 13)) {
-        finish(false);
-        return;
-      }
-      const elapsed = time - startTime;
-      if (elapsed >= 30000) {
-        finish(true);
-        return;
-      }
-      statusEl.textContent = `운석 피하기 · ${Math.ceil((30000 - elapsed) / 1000)}초 남음`;
-      draw();
-      animationId = requestAnimationFrame(frame);
-    }
-    function move(direction) { if (running) x += direction * 28; }
-    function onKeyDown(event) {
-      if (!running || document.getElementById("panel-dodge-rocks").hidden) return;
-      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-        event.preventDefault();
-        heldDirection = event.key === "ArrowLeft" ? -1 : 1;
-      }
-    }
-    function start() {
-      cancelAnimationFrame(animationId);
-      x = canvas.width / 2;
-      rocks = [];
-      heldDirection = 0;
-      spawnTime = 300;
-      running = true;
-      startTime = performance.now();
-      lastTime = startTime;
-      startBtn.disabled = true;
-      animationId = requestAnimationFrame(frame);
-    }
-    document.addEventListener("keydown", onKeyDown);
-    document.addEventListener("keyup", event => {
-      if (event.key === "ArrowLeft" || event.key === "ArrowRight") heldDirection = 0;
-    });
-    leftBtn.addEventListener("pointerdown", () => { heldDirection = -1; });
-    rightBtn.addEventListener("pointerdown", () => { heldDirection = 1; });
-    [leftBtn, rightBtn].forEach(button => button.addEventListener("pointerup", () => { heldDirection = 0; }));
-    [leftBtn, rightBtn].forEach(button => button.addEventListener("pointerleave", () => { heldDirection = 0; }));
-    leftBtn.addEventListener("click", () => move(-1));
-    rightBtn.addEventListener("click", () => move(1));
-    startBtn.addEventListener("click", start);
-    registerGame("panel-dodge-rocks", {
-      init() {
-        running = false;
-        cancelAnimationFrame(animationId);
-        animationId = null;
-        startBtn.disabled = false;
-        statusEl.textContent = "시작을 눌러 게임을 시작하세요.";
-        draw();
-      },
-      stop() {
-        running = false;
-        heldDirection = 0;
-        cancelAnimationFrame(animationId);
-        animationId = null;
-        startBtn.disabled = false;
-      },
-    });
-    draw();
-  })();
-</script>
-
 <script data-game-code="panel-typing">
   (function () {
     const prompts = [
@@ -5985,7 +5854,7 @@
       const wpm = Math.round(totalChars / 5 / elapsedMinutes);
       const accuracy = totalChars ? Math.round((totalChars - mistakes) / totalChars * 100) : 100;
       statusEl.textContent = `끝! ${wpm} WPM · 정확도 ${accuracy}%`;
-      window.reportScore?.("panel-typing", Math.max(1, Math.round(wpm * accuracy / 10)));
+      window.reportScore?.("panel-typing", wpm);
       startBtn.textContent = "다시 시작";
     }
     function start() {
@@ -7983,6 +7852,7 @@
     let eaten = 0;
     let score = 0;
     let lives = 3;
+    let level = 1;
     let frightened = 0;
     let scatterMode = false;
     let scatterTimer = 0;
@@ -8062,16 +7932,18 @@
       }
       return total;
     }
+    function ghostSpeed() { return Math.max(0.12, 0.24 - (level - 1) * 0.018); }
+    function ghostCount() { return Math.min(6, 2 + level); }
     function resetEntities() {
       pac = makeEntity(pacHome, 0.17, "#ffd60a");
       pac.isPac = true;
-      ghosts = GHOST_COLORS.map((color, index) => {
-        const ghost = makeEntity(ghostHome, 0.24, color);
+      ghosts = Array.from({ length: ghostCount() }, (_, index) => {
+        const ghost = makeEntity(ghostHome, ghostSpeed(), GHOST_COLORS[index % GHOST_COLORS.length]);
         ghost.scatter = cornerTargets[index % cornerTargets.length];
         return ghost;
       });
     }
-    function newGame() {
+    function buildLevel() {
       maze = generateMaze();
       dots = maze.map(row => row.map(value => (value === 0 ? 1 : 0)));
       cornerTargets = [
@@ -8080,12 +7952,23 @@
       ];
       cornerTargets.forEach(pos => { dots[pos.row][pos.col] = 2; });
       totalDots = countDots();
-      eaten = 0; score = 0; lives = 3;
-      frightened = 0; scatterMode = false; scatterTimer = 0; freeze = 0;
+      eaten = 0;
+      frightened = 0; scatterMode = false; scatterTimer = 0;
       pacHome = nearestOpen(Math.floor(GRID / 2), GRID - 2);
       ghostHome = nearestOpen(Math.floor(GRID / 2), Math.floor(GRID / 2));
       resetEntities();
       updateHud();
+    }
+    function newGame() {
+      level = 1;
+      score = 0; lives = 3; freeze = 0;
+      buildLevel();
+    }
+    function nextLevel() {
+      level++;
+      buildLevel();
+      freeze = 1.2;
+      statusEl.textContent = `레벨 ${level}! 점수 ${score}점 · 유령 ${ghosts.length}마리`;
     }
     function updateHud() {
       scoreEl.textContent = score;
@@ -8168,7 +8051,7 @@
         return;
       }
       updateHud();
-      if (eaten >= totalDots) finish(true);
+      if (eaten >= totalDots) nextLevel();
     }
     function loseLife() {
       lives--;
@@ -8322,7 +8205,7 @@
       lastTime = performance.now();
       startBtn.disabled = true;
       startBtn.textContent = "다시 시작";
-      statusEl.textContent = "방향키나 W/A/S/D로 이동하세요. 남은 점을 모두 먹으면 승리합니다!";
+      statusEl.textContent = "방향키나 W/A/S/D로 이동하세요. 점을 모두 먹으면 다음 레벨이 시작됩니다!";
       cancelAnimationFrame(animationId);
       animationId = requestAnimationFrame(frame);
     }
@@ -9491,6 +9374,20 @@
       "panel-sequence": "순서 기억하기",
     };
 
+    const LOWER_IS_BETTER = new Set(["panel-memory", "panel-guess", "panel-reaction", "panel-mines"]);
+
+    const SCORE_UNITS = {
+      "panel-memory": "회",
+      "panel-guess": "회",
+      "panel-reaction": "ms",
+      "panel-mines": "초",
+      "panel-typing": " WPM",
+    };
+
+    function formatScore(gameId, value) {
+      return `${value}${SCORE_UNITS[gameId] || ""}`;
+    }
+
     function addLeaderboards() {
       panels.forEach(panel => {
         if (!SCORING_GAMES[panel.id]) return;
@@ -9498,13 +9395,13 @@
         details.className = "game-leaderboard";
         details.id = `lb-${panel.id}`;
         const summary = document.createElement("summary");
-        summary.textContent = "랭킹 — 내 최고 점수와 상위 10";
+        summary.textContent = "랭킹 — 내 최고 기록과 상위 10";
         const mine = document.createElement("p");
         mine.className = "lb-mine";
-        mine.textContent = "내 최고 점수: -";
+        mine.textContent = "내 최고 기록: -";
         const empty = document.createElement("p");
         empty.className = "lb-empty";
-        empty.textContent = "로그인하면 점수가 기록됩니다.";
+        empty.textContent = "로그인하면 기록이 저장됩니다.";
         const list = document.createElement("ol");
         list.className = "lb-list";
         list.hidden = true;
@@ -9520,7 +9417,7 @@
       const mine = details.querySelector(".lb-mine");
       const empty = details.querySelector(".lb-empty");
       const list = details.querySelector(".lb-list");
-      mine.textContent = `내 최고 점수: ${data.mine || 0}`;
+      mine.textContent = `내 최고 기록: ${data.mine ? formatScore(gameId, data.mine) : "-"}`;
       const top = Array.isArray(data.top) ? data.top : [];
       if (!top.length) {
         empty.hidden = false;
@@ -9533,7 +9430,7 @@
       list.hidden = false;
       list.replaceChildren(...top.map(entry => {
         const li = document.createElement("li");
-        li.textContent = `${entry.playerName} — ${entry.score}`;
+        li.textContent = `${entry.playerName} — ${formatScore(gameId, entry.score)}`;
         if (me && entry.playerName === me) li.classList.add("lb-me");
         return li;
       }));
@@ -9542,10 +9439,10 @@
     function clearLeaderboard(gameId) {
       const details = document.getElementById(`lb-${gameId}`);
       if (!details) return;
-      details.querySelector(".lb-mine").textContent = "내 최고 점수: -";
+      details.querySelector(".lb-mine").textContent = "내 최고 기록: -";
       const empty = details.querySelector(".lb-empty");
       empty.hidden = false;
-      empty.textContent = "로그인하면 점수가 기록됩니다.";
+      empty.textContent = "로그인하면 기록이 저장됩니다.";
       const list = details.querySelector(".lb-list");
       list.hidden = true;
       list.replaceChildren();
@@ -9558,7 +9455,8 @@
         return;
       }
       try {
-        const res = await window.SAPAuth.apiFetch(`${window.SAPAuth.API_ROOT}/game-scores?gameId=${encodeURIComponent(gameId)}`);
+        const order = LOWER_IS_BETTER.has(gameId) ? "&order=asc" : "";
+        const res = await window.SAPAuth.apiFetch(`${window.SAPAuth.API_ROOT}/game-scores?gameId=${encodeURIComponent(gameId)}${order}`);
         if (res.ok) renderLeaderboard(gameId, await res.json());
       } catch {}
     }
@@ -9570,7 +9468,7 @@
         const res = await window.SAPAuth.apiFetch(`${window.SAPAuth.API_ROOT}/game-scores`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ gameId, score: Math.round(score) }),
+          body: JSON.stringify({ gameId, score: Math.round(score), order: LOWER_IS_BETTER.has(gameId) ? "asc" : "desc" }),
         });
         if (res.ok) refreshLeaderboard(gameId);
       } catch {}
@@ -9629,6 +9527,21 @@
       });
     });
     document.getElementById("game-code-close").addEventListener("click", () => codeDialog.close());
+
+    // 시작 버튼이 있는 게임은 Enter 키로도 시작할 수 있습니다.
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Enter" || event.ctrlKey || event.altKey || event.metaKey) return;
+      if (codeDialog.open) return;
+      const target = event.target;
+      if (target instanceof HTMLButtonElement) return;
+      if (target instanceof HTMLElement && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      const panel = activeId ? document.getElementById(activeId) : null;
+      if (!panel || panel.hidden) return;
+      const startBtn = panel.querySelector('button[id$="-start"]');
+      if (!startBtn || startBtn.disabled || startBtn.hidden) return;
+      event.preventDefault();
+      startBtn.click();
+    });
   })();
 </script>
 <script src="assets/auth.js?v=labels-7"></script>
