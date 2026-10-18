@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사피엔스 — 주식정보</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-8">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group">
+      <a href="index.html">홈</a>
+      <a href="search.html">검색</a>
+      <a href="news.html">이슈사항</a>
+      <a href="stocks.html" class="active" aria-current="page">주식정보</a>
+      <details class="nav-menu">
+        <summary>제작</summary>
+        <div class="nav-submenu">
+          <a href="learn.html">앱</a>
+          <a href="game.html">게임</a>
+        </div>
+      </details>
+      <details class="nav-menu">
+        <summary>소통</summary>
+        <div class="nav-submenu">
+          <a href="board.html">자유 게시판</a>
+          <a href="notice.html">공지사항</a>
+          <a href="chat.html">실시간 대화</a>
+        </div>
+      </details>
+      <details class="nav-menu">
+        <summary>자료</summary>
+        <div class="nav-submenu">
+          <a href="files.html">개인자료</a>
+          <a href="apps.html">공용자료</a>
+        </div>
+      </details>
+      <details class="nav-menu">
+        <summary>계정</summary>
+        <div class="nav-submenu">
+          <a href="calendar.html">일정</a>
+          <a href="login.html" data-auth-link>로그인 / 회원가입</a>
+        </div>
+      </details>
+    </nav>
+    <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">MARKETS</div>
+    <h1>주식정보</h1>
+    <p>국내·미국 주요 종목과 지수, 금·비트코인·환율·유가 시세를 30초마다 갱신합니다.</p>
+
+    <p id="stocks-status" class="stocks-status" role="status" aria-live="polite">시세를 불러오는 중입니다...</p>
+    <div id="stocks-list" class="stocks-list"></div>
+  </main>
+</div>
+<script src="assets/auth.js?v=labels-8"></script>
+<script>
+  (() => {
+    const API = window.SAPAuth?.API_ROOT || "https://board-backend-nngx.onrender.com/api";
+    const listEl = document.getElementById("stocks-list");
+    const statusEl = document.getElementById("stocks-status");
+    const GROUPS = ["국내", "미국", "기타"];
+    let current = [];
+
+    function relTime(iso) {
+      if (!iso) return "";
+      const time = new Date(iso).getTime();
+      if (Number.isNaN(time)) return "";
+      const seconds = Math.round((Date.now() - time) / 1000);
+      if (seconds < 5) return "방금 전";
+      if (seconds < 60) return `${seconds}초 전`;
+      const minutes = Math.round(seconds / 60);
+      return `${minutes}분 전`;
+    }
+
+    function formatPrice(value, currency) {
+      if (!Number.isFinite(value)) return "-";
+      if (currency === "KRW") {
+        return value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) + "원";
+      }
+      if (currency === "USD") {
+        return "$" + value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      const text = value.toLocaleString("ko-KR", { maximumFractionDigits: 4 });
+      return currency ? `${text} ${currency}` : text;
+    }
+
+    function drawSpark(canvas, values, up) {
+      const width = canvas.clientWidth || canvas.parentElement?.clientWidth || 180;
+      const height = 42;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      if (values.length < 2) return;
+
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const span = max - min || 1;
+      const pad = 4;
+      const stepX = (width - pad * 2) / (values.length - 1);
+      const yOf = value => pad + (height - pad * 2) * (1 - (value - min) / span);
+
+      ctx.beginPath();
+      values.forEach((value, index) => {
+        const x = pad + index * stepX;
+        if (index === 0) ctx.moveTo(x, yOf(value));
+        else ctx.lineTo(x, yOf(value));
+      });
+      const color = up ? "#d93025" : "#1a73e8";
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = "round";
+      ctx.stroke();
+
+      ctx.lineTo(pad + (values.length - 1) * stepX, height - pad);
+      ctx.lineTo(pad, height - pad);
+      ctx.closePath();
+      ctx.fillStyle = up ? "rgba(217,48,37,0.12)" : "rgba(26,115,232,0.12)";
+      ctx.fill();
+    }
+
+    function card(quote) {
+      const up = quote.change >= 0;
+      const article = document.createElement("article");
+      article.className = "stock-card";
+
+      const top = document.createElement("div");
+      top.className = "stock-top";
+
+      const names = document.createElement("div");
+      names.className = "stock-names";
+      const name = document.createElement("div");
+      name.className = "stock-name";
+      name.textContent = quote.name;
+      const symbol = document.createElement("div");
+      symbol.className = "stock-symbol";
+      symbol.textContent = quote.symbol;
+      names.append(name, symbol);
+
+      const numbers = document.createElement("div");
+      numbers.className = "stock-numbers";
+      const price = document.createElement("div");
+      price.className = "stock-price";
+      price.textContent = formatPrice(quote.price, quote.currency);
+      const change = document.createElement("div");
+      change.className = "stock-change " + (up ? "is-up" : "is-down");
+      const arrow = quote.change === 0 ? "–" : up ? "▲" : "▼";
+      const percent = Math.abs(quote.changePercent).toFixed(2);
+      change.textContent = `${arrow} ${percent}%`;
+      numbers.append(price, change);
+
+      top.append(names, numbers);
+
+      const canvas = document.createElement("canvas");
+      canvas.className = "stock-spark";
+
+      article.append(top, canvas);
+      article._spark = { canvas, values: quote.spark || [], up };
+      return article;
+    }
+
+    function render(quotes) {
+      const nodes = [];
+      const canvases = [];
+      GROUPS.forEach(group => {
+        const items = quotes.filter(quote => quote.group === group);
+        if (!items.length) return;
+        const heading = document.createElement("h2");
+        heading.className = "stocks-group-title";
+        heading.textContent = group;
+        nodes.push(heading);
+        const grid = document.createElement("div");
+        grid.className = "stock-grid";
+        items.forEach(quote => {
+          const article = card(quote);
+          grid.appendChild(article);
+          canvases.push(article._spark);
+        });
+        nodes.push(grid);
+      });
+      listEl.replaceChildren(...nodes);
+      requestAnimationFrame(() => canvases.forEach(item => drawSpark(item.canvas, item.values, item.up)));
+    }
+
+    async function load() {
+      try {
+        const response = await fetch(`${API}/stocks`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const quotes = Array.isArray(data.quotes) ? data.quotes : [];
+        if (!quotes.length) {
+          statusEl.textContent = "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
+          return;
+        }
+        statusEl.textContent = `시세 ${quotes.length}건 · ${relTime(data.updatedAt)} 갱신`;
+        current = quotes;
+        render(quotes);
+      } catch (error) {
+        statusEl.textContent = "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
+      }
+    }
+
+    load();
+    setInterval(load, 30 * 1000);
+    window.addEventListener("resize", () => { if (current.length) render(current); });
+  })();
+</script>
+<script src="assets/theme.js"></script>
+</body>
+</html>
