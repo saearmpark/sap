@@ -368,6 +368,75 @@
     color: var(--ink-soft);
     margin: -8px 0 14px;
   }
+  /* --- STEP 48~58: 추가 게임 --- */
+  .flappy-canvas, .bubble-canvas, .suika-canvas, .piano-canvas, .invaders-canvas, .tanks-canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 12px 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    touch-action: none;
+  }
+  .kkodeul-board { display: grid; gap: 6px; width: min(100%, 360px); margin: 14px 0; }
+  .kkodeul-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .kkodeul-cell {
+    display: grid; place-items: center; aspect-ratio: 1; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--surface); color: var(--ink) !important;
+    font-weight: 700; font-size: clamp(15px, 5vw, 24px);
+  }
+  .kkodeul-cell.is-correct { background: #16803c; border-color: #16803c; color: #fff !important; }
+  .kkodeul-cell.is-present { background: #e4b543; border-color: #e4b543; color: #17181a !important; }
+  .kkodeul-cell.is-absent { background: var(--accent-soft); color: var(--ink-soft) !important; }
+  .kkodeul-input {
+    min-width: 0; flex: 1 1 150px; padding: 9px 11px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit;
+    letter-spacing: 0.25em; text-align: center;
+  }
+  .sokoban-board { display: grid; gap: 2px; width: min(100%, 420px); margin: 14px 0; }
+  .sokoban-cell {
+    display: grid; place-items: center; aspect-ratio: 1; border-radius: 4px;
+    background: var(--bg); color: var(--ink) !important; font-size: clamp(13px, 4vw, 20px);
+  }
+  .sokoban-cell.is-wall { background: var(--ink); }
+  .sokoban-cell.is-target { background: color-mix(in srgb, var(--accent) 28%, var(--bg)); }
+  .sokoban-cell.is-box { background: #c99a5b; }
+  .sokoban-cell.is-on-target { background: #16803c; }
+  .sokoban-cell.is-player { background: var(--accent); }
+  .sokoban-controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .sokoban-controls button { min-height: 42px; }
+  .sokoban-btn { min-width: 46px; }
+  .solitaire-board { --cw: clamp(34px, 12.5vw, 58px); display: flex; flex-direction: column; gap: 14px; width: min(100%, 640px); margin: 14px 0; }
+  .solitaire-row { display: flex; gap: 6px; }
+  .solitaire-pile { position: relative; flex: 0 0 auto; width: var(--cw); min-height: calc(var(--cw) * 1.4 + var(--cw) * 0.42 * 6); }
+  .solitaire-pile.is-short { min-height: calc(var(--cw) * 1.4); }
+  .solitaire-card {
+    position: absolute; left: 0; width: var(--cw); height: calc(var(--cw) * 1.4);
+    padding: 3px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 5px;
+    background: var(--surface); color: #17181a !important; font-weight: 700;
+    font-size: calc(var(--cw) * 0.30); line-height: 1; cursor: pointer; text-align: left;
+  }
+  .solitaire-card.is-red { color: #c62828 !important; }
+  .solitaire-card.is-back { background: #3a5f8a; border-color: #31547a; color: transparent !important; }
+  .solitaire-card.is-selected { outline: 3px solid var(--accent); outline-offset: -2px; z-index: 5; }
+  .solitaire-card.is-empty { background: transparent; border-style: dashed; cursor: default; }
+  .lights-board { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; width: min(100%, 320px); margin: 14px 0; }
+  .lights-cell { aspect-ratio: 1; padding: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--accent-soft); cursor: pointer; }
+  .lights-cell.is-on { background: #e4b543; border-color: #c99a2b; }
+  .battleship-wrap { display: flex; flex-wrap: wrap; gap: 20px; margin: 14px 0; }
+  .battleship-panel { flex: 1 1 260px; min-width: 0; }
+  .battleship-label { margin: 0 0 6px; color: var(--ink-soft); font-weight: 600; font-size: 14px; }
+  .bs-grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 2px; width: min(100%, 320px); aspect-ratio: 1; margin-bottom: 12px; }
+  .bs-cell {
+    display: grid; place-items: center; min-width: 0; min-height: 0; padding: 0;
+    border: 1px solid var(--border); border-radius: 2px; background: var(--bg);
+    color: var(--ink) !important; font-size: clamp(8px, 2vw, 12px); cursor: pointer;
+  }
+  .bs-cell.is-ship { background: #7c8b99; }
+  .bs-cell.is-hit { background: #c62828; color: #fff !important; }
+  .bs-cell.is-miss { background: #cfd8dc; color: #455a64 !important; }
+  .bs-cell:disabled { cursor: default; opacity: 1; }
 </style>
 </head>
 <body class="learning-page">
@@ -445,6 +514,15 @@
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-mines">지뢰 찾기</button><button class="game-code-button" type="button" data-game-code-view="panel-mines">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-typing">타자 연습</button><button class="game-code-button" type="button" data-game-code-view="panel-typing">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sequence">순서 기억하기</button><button class="game-code-button" type="button" data-game-code-view="panel-sequence">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-flappy">플래피 버드</button><button class="game-code-button" type="button" data-game-code-view="panel-flappy">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bubble">버블 슈터</button><button class="game-code-button" type="button" data-game-code-view="panel-bubble">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-suika">수박 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-suika">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-kkodeul">꼬들 (한글 워들)</button><button class="game-code-button" type="button" data-game-code-view="panel-kkodeul">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-piano">피아노 타일</button><button class="game-code-button" type="button" data-game-code-view="panel-piano">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sokoban">소코반</button><button class="game-code-button" type="button" data-game-code-view="panel-sokoban">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-invaders">스페이스 인베이더</button><button class="game-code-button" type="button" data-game-code-view="panel-invaders">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-solitaire">솔리테어</button><button class="game-code-button" type="button" data-game-code-view="panel-solitaire">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-lights">라이트아웃</button><button class="game-code-button" type="button" data-game-code-view="panel-lights">코드 보기</button></div>
       </div>
 
       <h2 class="game-list-heading">대전 게임</h2>
@@ -466,6 +544,8 @@
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-chess">체스</button><button class="game-code-button" type="button" data-game-code-view="panel-chess">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-janggi">장기</button><button class="game-code-button" type="button" data-game-code-view="panel-janggi">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-yut">윷놀이</button><button class="game-code-button" type="button" data-game-code-view="panel-yut">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-battleship">배틀쉽</button><button class="game-code-button" type="button" data-game-code-view="panel-battleship">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-tanks">탱크 대전</button><button class="game-code-button" type="button" data-game-code-view="panel-tanks">코드 보기</button></div>
       </div>
     </div>
 
@@ -1092,6 +1172,151 @@
       <p id="match3-status" class="extra-game-status" aria-live="polite">새 게임을 시작하세요.</p>
       <button id="match3-reset" type="button">새 게임</button>
     </div>
+    <div id="panel-flappy" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 48</span>
+      <h3>플래피 버드 (JavaScript)</h3>
+      <p class="mobile-hint">모바일: 화면을 누르면 새가 위로 뜁니다. (PC: 클릭 또는 스페이스바)</p>
+      <canvas id="flappy-canvas" class="flappy-canvas" width="360" height="480" aria-label="플래피 버드 게임"></canvas>
+      <div class="choice-controls"><button id="flappy-start" type="button">시작</button></div>
+      <p id="flappy-status" class="extra-game-status" aria-live="polite">시작 버튼을 눌러주세요.</p>
+    </div>
+
+    <div id="panel-bubble" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 49</span>
+      <h3>버블 슈터 (JavaScript)</h3>
+      <p class="mobile-hint">조준: 마우스/손가락 이동 · 발사: 클릭/탭 또는 스페이스바. 같은 색 공을 3개 이상 붙이면 터집니다.</p>
+      <canvas id="bubble-canvas" class="bubble-canvas" width="400" height="560" aria-label="버블 슈터 게임"></canvas>
+      <div class="choice-controls"><button id="bubble-start" type="button">시작</button></div>
+      <p id="bubble-status" class="extra-game-status" aria-live="polite">시작 버튼을 눌러주세요.</p>
+    </div>
+
+    <div id="panel-suika" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 50</span>
+      <h3>수박 게임 (JavaScript)</h3>
+      <p class="mobile-hint">마우스/손가락으로 위치를 옮기고 클릭/탭하면 과일이 떨어집니다. 같은 과일이 닿으면 더 큰 과일로 합쳐집니다.</p>
+      <canvas id="suika-canvas" class="suika-canvas" width="360" height="520" aria-label="수박 게임"></canvas>
+      <div class="choice-controls"><button id="suika-start" type="button">시작</button></div>
+      <p id="suika-status" class="extra-game-status" aria-live="polite">시작 버튼을 눌러주세요.</p>
+    </div>
+
+    <div id="panel-kkodeul" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 51</span>
+      <h3>꼬들 · 한글 워들 (JavaScript)</h3>
+      <p>네 글자 낱말을 여섯 번 안에 맞히세요. 초록은 자리까지 맞음, 노랑은 다른 자리에 있음, 회색은 없음입니다.</p>
+      <div id="kkodeul-board" class="kkodeul-board" aria-label="꼬들 게임판"></div>
+      <form id="kkodeul-form" class="game-inline-controls" autocomplete="off">
+        <input id="kkodeul-input" class="kkodeul-input" type="text" maxlength="4" placeholder="네 글자 입력" aria-label="네 글자 낱말 입력" />
+        <button type="submit">입력</button>
+        <button id="kkodeul-reset" type="button">새 게임</button>
+      </form>
+      <p id="kkodeul-status" class="extra-game-status" aria-live="polite">새 게임을 시작하세요.</p>
+    </div>
+
+    <div id="panel-piano" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 52</span>
+      <h3>피아노 타일 (JavaScript)</h3>
+      <p class="mobile-hint">아래쪽 검은 타일을 정확히 누르세요. 엉뚱한 칸을 누르거나 타일을 놓치면 끝납니다.</p>
+      <canvas id="piano-canvas" class="piano-canvas" width="320" height="480" aria-label="피아노 타일 게임"></canvas>
+      <div class="choice-controls"><button id="piano-start" type="button">시작</button></div>
+      <p id="piano-status" class="extra-game-status" aria-live="polite">시작 버튼을 눌러주세요.</p>
+    </div>
+
+    <div id="panel-sokoban" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 53</span>
+      <h3>소코반 (JavaScript)</h3>
+      <p>상자를 밀어 목표 지점(점)에 모두 올려놓으세요. 밀 수는 있지만 당길 수는 없습니다. 모든 레벨을 클리어하면 이동 수로 기록을 겨룹니다.</p>
+      <div id="sokoban-board" class="sokoban-board" aria-label="소코반 게임판"></div>
+      <div class="sokoban-controls">
+        <button class="sokoban-btn" data-move="up" type="button" aria-label="위로">↑</button>
+        <button class="sokoban-btn" data-move="left" type="button" aria-label="왼쪽">←</button>
+        <button class="sokoban-btn" data-move="down" type="button" aria-label="아래로">↓</button>
+        <button class="sokoban-btn" data-move="right" type="button" aria-label="오른쪽">→</button>
+        <button id="sokoban-undo" type="button">되돌리기</button>
+        <button id="sokoban-reset" type="button">처음부터</button>
+      </div>
+      <p id="sokoban-status" class="extra-game-status" aria-live="polite">새 게임을 시작하세요.</p>
+    </div>
+
+    <div id="panel-invaders" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 54</span>
+      <h3>스페이스 인베이더 (JavaScript)</h3>
+      <p class="mobile-hint">모바일: 아래 버튼으로 이동·발사할 수 있습니다. (PC: ←/→ 이동, 스페이스 발사)</p>
+      <canvas id="invaders-canvas" class="invaders-canvas" width="420" height="480" aria-label="스페이스 인베이더 게임"></canvas>
+      <div class="mobile-controls">
+        <button id="invaders-left" class="mobile-btn" type="button">◀</button>
+        <button id="invaders-right" class="mobile-btn" type="button">▶</button>
+        <button id="invaders-fire" class="mobile-btn wide" type="button">발사</button>
+      </div>
+      <div class="choice-controls"><button id="invaders-start" type="button">시작</button></div>
+      <p id="invaders-status" class="extra-game-status" aria-live="polite">시작 버튼을 눌러주세요.</p>
+    </div>
+
+    <div id="panel-solitaire" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 55</span>
+      <h3>솔리테어 · 클론다이크 (JavaScript)</h3>
+      <p>카드를 눌러 선택하고 목적지 기둥을 누르면 옮겨집니다. 카드 더미를 누르면 카드를 뒤집고, ♠♥♦♣ 에이스부터 모으면 이깁니다.</p>
+      <div id="solitaire-board" class="solitaire-board" aria-label="솔리테어 게임판"></div>
+      <div class="choice-controls">
+        <button id="solitaire-new" type="button">새 게임</button>
+        <button id="solitaire-undo" type="button">되돌리기</button>
+      </div>
+      <p id="solitaire-status" class="extra-game-status" aria-live="polite">새 게임을 시작하세요.</p>
+    </div>
+
+    <div id="panel-lights" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 56</span>
+      <h3>라이트아웃 (JavaScript)</h3>
+      <p>칸을 누르면 그 칸과 위·아래·양옆이 함께 켜지거나 꺼집니다. 모든 불을 끄면 클리어이며, 이동 수로 기록을 겨룹니다.</p>
+      <div id="lights-board" class="lights-board" aria-label="라이트아웃 게임판"></div>
+      <div class="choice-controls"><button id="lights-new" type="button">새 게임</button></div>
+      <p id="lights-status" class="extra-game-status" aria-live="polite">새 게임을 시작하세요.</p>
+    </div>
+
+    <div id="panel-battleship" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 57</span>
+      <h3>배틀쉽 · 해전 게임 (JavaScript)</h3>
+      <p>함선은 자동 배치됩니다. 오른쪽 적 해역을 눌러 공격하고, 적의 함선을 모두 격침하면 승리합니다. 턴제로 진행됩니다.</p>
+      <div class="battleship-wrap">
+        <div class="battleship-panel">
+          <p class="battleship-label">내 함대</p>
+          <div id="bs-mine" class="bs-grid" aria-label="내 함대"></div>
+        </div>
+        <div class="battleship-panel">
+          <p class="battleship-label">적 해역</p>
+          <div id="bs-enemy" class="bs-grid" aria-label="적 해역"></div>
+        </div>
+      </div>
+      <div class="choice-controls"><button id="bs-new" type="button">새 게임</button></div>
+      <p id="bs-status" class="extra-game-status" aria-live="polite">새 게임을 시작하세요.</p>
+    </div>
+
+    <div id="panel-tanks" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 58</span>
+      <h3>탱크 대전 (JavaScript)</h3>
+      <p class="mobile-hint">PC: ←/→/↑/↓ 이동, 스페이스 발사. 적 탱크를 모두 부수면 승리합니다.</p>
+      <canvas id="tanks-canvas" class="tanks-canvas" width="480" height="360" aria-label="탱크 대전 게임"></canvas>
+      <div class="mobile-controls">
+        <button id="tanks-left" class="mobile-btn" type="button">◀</button>
+        <button id="tanks-right" class="mobile-btn" type="button">▶</button>
+        <button id="tanks-up" class="mobile-btn" type="button">▲</button>
+        <button id="tanks-down" class="mobile-btn" type="button">▼</button>
+        <button id="tanks-fire" class="mobile-btn wide" type="button">발사</button>
+      </div>
+      <div class="choice-controls"><button id="tanks-start" type="button">시작</button></div>
+      <p id="tanks-status" class="extra-game-status" aria-live="polite">시작 버튼을 눌러주세요.</p>
+    </div>
+
     <dialog id="game-code-dialog" class="game-code-dialog">
       <button id="game-code-close" type="button">닫기</button>
       <h3 id="game-code-title">코드 보기</h3>
@@ -9348,6 +9573,1959 @@
   })();
 </script>
 
+<script data-game-code="panel-flappy">
+  // ── STEP 48: 플래피 버드 ─────────────────────────────
+  (function () {
+    const panel = document.getElementById("panel-flappy");
+    const canvas = document.getElementById("flappy-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("flappy-status");
+    const startBtn = document.getElementById("flappy-start");
+    const W = canvas.width, H = canvas.height;
+    const css = getComputedStyle(document.documentElement);
+    const INK = css.getPropertyValue("--ink").trim() || "#1b1f1d";
+    const ACCENT = css.getPropertyValue("--accent").trim() || "#3f6650";
+
+    const GRAVITY = 0.42, FLAP = -6.9, PIPE_W = 58, GAP = 150;
+    let bird, pipes, score, spawnTimer, speed, running, rafId;
+
+    function reset() {
+      bird = { x: 92, y: H / 2, vy: 0, r: 13 };
+      pipes = [];
+      score = 0;
+      spawnTimer = 40;
+      speed = 2.4;
+      running = false;
+    }
+
+    function spawnPipe() {
+      const margin = 64;
+      const top = margin + Math.random() * (H - GAP - margin * 2);
+      pipes.push({ x: W, top, scored: false });
+    }
+
+    function flap() {
+      if (running) bird.vy = FLAP;
+    }
+
+    function update() {
+      bird.vy += GRAVITY;
+      bird.y += bird.vy;
+      if (bird.y < bird.r) { bird.y = bird.r; bird.vy = 0; }
+
+      spawnTimer--;
+      if (spawnTimer <= 0) { spawnPipe(); spawnTimer = 96; }
+      for (const p of pipes) p.x -= speed;
+      while (pipes.length && pipes[0].x + PIPE_W < 0) pipes.shift();
+
+      const first = pipes[0];
+      if (first && !first.scored && first.x + PIPE_W < bird.x) {
+        first.scored = true;
+        score++;
+        speed = Math.min(4.4, 2.4 + score * 0.05);
+        statusEl.textContent = `점수 ${score}`;
+      }
+
+      if (bird.y + bird.r > H) return gameOver();
+      for (const p of pipes) {
+        if (bird.x + bird.r > p.x && bird.x - bird.r < p.x + PIPE_W) {
+          if (bird.y - bird.r < p.top || bird.y + bird.r > p.top + GAP) return gameOver();
+        }
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = ACCENT;
+      for (const p of pipes) {
+        ctx.fillRect(p.x, 0, PIPE_W, p.top);
+        ctx.fillRect(p.x, p.top + GAP, PIPE_W, H - (p.top + GAP));
+      }
+      ctx.beginPath();
+      ctx.arc(bird.x, bird.y, bird.r, 0, Math.PI * 2);
+      ctx.fillStyle = "#e4b543";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = INK;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(bird.x + 4, bird.y - 4, 2.2, 0, Math.PI * 2);
+      ctx.fillStyle = INK;
+      ctx.fill();
+    }
+
+    function loop() {
+      if (!running) return;
+      update();
+      draw();
+      if (running) rafId = requestAnimationFrame(loop);
+    }
+
+    function stopLoop() {
+      running = false;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    }
+
+    function gameOver() {
+      const finalScore = score;
+      stopLoop();
+      window.reportScore?.("panel-flappy", finalScore);
+      statusEl.textContent = `게임 오버 · 점수 ${finalScore} — 시작 버튼으로 다시`;
+    }
+
+    function startGame() {
+      reset();
+      running = true;
+      statusEl.textContent = "점수 0";
+      if (rafId) cancelAnimationFrame(rafId);
+      loop();
+    }
+
+    startBtn.addEventListener("click", startGame);
+    canvas.addEventListener("mousedown", (e) => { e.preventDefault(); flap(); });
+    canvas.addEventListener("touchstart", (e) => { e.preventDefault(); flap(); }, { passive: false });
+    document.addEventListener("keydown", (e) => {
+      if (e.code !== "Space" || panel.hidden) return;
+      e.preventDefault();
+      if (running) flap();
+      else startGame();
+    });
+
+    reset();
+    draw();
+    registerGame("panel-flappy", {
+      init() {
+        stopLoop();
+        reset();
+        draw();
+        statusEl.textContent = "시작 버튼을 눌러주세요.";
+      },
+      stop: stopLoop,
+    });
+  })();
+</script>
+
+<script data-game-code="panel-bubble">
+  // ── STEP 49: 버블 슈터 ─────────────────────────────
+  (function () {
+    const panel = document.getElementById("panel-bubble");
+    const canvas = document.getElementById("bubble-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("bubble-status");
+    const startBtn = document.getElementById("bubble-start");
+    const W = canvas.width, H = canvas.height;
+    const R = 16, D = 2 * R, COLS = 12, ROW_H = Math.round(Math.sqrt(3) * R);
+    const COLORS = ["#e74c3c", "#3498db", "#2ecc71", "#f1c40f", "#9b59b6"];
+    const SHOOTER = { x: W / 2, y: H - 26 };
+    const DEATH_ROW = 15;
+    const SPEED = 9;
+
+    let grid, current, next, ball, score, shots, running, gameOver, rafId, aim;
+
+    const cellX = (row, col) => R + col * D + (row % 2) * R;
+    const cellY = (row) => R + row * ROW_H;
+
+    function reset() {
+      grid = [];
+      for (let r = 0; r < 6; r++) {
+        const row = [];
+        for (let c = 0; c < COLS; c++) row.push(Math.floor(Math.random() * COLORS.length));
+        grid.push(row);
+      }
+      current = pick();
+      next = pick();
+      ball = null;
+      score = 0;
+      shots = 0;
+      running = false;
+      gameOver = false;
+      aim = 0;
+    }
+
+    function pick() { return Math.floor(Math.random() * COLORS.length); }
+
+    function occupied(row, col) {
+      return row >= 0 && row < grid.length && col >= 0 && col < COLS && grid[row][col] !== null && grid[row][col] !== undefined;
+    }
+
+    function neighbors(row, col) {
+      const out = [[row, col - 1], [row, col + 1]];
+      const cols = (row % 2 === 0) ? [col - 1, col] : [col, col + 1];
+      for (const c of cols) { out.push([row - 1, c]); out.push([row + 1, c]); }
+      return out.filter(([r, c]) => r >= 0 && r < grid.length && c >= 0 && c < COLS);
+    }
+
+    function shoot() {
+      if (!running || gameOver || ball) return;
+      ball = { x: SHOOTER.x, y: SHOOTER.y, vx: Math.sin(aim) * SPEED, vy: -Math.cos(aim) * SPEED, color: current };
+      current = next;
+      next = pick();
+    }
+
+    function snap(hitRow, hitCol) {
+      let best = null, bestD = Infinity;
+      const candidates = hitRow === null ? [] : neighbors(hitRow, hitCol);
+      if (hitRow === null) for (let c = 0; c < COLS; c++) candidates.push([0, c]);
+      for (const [r, c] of candidates) {
+        if (occupied(r, c)) continue;
+        const dx = cellX(r, c) - ball.x, dy = cellY(r) - ball.y;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = [r, c]; }
+      }
+      if (!best) { ball = null; return; }
+      while (grid.length <= best[0]) grid.push(new Array(COLS).fill(null));
+      grid[best[0]][best[1]] = ball.color;
+      ball = null;
+      resolve(best[0], best[1]);
+    }
+
+    function resolve(row, col) {
+      const color = grid[row][col];
+      const cluster = [];
+      const seen = new Set();
+      const stack = [[row, col]];
+      while (stack.length) {
+        const [r, c] = stack.pop();
+        const key = r + "," + c;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        if (!occupied(r, c) || grid[r][c] !== color) continue;
+        cluster.push([r, c]);
+        for (const n of neighbors(r, c)) stack.push(n);
+      }
+
+      if (cluster.length >= 3) {
+        for (const [r, c] of cluster) grid[r][c] = null;
+        score += cluster.length * 10;
+        dropFloating();
+        statusEl.textContent = `점수 ${score}`;
+      }
+
+      shots++;
+      if (shots % 8 === 0) grid.unshift(new Array(COLS).fill(null).map(() => pick()));
+
+      for (let r = grid.length - 1; r >= 0; r--) {
+        if (grid[r].some((v) => v !== null && v !== undefined)) {
+          if (r >= DEATH_ROW) { endGame(); return; }
+          break;
+        }
+      }
+    }
+
+    function dropFloating() {
+      const keep = new Set();
+      const stack = [];
+      for (let c = 0; c < COLS; c++) if (occupied(0, c)) { stack.push([0, c]); }
+      while (stack.length) {
+        const [r, c] = stack.pop();
+        const key = r + "," + c;
+        if (keep.has(key) || !occupied(r, c)) continue;
+        keep.add(key);
+        for (const n of neighbors(r, c)) stack.push(n);
+      }
+      let removed = 0;
+      for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (occupied(r, c) && !keep.has(r + "," + c)) { grid[r][c] = null; removed++; }
+        }
+      }
+      if (removed) score += removed * 20;
+    }
+
+    function step() {
+      if (ball) {
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+        if (ball.x < R) { ball.x = R; ball.vx = -ball.vx; }
+        if (ball.x > W - R) { ball.x = W - R; ball.vx = -ball.vx; }
+        let hit = null;
+        for (let r = 0; r < grid.length && !hit; r++) {
+          for (let c = 0; c < COLS; c++) {
+            if (!occupied(r, c)) continue;
+            const dx = ball.x - cellX(r, c), dy = ball.y - cellY(r);
+            if (dx * dx + dy * dy < (D - 2) * (D - 2)) { hit = [r, c]; break; }
+          }
+        }
+        if (ball.y - R <= 0) snap(null, null);
+        else if (hit) snap(hit[0], hit[1]);
+        else if (ball.y > H + R) snap(null, null);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (!occupied(r, c)) continue;
+          circle(cellX(r, c), cellY(r), grid[r][c]);
+        }
+      }
+      // 조준선
+      ctx.save();
+      ctx.setLineDash([6, 6]);
+      ctx.strokeStyle = "rgba(120,120,120,0.7)";
+      ctx.beginPath();
+      ctx.moveTo(SHOOTER.x, SHOOTER.y);
+      ctx.lineTo(SHOOTER.x + Math.sin(aim) * 90, SHOOTER.y - Math.cos(aim) * 90);
+      ctx.stroke();
+      ctx.restore();
+      if (ball) circle(ball.x, ball.y, ball.color);
+      circle(SHOOTER.x, SHOOTER.y, current);
+      ctx.beginPath();
+      ctx.arc(SHOOTER.x + 22, SHOOTER.y + 6, 10, 0, Math.PI * 2);
+      ctx.fillStyle = COLORS[next];
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.3)";
+      ctx.stroke();
+    }
+
+    function circle(x, y, colorIdx) {
+      ctx.beginPath();
+      ctx.arc(x, y, R - 1, 0, Math.PI * 2);
+      ctx.fillStyle = COLORS[colorIdx];
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x - 4, y - 4, 4, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.fill();
+    }
+
+    function loop() {
+      if (!running) return;
+      step();
+      draw();
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function endGame() {
+      running = false;
+      gameOver = true;
+      if (rafId) cancelAnimationFrame(rafId);
+      window.reportScore?.("panel-bubble", score);
+      statusEl.textContent = `게임 오버 · 점수 ${score} — 시작 버튼으로 다시`;
+    }
+
+    function startGame() {
+      reset();
+      running = true;
+      statusEl.textContent = "점수 0";
+      if (rafId) cancelAnimationFrame(rafId);
+      loop();
+    }
+
+    function aimAt(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (clientX - rect.left) * (W / rect.width);
+      const y = (clientY - rect.top) * (H / rect.height);
+      const a = Math.atan2(x - SHOOTER.x, SHOOTER.y - y);
+      aim = Math.max(-1.3, Math.min(1.3, a));
+    }
+
+    startBtn.addEventListener("click", startGame);
+    canvas.addEventListener("mousemove", (e) => aimAt(e.clientX, e.clientY));
+    canvas.addEventListener("mousedown", (e) => { aimAt(e.clientX, e.clientY); shoot(); });
+    canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      const t = e.touches[0];
+      aimAt(t.clientX, t.clientY);
+      shoot();
+    }, { passive: false });
+    document.addEventListener("keydown", (e) => {
+      if (panel.hidden || e.code !== "Space") return;
+      e.preventDefault();
+      shoot();
+    });
+
+    reset();
+    registerGame("panel-bubble", {
+      init() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        reset();
+        draw();
+        statusEl.textContent = "시작 버튼을 눌러주세요.";
+      },
+      stop() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+      },
+    });
+  })();
+</script>
+
+<script data-game-code="panel-suika">
+  // ── STEP 50: 수박 게임 ─────────────────────────────
+  (function () {
+    const panel = document.getElementById("panel-suika");
+    const canvas = document.getElementById("suika-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("suika-status");
+    const startBtn = document.getElementById("suika-start");
+    const W = canvas.width, H = canvas.height;
+    const RADII = [14, 20, 27, 35, 45, 57, 71, 88];
+    const COLORS = ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#1abc9c", "#3498db", "#9b59b6", "#e84393"];
+    const POINTS = [0, 2, 4, 8, 14, 22, 32, 46];
+    const MAXTYPE = RADII.length - 1;
+    const GRAVITY = 0.62, DROP_Y = 34, DROP_LINE = 64;
+
+    let fruits, score, preview, nextType, previewX, canDrop, running, over, rafId, overTimer, dropTimer;
+
+    function reset() {
+      fruits = [];
+      score = 0;
+      previewX = W / 2;
+      nextType = randSmall();
+      preview = null;
+      canDrop = true;
+      running = false;
+      over = false;
+      overTimer = 0;
+      if (dropTimer) { clearTimeout(dropTimer); dropTimer = null; }
+    }
+
+    function randSmall() { return Math.floor(Math.random() * 4); }
+
+    function newPreview() {
+      preview = { x: previewX, y: DROP_Y, vx: 0, vy: 0, r: RADII[0], type: nextType, age: 0 };
+      nextType = randSmall();
+    }
+
+    function drop() {
+      if (!running || over || !canDrop || !preview) return;
+      preview.age = 0;
+      fruits.push(preview);
+      preview = null;
+      canDrop = false;
+      dropTimer = setTimeout(() => { canDrop = true; newPreview(); }, 520);
+    }
+
+    function resolvePass() {
+      for (const f of fruits) {
+        if (f.x - f.r < 0) { f.x = f.r; f.vx = Math.abs(f.vx) * 0.2; }
+        if (f.x + f.r > W) { f.x = W - f.r; f.vx = -Math.abs(f.vx) * 0.2; }
+        if (f.y + f.r > H) { f.y = H - f.r; f.vy = -Math.abs(f.vy) * 0.2; f.vx *= 0.86; }
+      }
+      for (let i = 0; i < fruits.length; i++) {
+        const a = fruits[i];
+        if (a.dead) continue;
+        for (let j = i + 1; j < fruits.length; j++) {
+          const b = fruits[j];
+          if (b.dead) continue;
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy) || 0.001;
+          const min = a.r + b.r;
+          if (dist >= min) continue;
+          if (a.type === b.type && a.type < MAXTYPE) {
+            a.dead = true;
+            b.type++;
+            b.r = RADII[b.type];
+            b.x = (a.x + b.x) / 2;
+            b.y = (a.y + b.y) / 2;
+            b.vx = (a.vx + b.vx) / 2;
+            b.vy = (a.vy + b.vy) / 2;
+            score += POINTS[b.type];
+            statusEl.textContent = `점수 ${score}`;
+            break;
+          }
+          const overlap = (min - dist) / 2;
+          const nx = dx / dist, ny = dy / dist;
+          a.x -= nx * overlap; a.y -= ny * overlap;
+          b.x += nx * overlap; b.y += ny * overlap;
+          const va = a.vx * nx + a.vy * ny;
+          const vb = b.vx * nx + b.vy * ny;
+          a.vx += (vb - va) * nx * 0.5; a.vy += (vb - va) * ny * 0.5;
+          b.vx += (va - vb) * nx * 0.5; b.vy += (va - vb) * ny * 0.5;
+        }
+      }
+      fruits = fruits.filter((f) => !f.dead);
+    }
+
+    function update() {
+      for (const f of fruits) {
+        f.vy += GRAVITY;
+        f.vx *= 0.992;
+        f.x += f.vx;
+        f.y += f.vy;
+        f.age++;
+      }
+      for (let k = 0; k < 4; k++) resolvePass();
+
+      let danger = false;
+      for (const f of fruits) {
+        if (f.age > 40 && f.y - f.r < DROP_LINE) danger = true;
+      }
+      overTimer = danger ? overTimer + 1 : 0;
+      if (overTimer > 70) endGame();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = overTimer > 20 ? "#e74c3c" : "rgba(150,150,150,0.7)";
+      ctx.beginPath();
+      ctx.moveTo(0, DROP_LINE);
+      ctx.lineTo(W, DROP_LINE);
+      ctx.stroke();
+      ctx.restore();
+
+      for (const f of fruits) fruit(f.x, f.y, f.r, f.type);
+      if (preview) {
+        ctx.globalAlpha = 0.85;
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = "rgba(150,150,150,0.8)";
+        ctx.beginPath();
+        ctx.moveTo(preview.x, DROP_LINE);
+        ctx.lineTo(preview.x, H);
+        ctx.stroke();
+        ctx.restore();
+        fruit(preview.x, preview.y, preview.r, preview.type);
+        ctx.globalAlpha = 1;
+      }
+      if (nextType !== null && nextType !== undefined) {
+        fruit(W - 34, DROP_LINE + 26, 13, nextType);
+      }
+    }
+
+    function fruit(x, y, r, type) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = COLORS[type];
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x - r * 0.28, y - r * 0.28, r * 0.24, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.fill();
+    }
+
+    function loop() {
+      if (!running) return;
+      update();
+      draw();
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function endGame() {
+      running = false;
+      over = true;
+      if (rafId) cancelAnimationFrame(rafId);
+      window.reportScore?.("panel-suika", score);
+      statusEl.textContent = `게임 오버 · 점수 ${score} — 시작 버튼으로 다시`;
+    }
+
+    function startGame() {
+      if (dropTimer) clearTimeout(dropTimer);
+      reset();
+      running = true;
+      canDrop = true;
+      newPreview();
+      statusEl.textContent = "점수 0";
+      if (rafId) cancelAnimationFrame(rafId);
+      loop();
+    }
+
+    function moveTo(clientX) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (clientX - rect.left) * (W / rect.width);
+      previewX = Math.max(70, Math.min(W - 70, x));
+      if (preview) preview.x = previewX;
+    }
+
+    startBtn.addEventListener("click", startGame);
+    canvas.addEventListener("mousemove", (e) => moveTo(e.clientX));
+    canvas.addEventListener("click", (e) => { moveTo(e.clientX); drop(); });
+    canvas.addEventListener("touchstart", (e) => { e.preventDefault(); moveTo(e.touches[0].clientX); }, { passive: false });
+    canvas.addEventListener("touchend", (e) => { e.preventDefault(); drop(); }, { passive: false });
+
+    reset();
+    registerGame("panel-suika", {
+      init() {
+        if (dropTimer) clearTimeout(dropTimer);
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        reset();
+        draw();
+        statusEl.textContent = "시작 버튼을 눌러주세요.";
+      },
+      stop() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        if (dropTimer) { clearTimeout(dropTimer); dropTimer = null; }
+      },
+    });
+  })();
+</script>
+
+<script data-game-code="panel-kkodeul">
+  // ── STEP 51: 꼬들 · 한글 워들 ─────────────────────────────
+  (function () {
+    const boardEl = document.getElementById("kkodeul-board");
+    const form = document.getElementById("kkodeul-form");
+    const input = document.getElementById("kkodeul-input");
+    const resetBtn = document.getElementById("kkodeul-reset");
+    const statusEl = document.getElementById("kkodeul-status");
+
+    const LEN = 4, MAX_TRIES = 6;
+    const ANSWERS = [
+      "사과나무", "바람개비", "강아지풀", "나비효과", "도토리묵", "대한민국", "세종대왕", "무궁화꽃",
+      "해바라기", "민들레꽃", "개나리꽃", "진달래꽃", "알록달록", "반짝반짝", "두근두근", "싱글벙글",
+      "울긋불긋", "초록초록", "노랑노랑", "하늘하늘", "사뿐사뿐", "겨울바람", "여름하늘", "가을하늘",
+      "겨울하늘", "연필깎이", "단풍나무", "은행나무", "소나무숲", "대나무숲", "벚나무길", "사탕수수",
+      "옥수수밭", "고구마밭", "콩나물밥", "김치찌개", "된장찌개", "잔치국수", "칼국수집", "김밥천국",
+      "할아버지", "아주머니", "주민센터", "반장선거", "운동회날", "따뜻하다", "시원하다", "신기하다",
+      "친절하다", "정직하다", "용감하다", "씩씩하다", "어여쁘다", "무지개빛", "로켓발사", "인공위성",
+      "기후변화", "환경보호", "분리수거", "자원봉사", "나눔장터", "벼룩시장", "아름답다", "행복하다",
+    ];
+
+    let answer, guesses, done;
+
+    function newGame() {
+      answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+      guesses = [];
+      done = false;
+      input.value = "";
+      input.disabled = false;
+      render();
+      statusEl.textContent = "네 글자 낱말을 입력하고 입력 버튼을 누르세요.";
+    }
+
+    function evaluate(guess) {
+      const marks = new Array(LEN).fill("absent");
+      const counts = {};
+      for (let i = 0; i < LEN; i++) {
+        if (guess[i] === answer[i]) marks[i] = "correct";
+        else counts[answer[i]] = (counts[answer[i]] || 0) + 1;
+      }
+      for (let i = 0; i < LEN; i++) {
+        if (marks[i] === "correct") continue;
+        if (counts[guess[i]] > 0) { marks[i] = "present"; counts[guess[i]]--; }
+      }
+      return marks;
+    }
+
+    function render() {
+      boardEl.replaceChildren();
+      for (let r = 0; r < MAX_TRIES; r++) {
+        const row = document.createElement("div");
+        row.className = "kkodeul-row";
+        const g = guesses[r];
+        for (let c = 0; c < LEN; c++) {
+          const cell = document.createElement("div");
+          cell.className = "kkodeul-cell";
+          if (g) { cell.textContent = g.word[c]; cell.classList.add("is-" + g.marks[c]); }
+          row.appendChild(cell);
+        }
+        boardEl.appendChild(row);
+      }
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (done) return;
+      const word = input.value.replace(/\s+/g, "");
+      if (!/^[가-힣]+$/.test(word) || word.length !== LEN) {
+        statusEl.textContent = `한글 네 글자를 입력하세요. (지금 ${word.length}글자)`;
+        return;
+      }
+      const marks = evaluate(word);
+      guesses.push({ word, marks });
+      input.value = "";
+      render();
+
+      if (word === answer) {
+        done = true;
+        input.disabled = true;
+        window.reportScore?.("panel-kkodeul", guesses.length);
+        statusEl.textContent = `정답! ${guesses.length}번 만에 맞혔습니다.`;
+      } else if (guesses.length >= MAX_TRIES) {
+        done = true;
+        input.disabled = true;
+        statusEl.textContent = `기회를 다 썼습니다. 정답은 "${answer}"입니다.`;
+      } else {
+        statusEl.textContent = `${guesses.length}/${MAX_TRIES}번 시도 · 남은 기회 ${MAX_TRIES - guesses.length}번`;
+      }
+      input.focus();
+    });
+
+    resetBtn.addEventListener("click", () => { newGame(); input.focus(); });
+
+    newGame();
+    registerGame("panel-kkodeul", {
+      init() { newGame(); },
+      stop() {},
+    });
+  })();
+</script>
+
+<script data-game-code="panel-piano">
+  // ── STEP 52: 피아노 타일 ─────────────────────────────
+  (function () {
+    const panel = document.getElementById("panel-piano");
+    const canvas = document.getElementById("piano-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("piano-status");
+    const startBtn = document.getElementById("piano-start");
+    const W = canvas.width, H = canvas.height;
+    const LANES = 4, LW = W / LANES, TILE_H = 116, ROW_GAP = 132;
+
+    let rows, score, speed, nextY, running, rafId;
+
+    function reset() {
+      rows = [];
+      score = 0;
+      speed = 3.4;
+      nextY = -TILE_H;
+      running = false;
+    }
+
+    function spawnAhead() {
+      while (nextY < H + ROW_GAP) {
+        rows.push({ y: nextY, lane: Math.floor(Math.random() * LANES) });
+        nextY += ROW_GAP;
+      }
+    }
+
+    function activeRow() {
+      let best = null;
+      for (const r of rows) if (!best || r.y > best.y) best = r;
+      return best;
+    }
+
+    function tapLane(lane) {
+      if (!running) return;
+      const active = activeRow();
+      if (!active) return;
+      if (active.lane === lane && active.y >= H - TILE_H) {
+        rows = rows.filter((r) => r !== active);
+        score++;
+        speed = Math.min(9, 3.4 + score * 0.09);
+        statusEl.textContent = `점수 ${score}`;
+      } else {
+        fail();
+      }
+    }
+
+    function update() {
+      for (const r of rows) r.y += speed;
+      const active = activeRow();
+      if (active && active.y > H) { fail(); return; }
+      rows = rows.filter((r) => r.y < H + TILE_H);
+      spawnAhead();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(120,120,120,0.18)";
+      ctx.fillRect(0, H - TILE_H, W, TILE_H);
+      for (let i = 0; i < LANES; i++) {
+        ctx.strokeStyle = "rgba(120,120,120,0.35)";
+        ctx.beginPath();
+        ctx.moveTo(i * LW, 0);
+        ctx.lineTo(i * LW, H);
+        ctx.stroke();
+      }
+      for (const r of rows) {
+        ctx.fillStyle = "#17181a";
+        ctx.fillRect(r.lane * LW + 3, r.y, LW - 6, TILE_H - 4);
+        ctx.fillStyle = "rgba(255,255,255,0.10)";
+        ctx.fillRect(r.lane * LW + 3, r.y, LW - 6, 3);
+      }
+    }
+
+    function loop() {
+      if (!running) return;
+      update();
+      draw();
+      if (running) rafId = requestAnimationFrame(loop);
+    }
+
+    function fail() {
+      const finalScore = score;
+      running = false;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+      window.reportScore?.("panel-piano", finalScore);
+      statusEl.textContent = `게임 오버 · 점수 ${finalScore} — 시작 버튼으로 다시`;
+    }
+
+    function startGame() {
+      if (rafId) cancelAnimationFrame(rafId);
+      reset();
+      running = true;
+      spawnAhead();
+      statusEl.textContent = "점수 0";
+      loop();
+    }
+
+    function laneFromX(clientX) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (clientX - rect.left) * (W / rect.width);
+      return Math.max(0, Math.min(LANES - 1, Math.floor(x / LW)));
+    }
+
+    startBtn.addEventListener("click", startGame);
+    canvas.addEventListener("mousedown", (e) => { e.preventDefault(); tapLane(laneFromX(e.clientX)); });
+    canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      tapLane(laneFromX(e.touches[0].clientX));
+    }, { passive: false });
+    document.addEventListener("keydown", (e) => {
+      if (panel.hidden || !running) return;
+      const map = { d: 0, f: 1, j: 2, k: 3 };
+      const lane = map[e.key.toLowerCase()];
+      if (lane !== undefined) { e.preventDefault(); tapLane(lane); }
+    });
+
+    reset();
+    draw();
+    registerGame("panel-piano", {
+      init() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        reset();
+        draw();
+        statusEl.textContent = "시작 버튼을 눌러주세요.";
+      },
+      stop() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+      },
+    });
+  })();
+</script>
+
+<script data-game-code="panel-sokoban">
+  // ── STEP 53: 소코반 ─────────────────────────────
+  (function () {
+    const boardEl = document.getElementById("sokoban-board");
+    const statusEl = document.getElementById("sokoban-status");
+    const undoBtn = document.getElementById("sokoban-undo");
+    const resetBtn = document.getElementById("sokoban-reset");
+    const moveBtns = Array.from(document.querySelectorAll(".sokoban-btn"));
+
+    const LEVELS = [
+      [
+        "#######",
+        "#     #",
+        "# .$@ #",
+        "#     #",
+        "#######",
+      ],
+      [
+        "########",
+        "#      #",
+        "# .$ $.#",
+        "#   @  #",
+        "########",
+      ],
+      [
+        "#######",
+        "#  .  #",
+        "#  $  #",
+        "#.$@$.#",
+        "#  $  #",
+        "#  .  #",
+        "#######",
+      ],
+    ];
+
+    const DIRS = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
+
+    let levelIndex, walls, targets, boxes, player, moves, history, solved;
+
+    function loadLevel(index) {
+      const rows = LEVELS[index];
+      const h = rows.length, w = rows[0].length;
+      walls = [];
+      targets = [];
+      boxes = new Set();
+      player = { r: 0, c: 0 };
+      moves = 0;
+      history = [];
+      solved = false;
+      for (let r = 0; r < h; r++) {
+        walls.push([]);
+        targets.push([]);
+        for (let c = 0; c < w; c++) {
+          const ch = rows[r][c];
+          walls[r][c] = ch === "#";
+          targets[r][c] = ch === "." || ch === "*" || ch === "+";
+          if (ch === "$" || ch === "*") boxes.add(r + "," + c);
+          if (ch === "@" || ch === "+") player = { r, c };
+        }
+      }
+    }
+
+    function isWall(r, c) {
+      return !walls[r] || walls[r][c] === undefined || walls[r][c];
+    }
+
+    function snapshot() {
+      return { boxes: [...boxes], player: { ...player }, moves };
+    }
+
+    function restore(s) {
+      boxes = new Set(s.boxes);
+      player = { ...s.player };
+      moves = s.moves;
+    }
+
+    function allOnTarget() {
+      for (let r = 0; r < targets.length; r++) {
+        for (let c = 0; c < targets[r].length; c++) {
+          if (targets[r][c] && !boxes.has(r + "," + c)) return false;
+        }
+      }
+      return true;
+    }
+
+    function move(dir) {
+      if (solved) return;
+      const [dr, dc] = DIRS[dir];
+      const nr = player.r + dr, nc = player.c + dc;
+      if (isWall(nr, nc)) return;
+      const key = nr + "," + nc;
+      const snap = snapshot();
+      if (boxes.has(key)) {
+        const br = nr + dr, bc = nc + dc;
+        if (isWall(br, bc) || boxes.has(br + "," + bc)) return;
+        boxes.delete(key);
+        boxes.add(br + "," + bc);
+      }
+      player = { r: nr, c: nc };
+      moves++;
+      history.push(snap);
+      render();
+      if (allOnTarget()) {
+        solved = true;
+        if (levelIndex < LEVELS.length - 1) {
+          statusEl.textContent = `레벨 ${levelIndex + 1} 클리어! 다음 레벨로...`;
+          setTimeout(() => {
+            levelIndex++;
+            loadLevel(levelIndex);
+            render();
+            statusEl.textContent = `레벨 ${levelIndex + 1} · 이동 ${moves}수`;
+          }, 700);
+        } else {
+          window.reportScore?.("panel-sokoban", moves);
+          statusEl.textContent = `모든 레벨 클리어! 총 ${moves}수 — 처음부터로 다시 도전`;
+        }
+      } else {
+        statusEl.textContent = `레벨 ${levelIndex + 1} · 이동 ${moves}수`;
+      }
+    }
+
+    function render() {
+      boardEl.replaceChildren();
+      boardEl.style.gridTemplateColumns = `repeat(${walls[0].length}, minmax(0, 1fr))`;
+      for (let r = 0; r < walls.length; r++) {
+        for (let c = 0; c < walls[r].length; c++) {
+          const cell = document.createElement("div");
+          cell.className = "sokoban-cell";
+          const key = r + "," + c;
+          if (walls[r][c]) cell.classList.add("is-wall");
+          else if (player.r === r && player.c === c) cell.classList.add("is-player");
+          else if (boxes.has(key)) cell.classList.add(targets[r][c] ? "is-on-target" : "is-box");
+          else if (targets[r][c]) cell.classList.add("is-target");
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    function newGame() {
+      levelIndex = 0;
+      loadLevel(0);
+      render();
+      statusEl.textContent = `레벨 1 · 이동 0수`;
+    }
+
+    moveBtns.forEach((btn) => btn.addEventListener("click", () => move(btn.dataset.move)));
+    undoBtn.addEventListener("click", () => {
+      if (!history.length || solved) return;
+      restore(history.pop());
+      render();
+      statusEl.textContent = `레벨 ${levelIndex + 1} · 이동 ${moves}수`;
+    });
+    resetBtn.addEventListener("click", newGame);
+    document.addEventListener("keydown", (e) => {
+      if (boardEl.closest(".game-panel").hidden) return;
+      const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
+      if (map[e.key]) { e.preventDefault(); move(map[e.key]); }
+    });
+
+    newGame();
+    registerGame("panel-sokoban", {
+      init() { newGame(); },
+      stop() {},
+    });
+  })();
+</script>
+
+<script data-game-code="panel-invaders">
+  // ── STEP 54: 스페이스 인베이더 ─────────────────────────────
+  (function () {
+    const panel = document.getElementById("panel-invaders");
+    const canvas = document.getElementById("invaders-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("invaders-status");
+    const startBtn = document.getElementById("invaders-start");
+    const leftBtn = document.getElementById("invaders-left");
+    const rightBtn = document.getElementById("invaders-right");
+    const fireBtn = document.getElementById("invaders-fire");
+    const W = canvas.width, H = canvas.height;
+
+    const COLS = 8, ROWS = 4, IW = 28, IH = 18;
+    let player, bullets, bombs, invaders, invDir, score, lives, cooldown, fireTimer, running, rafId;
+
+    function reset() {
+      player = { x: W / 2, y: H - 26, w: 34, h: 14, speed: 4 };
+      bullets = [];
+      bombs = [];
+      invaders = [];
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          invaders.push({ x: 46 + c * 42, y: 46 + r * 34, alive: true, row: r });
+        }
+      }
+      invDir = 1;
+      score = 0;
+      lives = 3;
+      cooldown = 0;
+      fireTimer = 0;
+      running = false;
+    }
+
+    function moveInvaders() {
+      const alive = invaders.filter((i) => i.alive);
+      if (!alive.length) return;
+      const speed = 0.55 + (ROWS * COLS - alive.length) * 0.045;
+      let edge = false;
+      for (const i of alive) { i.x += invDir * speed; }
+      for (const i of alive) {
+        if (i.x < 12 || i.x + IW > W - 12) edge = true;
+      }
+      if (edge) {
+        invDir *= -1;
+        for (const i of alive) i.y += 16;
+      }
+    }
+
+    function update() {
+      const keys = window.__invKeys || {};
+      if (keys.left) player.x -= player.speed;
+      if (keys.right) player.x += player.speed;
+      if (keys.fire) fire();
+
+      player.x = Math.max(player.w / 2, Math.min(W - player.w / 2, player.x));
+
+      moveInvaders();
+
+      for (const b of bullets) b.y -= 9;
+      bullets = bullets.filter((b) => b.y > -10);
+
+      if (cooldown > 0) cooldown--;
+      fireTimer--;
+      const alive = invaders.filter((i) => i.alive);
+      if (alive.length && fireTimer <= 0) {
+        const shooter = alive[Math.floor(Math.random() * alive.length)];
+        bombs.push({ x: shooter.x + IW / 2, y: shooter.y + IH });
+        fireTimer = 40 + Math.random() * 50;
+      }
+      for (const bm of bombs) bm.y += 4.2;
+      bombs = bombs.filter((bm) => bm.y < H + 10);
+
+      for (const b of bullets) {
+        for (const i of alive) {
+          if (b.y > i.y && b.y < i.y + IH && b.x > i.x && b.x < i.x + IW) {
+            i.alive = false;
+            b.y = -99;
+            score += 10;
+            statusEl.textContent = `점수 ${score} · 목숨 ${lives}`;
+          }
+        }
+      }
+      for (const bm of bombs) {
+        if (bm.y > player.y && bm.y < player.y + player.h && bm.x > player.x - player.w / 2 && bm.x < player.x + player.w / 2) {
+          bm.y = H + 99;
+          hitPlayer();
+        }
+      }
+      if (!invaders.some((i) => i.alive)) {
+        score += 100;
+        endGame(true);
+        return;
+      }
+      for (const i of invaders) {
+        if (i.alive && i.y + IH > player.y) { endGame(false); return; }
+      }
+    }
+
+    function fire() {
+      if (cooldown > 0 || !running) return;
+      bullets.push({ x: player.x, y: player.y - 8 });
+      cooldown = 12;
+    }
+
+    function hitPlayer() {
+      lives--;
+      if (lives <= 0) endGame(false);
+      else statusEl.textContent = `점수 ${score} · 목숨 ${lives}`;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = "#2ecc71";
+      for (const i of invaders) {
+        if (!i.alive) continue;
+        ctx.fillRect(i.x, i.y, IW, IH);
+        ctx.fillStyle = "#17181a";
+        ctx.fillRect(i.x + 5, i.y + 5, 5, 5);
+        ctx.fillRect(i.x + IW - 10, i.y + 5, 5, 5);
+        ctx.fillStyle = "#2ecc71";
+      }
+      ctx.fillStyle = "#3498db";
+      ctx.fillRect(player.x - player.w / 2, player.y, player.w, player.h);
+      ctx.fillStyle = "#fff";
+      for (const b of bullets) ctx.fillRect(b.x - 1.5, b.y, 3, 10);
+      ctx.fillStyle = "#e74c3c";
+      for (const bm of bombs) ctx.fillRect(bm.x - 2, bm.y, 4, 10);
+    }
+
+    function loop() {
+      if (!running) return;
+      update();
+      draw();
+      if (running) rafId = requestAnimationFrame(loop);
+    }
+
+    function endGame(won) {
+      running = false;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+      window.__invKeys = { left: false, right: false, fire: false };
+      window.reportScore?.("panel-invaders", score);
+      statusEl.textContent = `${won ? "승리!" : "게임 오버"} · 점수 ${score} — 시작 버튼으로 다시`;
+    }
+
+    function startGame() {
+      if (rafId) cancelAnimationFrame(rafId);
+      reset();
+      running = true;
+      window.__invKeys = { left: false, right: false, fire: false };
+      statusEl.textContent = "점수 0 · 목숨 3";
+      loop();
+    }
+
+    function hold(btn, key) {
+      const on = (e) => { e.preventDefault(); window.__invKeys[key] = true; };
+      const off = (e) => { e.preventDefault(); window.__invKeys[key] = false; };
+      btn.addEventListener("mousedown", on);
+      btn.addEventListener("touchstart", on, { passive: false });
+      btn.addEventListener("mouseup", off);
+      btn.addEventListener("mouseleave", off);
+      btn.addEventListener("touchend", off, { passive: false });
+    }
+    hold(leftBtn, "left");
+    hold(rightBtn, "right");
+    fireBtn.addEventListener("click", fire);
+    fireBtn.addEventListener("touchstart", (e) => { e.preventDefault(); fire(); }, { passive: false });
+
+    startBtn.addEventListener("click", startGame);
+    document.addEventListener("keydown", (e) => {
+      if (panel.hidden) return;
+      window.__invKeys = window.__invKeys || {};
+      if (e.key === "ArrowLeft") { window.__invKeys.left = true; e.preventDefault(); }
+      if (e.key === "ArrowRight") { window.__invKeys.right = true; e.preventDefault(); }
+      if (e.code === "Space") { window.__invKeys.fire = true; e.preventDefault(); }
+    });
+    document.addEventListener("keyup", (e) => {
+      window.__invKeys = window.__invKeys || {};
+      if (e.key === "ArrowLeft") window.__invKeys.left = false;
+      if (e.key === "ArrowRight") window.__invKeys.right = false;
+      if (e.code === "Space") window.__invKeys.fire = false;
+    });
+
+    reset();
+    draw();
+    registerGame("panel-invaders", {
+      init() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        reset();
+        draw();
+        statusEl.textContent = "시작 버튼을 눌러주세요.";
+      },
+      stop() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+      },
+    });
+  })();
+</script>
+
+<script data-game-code="panel-solitaire">
+  // ── STEP 55: 솔리테어 · 클론다이크 ─────────────────────────────
+  (function () {
+    const boardEl = document.getElementById("solitaire-board");
+    const statusEl = document.getElementById("solitaire-status");
+    const newBtn = document.getElementById("solitaire-new");
+    const undoBtn = document.getElementById("solitaire-undo");
+
+    const SUITS = ["♠", "♥", "♦", "♣"];
+    const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    const isRed = (c) => c.suit === 1 || c.suit === 2;
+
+    let stock, waste, foundations, tableau, selection, moves, history;
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function newGame() {
+      const deck = [];
+      for (let s = 0; s < 4; s++) for (let r = 1; r <= 13; r++) deck.push({ suit: s, rank: r, faceUp: false });
+      shuffle(deck);
+      tableau = [[], [], [], [], [], [], []];
+      for (let i = 0; i < 7; i++) {
+        for (let j = 0; j <= i; j++) {
+          const card = deck.pop();
+          card.faceUp = j === i;
+          tableau[i].push(card);
+        }
+      }
+      stock = deck;
+      waste = [];
+      foundations = [[], [], [], []];
+      selection = null;
+      moves = 0;
+      history = [];
+      render();
+      statusEl.textContent = "새 게임 · 카드를 골라 옮기고, 덱을 눌러 뒤집으세요.";
+    }
+
+    function clonePiles() {
+      return {
+        stock: stock.map((c) => ({ ...c })),
+        waste: waste.map((c) => ({ ...c })),
+        foundations: foundations.map((p) => p.map((c) => ({ ...c }))),
+        tableau: tableau.map((p) => p.map((c) => ({ ...c }))),
+        moves,
+      };
+    }
+
+    function pushHistory() {
+      history.push(clonePiles());
+    }
+
+    function undo() {
+      const s = history.pop();
+      if (!s) return;
+      stock = s.stock;
+      waste = s.waste;
+      foundations = s.foundations;
+      tableau = s.tableau;
+      moves = s.moves;
+      selection = null;
+      render();
+      statusEl.textContent = `이동 ${moves}수`;
+    }
+
+    function isValidRun(pile, index) {
+      const t = tableau[pile];
+      for (let k = index; k < t.length; k++) {
+        if (!t[k].faceUp) return false;
+        if (k > index) {
+          if (t[k].rank !== t[k - 1].rank - 1) return false;
+          if (isRed(t[k]) === isRed(t[k - 1])) return false;
+        }
+      }
+      return true;
+    }
+
+    function canMoveToFoundation(card) {
+      const f = foundations[card.suit];
+      if (f.length === 13) return false;
+      if (f.length === 0) return card.rank === 1;
+      return f[f.length - 1].rank === card.rank - 1;
+    }
+
+    function canMoveToTableau(card, pile) {
+      const t = tableau[pile];
+      if (!t.length) return card.rank === 13;
+      const top = t[t.length - 1];
+      return top.faceUp && top.rank === card.rank + 1 && isRed(top) !== isRed(card);
+    }
+
+    function peekSelection() {
+      if (!selection) return null;
+      if (selection.type === "waste") {
+        const c = waste[waste.length - 1];
+        return c ? { card: c, cards: [c] } : null;
+      }
+      if (selection.type === "foundation") {
+        const p = foundations[selection.pile];
+        const c = p[p.length - 1];
+        return c ? { card: c, cards: [c] } : null;
+      }
+      const t = tableau[selection.pile];
+      const cards = t.slice(selection.index);
+      return cards.length ? { card: cards[0], cards } : null;
+    }
+
+    function removeSelected() {
+      if (selection.type === "waste") return [waste.pop()];
+      if (selection.type === "foundation") return [foundations[selection.pile].pop()];
+      return tableau[selection.pile].splice(selection.index);
+    }
+
+    function flipExposed() {
+      if (selection.type === "tableau") {
+        const t = tableau[selection.pile];
+        if (t.length && !t[t.length - 1].faceUp) t[t.length - 1].faceUp = true;
+      }
+    }
+
+    function commit(destType, destPile) {
+      pushHistory();
+      const cards = removeSelected();
+      if (destType === "foundation") foundations[destPile].push(cards[0]);
+      else tableau[destPile].push(...cards);
+      flipExposed();
+      moves++;
+      selection = null;
+      render();
+      if (foundations.every((f) => f.length === 13)) {
+        window.reportScore?.("panel-solitaire", moves);
+        statusEl.textContent = `축하합니다! ${moves}수 만에 완성했습니다.`;
+      } else {
+        statusEl.textContent = `이동 ${moves}수`;
+      }
+    }
+
+    function drawStock() {
+      if (!stock.length && !waste.length) return;
+      pushHistory();
+      if (stock.length) {
+        const c = stock.pop();
+        c.faceUp = true;
+        waste.push(c);
+      } else {
+        while (waste.length) {
+          const c = waste.pop();
+          c.faceUp = false;
+          stock.push(c);
+        }
+      }
+      moves++;
+      selection = null;
+      render();
+      statusEl.textContent = `이동 ${moves}수`;
+    }
+
+    function selectTableau(pile, index) {
+      const t = tableau[pile];
+      if (!t[index] || !t[index].faceUp) { selection = null; render(); return; }
+      selection = { type: "tableau", pile, index };
+      render();
+    }
+
+    function selectWaste() {
+      selection = waste.length ? { type: "waste" } : null;
+      render();
+    }
+
+    function selectFoundation(pile) {
+      selection = foundations[pile].length ? { type: "foundation", pile } : null;
+      render();
+    }
+
+    function tryMoveToFoundation(pile) {
+      const info = peekSelection();
+      if (!info || info.cards.length !== 1) return false;
+      if (info.card.suit !== pile || !canMoveToFoundation(info.card)) return false;
+      commit("foundation", pile);
+      return true;
+    }
+
+    function tryMoveToTableau(pile) {
+      const info = peekSelection();
+      if (!info) return false;
+      if (selection.type === "tableau" && !isValidRun(selection.pile, selection.index)) return false;
+      if (!canMoveToTableau(info.card, pile)) return false;
+      commit("tableau", pile);
+      return true;
+    }
+
+    function handleClick(pile, pileIndex, cardIndex) {
+      if (pile === "stock") { drawStock(); return; }
+      if (pile === "waste") {
+        selectWaste();
+        return;
+      }
+      if (pile === "foundation") {
+        if (selection && tryMoveToFoundation(pileIndex)) return;
+        selectFoundation(pileIndex);
+        return;
+      }
+      if (selection) {
+        if (selection.type === "tableau" && selection.pile === pileIndex && selection.index === cardIndex) {
+          selection = null; render(); return;
+        }
+        if (tryMoveToTableau(pileIndex)) return;
+      }
+      selectTableau(pileIndex, cardIndex);
+    }
+
+    function cardEl(card, pileType, pileIndex, cardIndex, stackIndex) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "solitaire-card";
+      btn.dataset.pile = pileType;
+      if (pileIndex !== undefined) btn.dataset.pileindex = pileIndex;
+      if (cardIndex !== undefined) btn.dataset.cardindex = cardIndex;
+      if (stackIndex) btn.style.top = `calc(${stackIndex} * var(--cw) * 0.42)`;
+      if (card.faceUp) {
+        if (isRed(card)) btn.classList.add("is-red");
+        btn.textContent = RANKS[card.rank - 1] + SUITS[card.suit];
+      } else {
+        btn.classList.add("is-back");
+      }
+      if (selection && selection.type === "tableau" && selection.pile === pileIndex && cardIndex >= selection.index) {
+        btn.classList.add("is-selected");
+      }
+      if (selection && selection.type === "waste" && pileType === "waste") btn.classList.add("is-selected");
+      if (selection && selection.type === "foundation" && pileType === "foundation" && selection.pile === pileIndex) btn.classList.add("is-selected");
+      return btn;
+    }
+
+    function emptyEl(pileType, pileIndex) {
+      const div = document.createElement("div");
+      div.className = "solitaire-card is-empty";
+      div.dataset.pile = pileType;
+      if (pileIndex !== undefined) div.dataset.pileindex = pileIndex;
+      return div;
+    }
+
+    function render() {
+      boardEl.replaceChildren();
+
+      const top = document.createElement("div");
+      top.className = "solitaire-row";
+
+      const stockPile = document.createElement("div");
+      stockPile.className = "solitaire-pile is-short";
+      if (stock.length) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "solitaire-card is-back";
+        b.dataset.pile = "stock";
+        b.style.top = "0";
+        stockPile.appendChild(b);
+      } else {
+        const e = emptyEl("stock");
+        e.style.top = "0";
+        stockPile.appendChild(e);
+      }
+      top.appendChild(stockPile);
+
+      const wastePile = document.createElement("div");
+      wastePile.className = "solitaire-pile is-short";
+      if (waste.length) {
+        const c = cardEl(waste[waste.length - 1], "waste", undefined, undefined, 0);
+        c.style.top = "0";
+        wastePile.appendChild(c);
+      } else {
+        const e = emptyEl("waste");
+        e.style.top = "0";
+        wastePile.appendChild(e);
+      }
+      top.appendChild(wastePile);
+
+      const spacer = document.createElement("div");
+      spacer.style.flex = "1 1 auto";
+      top.appendChild(spacer);
+
+      for (let i = 0; i < 4; i++) {
+        const fp = document.createElement("div");
+        fp.className = "solitaire-pile is-short";
+        if (foundations[i].length) {
+          const c = cardEl(foundations[i][foundations[i].length - 1], "foundation", i, undefined, 0);
+          c.style.top = "0";
+          fp.appendChild(c);
+        } else {
+          const e = emptyEl("foundation", i);
+          e.style.top = "0";
+          fp.appendChild(e);
+        }
+        top.appendChild(fp);
+      }
+      boardEl.appendChild(top);
+
+      const trow = document.createElement("div");
+      trow.className = "solitaire-row";
+      for (let i = 0; i < 7; i++) {
+        const tp = document.createElement("div");
+        tp.className = "solitaire-pile";
+        if (tableau[i].length) {
+          tableau[i].forEach((card, j) => tp.appendChild(cardEl(card, "tableau", i, j, j)));
+        } else {
+          tp.appendChild(emptyEl("tableau", i));
+        }
+        trow.appendChild(tp);
+      }
+      boardEl.appendChild(trow);
+    }
+
+    boardEl.addEventListener("click", (e) => {
+      const el = e.target.closest("[data-pile]");
+      if (!el) { selection = null; render(); return; }
+      const pile = el.dataset.pile;
+      const pileIndex = el.dataset.pileindex !== undefined ? Number(el.dataset.pileindex) : undefined;
+      const cardIndex = el.dataset.cardindex !== undefined ? Number(el.dataset.cardindex) : undefined;
+      handleClick(pile, pileIndex, cardIndex);
+    });
+
+    newBtn.addEventListener("click", newGame);
+    undoBtn.addEventListener("click", undo);
+
+    newGame();
+    registerGame("panel-solitaire", {
+      init() { newGame(); },
+      stop() {},
+    });
+  })();
+</script>
+
+<script data-game-code="panel-lights">
+  // ── STEP 56: 라이트아웃 ─────────────────────────────
+  (function () {
+    const boardEl = document.getElementById("lights-board");
+    const statusEl = document.getElementById("lights-status");
+    const newBtn = document.getElementById("lights-new");
+    const N = 5;
+
+    let grid, moves, solved;
+
+    function toggle(r, c) {
+      const cells = [[r, c], [r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]];
+      for (const [rr, cc] of cells) {
+        if (rr >= 0 && rr < N && cc >= 0 && cc < N) grid[rr * N + cc] = !grid[rr * N + cc];
+      }
+    }
+
+    function isSolved() {
+      return grid.every((v) => !v);
+    }
+
+    function newGame() {
+      grid = new Array(N * N).fill(false);
+      const count = 7 + Math.floor(Math.random() * 7);
+      for (let k = 0; k < count; k++) {
+        toggle(Math.floor(Math.random() * N), Math.floor(Math.random() * N));
+      }
+      if (isSolved()) toggle(2, 2);
+      moves = 0;
+      solved = false;
+      render();
+      statusEl.textContent = "칸을 눌러 모든 불을 끄세요. 이동 0수";
+    }
+
+    function render() {
+      boardEl.replaceChildren();
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "lights-cell";
+          btn.setAttribute("aria-label", `${r + 1}행 ${c + 1}열`);
+          if (grid[r * N + c]) btn.classList.add("is-on");
+          btn.addEventListener("click", () => press(r, c));
+          boardEl.appendChild(btn);
+        }
+      }
+    }
+
+    function press(r, c) {
+      if (solved) return;
+      toggle(r, c);
+      moves++;
+      render();
+      if (isSolved()) {
+        solved = true;
+        window.reportScore?.("panel-lights", moves);
+        statusEl.textContent = `모두 껐습니다! 이동 ${moves}수 — 새 게임으로 다시`;
+      } else {
+        statusEl.textContent = `이동 ${moves}수`;
+      }
+    }
+
+    newBtn.addEventListener("click", newGame);
+
+    newGame();
+    registerGame("panel-lights", {
+      init() { newGame(); },
+      stop() {},
+    });
+  })();
+</script>
+
+<script data-game-code="panel-battleship">
+  // ── STEP 57: 배틀쉽 · 해전 게임 ─────────────────────────────
+  (function () {
+    const mineEl = document.getElementById("bs-mine");
+    const enemyEl = document.getElementById("bs-enemy");
+    const statusEl = document.getElementById("bs-status");
+    const newBtn = document.getElementById("bs-new");
+    const N = 10, SIZES = [5, 4, 3, 3, 2];
+
+    let mine, enemy, over, aiQueue;
+
+    function makeBoard() {
+      const occupied = new Set();
+      const ships = [];
+      for (const size of SIZES) {
+        for (let attempt = 0; attempt < 300; attempt++) {
+          const horiz = Math.random() < 0.5;
+          const r = Math.floor(Math.random() * (horiz ? N : N - size + 1));
+          const c = Math.floor(Math.random() * (horiz ? N - size + 1 : N));
+          const cells = [];
+          for (let k = 0; k < size; k++) cells.push([horiz ? r : r + k, horiz ? c + k : c]);
+          if (cells.some(([rr, cc]) => occupied.has(rr + "," + cc))) continue;
+          cells.forEach(([rr, cc]) => occupied.add(rr + "," + cc));
+          ships.push({ cells, sunk: false });
+          break;
+        }
+      }
+      return { shipCells: occupied, ships, hits: new Set(), misses: new Set() };
+    }
+
+    const isShip = (b, r, c) => b.shipCells.has(r + "," + c);
+
+    function allSunk(board) {
+      return board.ships.every((s) => s.cells.every(([r, c]) => board.hits.has(r + "," + c)));
+    }
+
+    function attack(board, r, c) {
+      const key = r + "," + c;
+      if (board.hits.has(key) || board.misses.has(key)) return null;
+      if (isShip(board, r, c)) {
+        board.hits.add(key);
+        for (const s of board.ships) {
+          if (s.cells.some(([rr, cc]) => rr === r && cc === c)) {
+            if (s.cells.every(([rr, cc]) => board.hits.has(rr + "," + cc))) s.sunk = true;
+            break;
+          }
+        }
+        return true;
+      }
+      board.misses.add(key);
+      return false;
+    }
+
+    function newGame() {
+      mine = makeBoard();
+      enemy = makeBoard();
+      over = false;
+      aiQueue = [];
+      render();
+      statusEl.textContent = "적 해역을 눌러 공격하세요.";
+    }
+
+    function cell(r, c, board, revealShips) {
+      const key = r + "," + c;
+      const el = document.createElement("div");
+      el.className = "bs-cell";
+      if (board.hits.has(key)) el.classList.add("is-hit");
+      else if (board.misses.has(key)) el.classList.add("is-miss");
+      else if (revealShips && isShip(board, r, c)) el.classList.add("is-ship");
+      if (board.hits.has(key)) el.textContent = "X";
+      else if (board.misses.has(key)) el.textContent = "·";
+      return el;
+    }
+
+    function render() {
+      mineEl.replaceChildren();
+      enemyEl.replaceChildren();
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          mineEl.appendChild(cell(r, c, mine, true));
+          const e = cell(r, c, enemy, false);
+          e.dataset.r = r;
+          e.dataset.c = c;
+          if (!over && !enemy.hits.has(r + "," + c) && !enemy.misses.has(r + "," + c)) {
+            e.addEventListener("click", () => playerAttack(r, c));
+          }
+          enemyEl.appendChild(e);
+        }
+      }
+    }
+
+    function playerAttack(r, c) {
+      if (over) return;
+      const result = attack(enemy, r, c);
+      if (result === null) return;
+      render();
+      if (allSunk(enemy)) { finish(true); return; }
+      if (result) {
+        statusEl.textContent = "명중! 적 함선을 맞혔습니다. 계속 공격하세요.";
+        return;
+      }
+      statusEl.textContent = "빗나감. 적의 차례입니다...";
+      setTimeout(aiTurn, 480);
+    }
+
+    function aiTurn() {
+      if (over) return;
+      let target = null;
+      while (aiQueue.length && !target) {
+        const [r, c] = aiQueue.shift();
+        const key = r + "," + c;
+        if (r >= 0 && r < N && c >= 0 && c < N && !mine.hits.has(key) && !mine.misses.has(key)) target = [r, c];
+      }
+      if (!target) {
+        const free = [];
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          const key = r + "," + c;
+          if (!mine.hits.has(key) && !mine.misses.has(key)) free.push([r, c]);
+        }
+        if (!free.length) return;
+        target = free[Math.floor(Math.random() * free.length)];
+      }
+      const [r, c] = target;
+      const result = attack(mine, r, c);
+      if (result) {
+        aiQueue.push([r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]);
+        statusEl.textContent = "적이 명중시켰습니다!";
+      } else {
+        statusEl.textContent = "적이 빗나갔습니다. 다시 공격하세요.";
+      }
+      render();
+      if (allSunk(mine)) finish(false);
+    }
+
+    function finish(won) {
+      over = true;
+      statusEl.textContent = won ? "승리! 적 함대를 모두 격침했습니다." : "패배... 내 함대가 모두 침몰했습니다.";
+      render();
+    }
+
+    newBtn.addEventListener("click", newGame);
+
+    newGame();
+    registerGame("panel-battleship", {
+      init() { newGame(); },
+      stop() {},
+    });
+  })();
+</script>
+
+<script data-game-code="panel-tanks">
+  // ── STEP 58: 탱크 대전 ─────────────────────────────
+  (function () {
+    const panel = document.getElementById("panel-tanks");
+    const canvas = document.getElementById("tanks-canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("tanks-status");
+    const startBtn = document.getElementById("tanks-start");
+    const W = canvas.width, H = canvas.height;
+    const SIZE = 24, HALF = SIZE / 2, ENEMIES = 3;
+
+    let player, enemies, bullets, running, over, rafId, invuln, expTimer;
+
+    function reset() {
+      player = { x: W / 2, y: H - 40, face: -Math.PI / 2, hp: 3, cd: 0 };
+      enemies = [];
+      for (let i = 0; i < ENEMIES; i++) {
+        enemies.push({ x: 60 + i * (W - 120) / (ENEMIES - 1), y: 50 + (i % 2) * 30, face: Math.PI / 2, hp: 1, cd: 60 + i * 20 });
+      }
+      bullets = [];
+      running = false;
+      over = false;
+      invuln = 0;
+      expTimer = 0;
+    }
+
+    function keys() { return window.__tankKeys || {}; }
+
+    function clampTank(t) {
+      t.x = Math.max(HALF + 4, Math.min(W - HALF - 4, t.x));
+      t.y = Math.max(HALF + 4, Math.min(H - HALF - 4, t.y));
+    }
+
+    function fire(tank, targetX, targetY, speed, owner) {
+      let dx = targetX - tank.x, dy = targetY - tank.y;
+      const len = Math.hypot(dx, dy) || 1;
+      dx /= len; dy /= len;
+      tank.face = Math.atan2(dy, dx);
+      bullets.push({ x: tank.x + dx * HALF, y: tank.y + dy * HALF, vx: dx * speed, vy: dy * speed, owner });
+    }
+
+    function update() {
+      const k = keys();
+      const speed = 2.4;
+      let dx = (k.right ? 1 : 0) - (k.left ? 1 : 0);
+      let dy = (k.down ? 1 : 0) - (k.up ? 1 : 0);
+      if (dx || dy) {
+        const len = Math.hypot(dx, dy);
+        player.x += (dx / len) * speed;
+        player.y += (dy / len) * speed;
+        player.face = Math.atan2(dy, dx);
+        clampTank(player);
+      }
+      if (player.cd > 0) player.cd--;
+      if (k.fire && player.cd <= 0 && running) { fire(player, player.x + Math.cos(player.face), player.y + Math.sin(player.face), 6, "player"); player.cd = 16; }
+      if (invuln > 0) invuln--;
+      if (expTimer > 0) expTimer--;
+
+      for (const e of enemies) {
+        const ex = player.x - e.x, ey = player.y - e.y;
+        const len = Math.hypot(ex, ey) || 1;
+        e.x += (ex / len) * 1.1;
+        e.y += (ey / len) * 1.1;
+        clampTank(e);
+        e.cd--;
+        if (e.cd <= 0) { fire(e, player.x, player.y, 4, "enemy"); e.cd = 80 + Math.random() * 60; }
+      }
+      for (let i = 0; i < enemies.length; i++) {
+        for (let j = i + 1; j < enemies.length; j++) {
+          const a = enemies[i], b = enemies[j];
+          const ax = b.x - a.x, ay = b.y - a.y;
+          const d = Math.hypot(ax, ay) || 1;
+          if (d < SIZE) { a.x -= (ax / d) * 0.6; a.y -= (ay / d) * 0.6; b.x += (ax / d) * 0.6; b.y += (ay / d) * 0.6; clampTank(a); clampTank(b); }
+        }
+      }
+
+      for (const b of bullets) { b.x += b.vx; b.y += b.vy; }
+      bullets = bullets.filter((b) => b.x > -10 && b.x < W + 10 && b.y > -10 && b.y < H + 10);
+
+      for (const b of bullets) {
+        if (b.dead) continue;
+        if (b.owner === "player") {
+          for (const e of enemies) {
+            if (!e.dead && Math.hypot(b.x - e.x, b.y - e.y) < HALF + 4) { e.dead = true; b.dead = true; expTimer = 8; break; }
+          }
+        } else if (Math.hypot(b.x - player.x, b.y - player.y) < HALF + 2 && invuln <= 0) {
+          b.dead = true;
+          player.hp--;
+          invuln = 70;
+          statusEl.textContent = `목숨 ${player.hp} · 남은 적 ${enemies.filter((e) => !e.dead).length}`;
+          if (player.hp <= 0) { endGame(false); return; }
+        }
+      }
+      enemies = enemies.filter((e) => !e.dead);
+      bullets = bullets.filter((b) => !b.dead);
+
+      if (!enemies.length) { endGame(true); return; }
+    }
+
+    function drawTank(t, color) {
+      ctx.save();
+      ctx.translate(t.x, t.y);
+      ctx.rotate(t.face);
+      ctx.fillStyle = color;
+      ctx.fillRect(-HALF, -HALF, SIZE, SIZE);
+      ctx.fillStyle = "#17181a";
+      ctx.fillRect(HALF - 4, -3, 12, 6);
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = expTimer > 0 ? "#ffe08a" : "#2ecc71";
+      if (!(invuln > 0 && Math.floor(invuln / 6) % 2 === 0)) drawTank(player, "#3498db");
+      for (const e of enemies) drawTank(e, "#e74c3c");
+      for (const b of bullets) {
+        ctx.fillStyle = b.owner === "player" ? "#fff" : "#ffb3a7";
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function loop() {
+      if (!running) return;
+      update();
+      draw();
+      if (running) rafId = requestAnimationFrame(loop);
+    }
+
+    function endGame(won) {
+      running = false;
+      over = true;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+      window.__tankKeys = { left: false, right: false, up: false, down: false, fire: false };
+      statusEl.textContent = won ? "승리! 적 탱크를 모두 격파했습니다." : "패배... 탱크가 파괴되었습니다.";
+    }
+
+    function startGame() {
+      if (rafId) cancelAnimationFrame(rafId);
+      reset();
+      running = true;
+      window.__tankKeys = { left: false, right: false, up: false, down: false, fire: false };
+      statusEl.textContent = `목숨 3 · 남은 적 ${ENEMIES}`;
+      loop();
+    }
+
+    function hold(id, key) {
+      const btn = document.getElementById(id);
+      const on = (e) => { e.preventDefault(); window.__tankKeys[key] = true; };
+      const off = (e) => { e.preventDefault(); window.__tankKeys[key] = false; };
+      btn.addEventListener("mousedown", on);
+      btn.addEventListener("touchstart", on, { passive: false });
+      btn.addEventListener("mouseup", off);
+      btn.addEventListener("mouseleave", off);
+      btn.addEventListener("touchend", off, { passive: false });
+    }
+    hold("tanks-left", "left");
+    hold("tanks-right", "right");
+    hold("tanks-up", "up");
+    hold("tanks-down", "down");
+    const fireBtn = document.getElementById("tanks-fire");
+    fireBtn.addEventListener("mousedown", (e) => { e.preventDefault(); window.__tankKeys.fire = true; });
+    fireBtn.addEventListener("touchstart", (e) => { e.preventDefault(); window.__tankKeys.fire = true; }, { passive: false });
+    fireBtn.addEventListener("mouseup", () => { window.__tankKeys.fire = false; });
+    fireBtn.addEventListener("mouseleave", () => { window.__tankKeys.fire = false; });
+    fireBtn.addEventListener("touchend", () => { window.__tankKeys.fire = false; }, { passive: false });
+
+    startBtn.addEventListener("click", startGame);
+    document.addEventListener("keydown", (e) => {
+      if (panel.hidden) return;
+      window.__tankKeys = window.__tankKeys || {};
+      const map = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" };
+      if (map[e.key]) { window.__tankKeys[map[e.key]] = true; e.preventDefault(); }
+      if (e.code === "Space") { window.__tankKeys.fire = true; e.preventDefault(); }
+    });
+    document.addEventListener("keyup", (e) => {
+      window.__tankKeys = window.__tankKeys || {};
+      const map = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" };
+      if (map[e.key]) window.__tankKeys[map[e.key]] = false;
+      if (e.code === "Space") window.__tankKeys.fire = false;
+    });
+
+    reset();
+    draw();
+    registerGame("panel-tanks", {
+      init() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        reset();
+        draw();
+        statusEl.textContent = "시작 버튼을 눌러주세요.";
+      },
+      stop() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+      },
+    });
+  })();
+</script>
+
 <script>
   // ── 게임 목록 ↔ 선택한 게임 화면 전환 ─────────────────
   (function () {
@@ -9379,9 +11557,18 @@
       "panel-mines": "지뢰 찾기",
       "panel-typing": "타자 연습",
       "panel-sequence": "순서 기억하기",
+      "panel-flappy": "플래피 버드",
+      "panel-bubble": "버블 슈터",
+      "panel-suika": "수박 게임",
+      "panel-kkodeul": "꼬들",
+      "panel-piano": "피아노 타일",
+      "panel-sokoban": "소코반",
+      "panel-invaders": "스페이스 인베이더",
+      "panel-solitaire": "솔리테어",
+      "panel-lights": "라이트아웃",
     };
 
-    const LOWER_IS_BETTER = new Set(["panel-memory", "panel-guess", "panel-reaction", "panel-mines"]);
+    const LOWER_IS_BETTER = new Set(["panel-memory", "panel-guess", "panel-reaction", "panel-mines", "panel-kkodeul", "panel-sokoban", "panel-solitaire", "panel-lights"]);
 
     const SCORE_UNITS = {
       "panel-memory": "회",
@@ -9389,6 +11576,10 @@
       "panel-reaction": "ms",
       "panel-mines": "초",
       "panel-typing": " WPM",
+      "panel-kkodeul": "회",
+      "panel-sokoban": "수",
+      "panel-solitaire": "수",
+      "panel-lights": "수",
     };
 
     function formatScore(gameId, value) {
