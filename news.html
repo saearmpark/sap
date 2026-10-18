@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>사피엔스 — 이슈사항</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-9">
+<link rel="stylesheet" href="assets/style.css?v=labels-10">
 </head>
 <body>
 <div class="layout">
@@ -57,11 +57,19 @@
     <h1>이슈사항</h1>
     <p>국내 핫이슈를 10분마다 자동으로 모아 보여줍니다.</p>
 
+    <section class="weather-panel" aria-label="오늘의 날씨">
+      <div class="weather-head">
+        <h2 class="weather-heading">오늘의 날씨</h2>
+        <span id="weather-status" class="weather-status" role="status" aria-live="polite">날씨를 불러오는 중입니다...</span>
+      </div>
+      <div id="weather-grid" class="weather-grid"></div>
+    </section>
+
     <p id="news-status" class="news-status" role="status" aria-live="polite">소식을 불러오는 중입니다...</p>
     <div id="news-list" class="news-list"></div>
   </main>
 </div>
-<script src="assets/auth.js?v=labels-9"></script>
+<script src="assets/auth.js?v=labels-10"></script>
 <script>
   (() => {
     const API = window.SAPAuth?.API_ROOT || "https://board-backend-nngx.onrender.com/api";
@@ -183,6 +191,113 @@
 
     load();
     setInterval(load, 5 * 60 * 1000);
+  })();
+</script>
+<script>
+  (() => {
+    const gridEl = document.getElementById("weather-grid");
+    const statusEl = document.getElementById("weather-status");
+    const CACHE_KEY = "sap-weather-cache";
+    const CITIES = [
+      { name: "서울", lat: 37.5665, lon: 126.9780 },
+      { name: "부산", lat: 35.1796, lon: 129.0756 },
+      { name: "대구", lat: 35.8714, lon: 128.6014 },
+      { name: "인천", lat: 37.4563, lon: 126.7052 },
+      { name: "광주", lat: 35.1595, lon: 126.8526 },
+      { name: "대전", lat: 36.3504, lon: 127.3845 },
+    ];
+
+    const WMO = {
+      0: "맑음", 1: "대체로 맑음", 2: "구름 조금", 3: "흐림",
+      45: "안개", 48: "안개",
+      51: "이슬비", 53: "이슬비", 55: "이슬비",
+      56: "어는 이슬비", 57: "어는 이슬비",
+      61: "비", 63: "비", 65: "강한 비",
+      66: "어는 비", 67: "어는 비",
+      71: "눈", 73: "눈", 75: "많은 눈", 77: "눈",
+      80: "소나기", 81: "소나기", 82: "강한 소나기",
+      85: "눈 소나기", 86: "눈 소나기",
+      95: "천둥번개", 96: "천둥번개", 99: "천둥번개",
+    };
+
+    function wmo(code) {
+      return WMO[code] || "흐림";
+    }
+
+    function readCache() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+        return raw && Array.isArray(raw.items) && raw.items.length ? raw : null;
+      } catch { return null; }
+    }
+
+    function writeCache(items) {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ items, savedAt: Date.now() })); } catch {}
+    }
+
+    function card(item) {
+      const el = document.createElement("article");
+      el.className = "weather-card";
+      const city = document.createElement("div");
+      city.className = "weather-city";
+      city.textContent = item.name;
+      const temp = document.createElement("div");
+      temp.className = "weather-temp";
+      temp.textContent = `${item.temp}°`;
+      const desc = document.createElement("div");
+      desc.className = "weather-desc";
+      desc.textContent = wmo(item.code);
+      const range = document.createElement("div");
+      range.className = "weather-range";
+      range.textContent = `최고 ${item.high}° · 최저 ${item.low}°`;
+      el.append(city, temp, desc, range);
+      return el;
+    }
+
+    function render(items) {
+      gridEl.replaceChildren(...items.map(card));
+    }
+
+    async function load() {
+      const cached = readCache();
+      if (cached) {
+        render(cached.items);
+        statusEl.textContent = "저장된 날씨를 먼저 표시합니다...";
+      } else {
+        statusEl.textContent = "날씨를 불러오는 중입니다...";
+      }
+      try {
+        const lat = CITIES.map(city => city.lat).join(",");
+        const lon = CITIES.map(city => city.lon).join(",");
+        const url = "https://api.open-meteo.com/v1/forecast"
+          + `?latitude=${lat}&longitude=${lon}`
+          + "&current=temperature_2m,weather_code"
+          + "&daily=temperature_2m_max,temperature_2m_min"
+          + "&timezone=Asia%2FSeoul&forecast_days=1";
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const list = Array.isArray(data) ? data : [data];
+        const items = list.map((entry, index) => ({
+          name: CITIES[index]?.name || `지역 ${index + 1}`,
+          temp: Math.round(entry.current.temperature_2m),
+          code: entry.current.weather_code,
+          high: Math.round(entry.daily.temperature_2m_max[0]),
+          low: Math.round(entry.daily.temperature_2m_min[0]),
+        }));
+        render(items);
+        writeCache(items);
+        const stamp = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+        statusEl.textContent = `실시간 · ${stamp} 기준`;
+      } catch (error) {
+        statusEl.textContent = readCache()
+          ? "날씨 서버 연결이 느립니다. 저장된 정보를 표시합니다."
+          : "날씨를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
+      }
+    }
+
+    load();
+    setInterval(load, 10 * 60 * 1000);
   })();
 </script>
 <script src="assets/theme.js"></script>
