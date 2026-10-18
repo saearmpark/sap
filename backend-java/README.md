@@ -92,8 +92,6 @@ mvn spring-boot:run
 | POST | `/api/events` | 일정 추가 (`repeatRule`: `none`/`daily`/`weekly`/`monthly`) |
 | PUT | `/api/events/{id}` | 내 일정 수정 |
 | DELETE | `/api/events/{id}` | 내 일정 삭제 |
-| GET | `/api/game-progress` | 로그인 사용자의 게임 학습 완료 목록 |
-| PUT | `/api/game-progress` | 완료 목록 교체 (`completedLessonIds`) |
 
 게시판·자료실·일정 API에는 `Authorization: Bearer <token>` 헤더가 필요합니다. 회원가입은 아이디(영문 소문자·숫자·밑줄 3~30자), 표시 이름(1~30자), 비밀번호(8자 이상)를 받으며, 가입 직후 승인되어 바로 로그인할 수 있습니다. 발급 토큰은 7일 동안 유효합니다.
 

@@ -18,8 +18,6 @@
   .mypage-list li .mypage-list-main { flex: 1; overflow-wrap: anywhere; }
   .mypage-list li .mypage-list-meta { flex: none; color: var(--ink-soft); font-size: 12px; font-family: var(--mono); }
   .mypage-empty { color: var(--ink-soft); font-size: 14px; margin: 0; }
-  .mypage-progress { height: 10px; border-radius: 999px; background: var(--accent-soft); overflow: hidden; margin: 4px 0 10px; }
-  .mypage-progress span { display: block; height: 100%; background: var(--accent); transition: width .3s ease; }
   .mypage-status { color: var(--ink-soft); font-size: 13px; }
 </style>
 </head>
@@ -65,7 +63,6 @@
     <h1 id="mypage-greeting">나의정보</h1>
 
     <section class="grid mypage-stats" aria-label="내 활동 요약">
-      <div class="card mypage-stat"><div class="mypage-stat-value" id="stat-lessons">-</div><div class="mypage-stat-label">게임 학습 완료</div></div>
       <div class="card mypage-stat"><div class="mypage-stat-value" id="stat-events">-</div><div class="mypage-stat-label">다가오는 일정</div></div>
       <div class="card mypage-stat"><div class="mypage-stat-value" id="stat-posts">-</div><div class="mypage-stat-label">내 게시글</div></div>
       <div class="card mypage-stat"><div class="mypage-stat-value" id="stat-files">-</div><div class="mypage-stat-label">내 자료</div></div>
@@ -73,15 +70,6 @@
     </section>
 
     <p id="mypage-status" class="mypage-status" role="status" aria-live="polite">불러오는 중...</p>
-
-    <section class="card mypage-panel">
-      <div class="mypage-panel-head">
-        <h3>게임 학습 진행도</h3>
-        <a href="game.html">게임제작으로 이동 →</a>
-      </div>
-      <div class="mypage-progress" role="progressbar" aria-label="게임 학습 진행도" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="lesson-progress"><span style="width:0%"></span></div>
-      <p class="mypage-empty" id="lesson-summary">게임 학습 진행도를 불러오는 중입니다.</p>
-    </section>
 
     <section class="grid">
       <div class="card mypage-panel">
@@ -120,14 +108,10 @@
   (() => {
     const API = SAPAuth.API_ROOT;
     const status = document.getElementById("mypage-status");
-    const statLessons = document.getElementById("stat-lessons");
     const statEvents = document.getElementById("stat-events");
     const statPosts = document.getElementById("stat-posts");
     const statFiles = document.getElementById("stat-files");
     const statDrawings = document.getElementById("stat-drawings");
-    const progress = document.getElementById("lesson-progress");
-    const progressBar = progress.querySelector("span");
-    const lessonSummary = document.getElementById("lesson-summary");
     const eventsList = document.getElementById("mypage-events");
     const postsList = document.getElementById("mypage-posts");
     const filesList = document.getElementById("mypage-files");
@@ -215,33 +199,9 @@
       })), { empty: "저장한 그림이 없습니다." });
     }
 
-    async function totalLessons() {
-      try {
-        const response = await fetch("game.html", { cache: "no-store" });
-        if (!response.ok) return 0;
-        const html = await response.text();
-        return (html.match(/data-target="panel-/g) || []).length;
-      } catch {
-        return 0;
-      }
-    }
-
-    function renderLessons(completedIds, total) {
-      const done = completedIds.length;
-      statLessons.textContent = done;
-      const hasTotal = total > 0;
-      const percent = hasTotal ? Math.round((Math.min(done, total) / total) * 100) : 0;
-      progressBar.style.width = `${percent}%`;
-      progress.setAttribute("aria-valuenow", String(percent));
-      lessonSummary.textContent = hasTotal
-        ? `완료 ${done} / ${total} · ${percent}% 진행`
-        : `완료 ${done}개`;
-    }
-
     async function load(user) {
       document.getElementById("mypage-greeting").textContent = `${user.displayName || user.username}님의 페이지`;
       const tasks = [
-        totalLessons().then(total => fetchJson("/game-progress").then(data => renderLessons(data.completedLessonIds || [], total))),
         fetchJson("/events").then(renderEvents),
         fetchJson("/posts").then(posts => renderPosts(posts, user.username)),
         fetchJson("/files").then(files => renderFiles(files, user.username)),

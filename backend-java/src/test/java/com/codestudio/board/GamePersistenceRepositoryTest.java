@@ -15,19 +15,14 @@ class GamePersistenceRepositoryTest {
     @Autowired
     private GameRoomSnapshotRepository rooms;
 
-    @Autowired
-    private GameLessonProgressRepository progress;
-
     @Test
-    void persistsGameStateAndLessonProgress() {
+    void persistsGameState() {
         rooms.save(new GameRoomSnapshot("ABC234", 1L, "Player X", 2L, "Player O",
                 "----X----", "O", null, false, true, false));
-        progress.save(new GameLessonProgress(1L, "panel-ttt"));
 
         GameRoomSnapshot restoredRoom = rooms.findById("ABC234").orElseThrow();
         assertEquals("----X----", restoredRoom.getCells());
         assertEquals("O", restoredRoom.getCurrentMark());
         assertNotNull(restoredRoom.getUpdatedAt());
-        assertEquals("panel-ttt", progress.findAllByUserIdOrderByLessonId(1L).get(0).getLessonId());
     }
 }
