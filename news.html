@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>사피엔스 — 이슈사항</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-11">
+<link rel="stylesheet" href="assets/style.css?v=labels-12">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
 <body>
@@ -71,7 +71,7 @@
     <div id="news-list" class="news-list"></div>
   </main>
 </div>
-<script src="assets/auth.js?v=labels-11"></script>
+<script src="assets/auth.js?v=labels-12"></script>
 <script>
   (() => {
     const API = window.SAPAuth?.API_ROOT || "https://board-backend-nngx.onrender.com/api";
@@ -256,6 +256,18 @@
       range.className = "weather-range";
       range.textContent = `최고 ${item.high}° · 최저 ${item.low}°`;
       el.append(city, temp, desc, range);
+      if (Number.isFinite(item.precip)) {
+        const rain = document.createElement("div");
+        rain.className = "weather-extra";
+        rain.textContent = `강수확률 ${item.precip}%`;
+        el.append(rain);
+      }
+      if (Number.isFinite(item.morning) || Number.isFinite(item.afternoon)) {
+        const half = document.createElement("div");
+        half.className = "weather-extra";
+        half.textContent = `오전 ${fmtTemp(item.morning)} · 오후 ${fmtTemp(item.afternoon)}`;
+        el.append(half);
+      }
       return el;
     }
 
@@ -267,6 +279,23 @@
       return String(text).replace(/[&<>"']/g, (ch) => (
         { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]
       ));
+    }
+
+    function roundValue(value) {
+      return Number.isFinite(value) ? Math.round(value) : null;
+    }
+
+    function fmtTemp(value) {
+      return Number.isFinite(value) ? `${value}°` : "-";
+    }
+
+    function hourValue(entry, hour, key) {
+      const times = entry?.hourly?.time;
+      const values = entry?.hourly?.[key];
+      if (!Array.isArray(times) || !Array.isArray(values)) return null;
+      const suffix = `T${String(hour).padStart(2, "0")}:00`;
+      const idx = times.findIndex((t) => typeof t === "string" && t.endsWith(suffix));
+      return idx >= 0 ? values[idx] : null;
     }
 
     let map = null;
@@ -292,16 +321,24 @@
         const lat = Number.isFinite(item.lat) ? item.lat : city?.lat;
         const lon = Number.isFinite(item.lon) ? item.lon : city?.lon;
         if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+        const rain = Number.isFinite(item.precip)
+          ? `<span class="weather-pin-meta">강수 ${item.precip}%</span>`
+          : "";
         const icon = L.divIcon({
           className: "weather-pin-wrap",
           html: `<span class="weather-pin"><span class="weather-pin-city">${escapeHtml(item.name)}</span>`
-            + `<span class="weather-pin-temp">${item.temp}°</span></span>`,
-          iconSize: [68, 44],
-          iconAnchor: [34, 44],
+            + `<span class="weather-pin-temp">${item.temp}°</span>${rain}</span>`,
+          iconSize: [76, 58],
+          iconAnchor: [38, 58],
         });
+        const detail = [`최고 ${item.high}° · 최저 ${item.low}°`];
+        if (Number.isFinite(item.precip)) detail.push(`강수확률 ${item.precip}%`);
+        if (Number.isFinite(item.morning) || Number.isFinite(item.afternoon)) {
+          detail.push(`오전 ${fmtTemp(item.morning)} · 오후 ${fmtTemp(item.afternoon)}`);
+        }
         L.marker([lat, lon], { icon }).addTo(markerLayer).bindPopup(
-          `<b>${escapeHtml(item.name)}</b><br>${escapeHtml(wmo(item.code))} · ${item.temp}°`
-          + `<br>최고 ${item.high}° · 최저 ${item.low}°`
+          `<b>${escapeHtml(item.name)}</b><br>${escapeHtml(wmo(item.code))} · ${item.temp}°<br>`
+          + detail.join("<br>")
         );
       });
       return true;
@@ -330,7 +367,8 @@
         const url = "https://api.open-meteo.com/v1/forecast"
           + `?latitude=${lat}&longitude=${lon}`
           + "&current=temperature_2m,weather_code"
-          + "&daily=temperature_2m_max,temperature_2m_min"
+          + "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max"
+          + "&hourly=temperature_2m,precipitation_probability"
           + "&timezone=Asia%2FSeoul&forecast_days=1";
         const response = await fetch(url, { cache: "no-store" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -344,6 +382,9 @@
           code: entry.current.weather_code,
           high: Math.round(entry.daily.temperature_2m_max[0]),
           low: Math.round(entry.daily.temperature_2m_min[0]),
+          precip: roundValue(entry.daily?.precipitation_probability_max?.[0]),
+          morning: roundValue(hourValue(entry, 9, "temperature_2m")),
+          afternoon: roundValue(hourValue(entry, 15, "temperature_2m")),
         }));
         show(items);
         writeCache(items);

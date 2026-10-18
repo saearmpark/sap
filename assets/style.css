@@ -726,6 +726,13 @@ code {
   color: var(--ink-soft);
 }
 
+.weather-extra {
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
 .weather-map {
   height: 420px;
   border: 1px solid var(--border);
@@ -764,6 +771,12 @@ code {
   font-family: var(--mono);
   font-size: 14px;
   font-weight: 700;
+}
+
+.weather-pin-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-soft);
 }
 
 .leaflet-container {
