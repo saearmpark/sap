@@ -15,9 +15,7 @@ Java, Python, HTML/CSS를 연습하는 개인 학습 사이트입니다.
 │   ├── src/main/            # Spring Boot API 소스와 설정
 │   ├── src/test/            # Java API 테스트
 │   └── scripts/             # PostgreSQL 백업·복구와 예약 작업
-├── backend-python/         # Flask 대안 API와 의존성
-├── games/python/           # pygame-ce 실습 게임과 실행 안내
-└── data/                   # 기존 로컬 H2 데이터 파일
+└── tools/desktop/          # PyInstaller로 빌드하는 데스크톱 학습 도구
 ```
 
 정적 페이지는 GitHub Pages에서 저장소 루트 기준으로 제공하므로 HTML 파일은 루트에 둡니다. 사이트 화면은 `assets/`의 공통 스타일·인증·테마 스크립트를 공유합니다. 회원가입하면 바로 로그인할 수 있으며, 게시판·자료실·실시간 대화는 로그인해야 이용할 수 있습니다. 일정도 로그인한 계정별로 저장됩니다. 실시간 대화는 공용방·1:1 메시지와 사용자 접속 상태를 제공하고 대화는 2일간 보관합니다. 관련 API는 Java 백엔드에 있습니다.
@@ -30,7 +28,7 @@ Java, Python, HTML/CSS를 연습하는 개인 학습 사이트입니다.
 
 ### 웹 화면
 
-저장소 루트에서 VS Code Live Server로 `index.html`을 엽니다. 게시판과 자료실 API를 사용하려면 아래 Java 또는 Python 서버도 실행해야 합니다.
+저장소 루트에서 VS Code Live Server로 `index.html`을 엽니다. 게시판과 자료실 API를 사용하려면 아래 Java 서버도 실행해야 합니다.
 
 ### Java API
 
@@ -43,26 +41,6 @@ mvn spring-boot:run
 
 기본 주소는 `http://127.0.0.1:8080`이며, 로컬 기본 데이터베이스는 `backend-java/data/` 아래의 H2 파일입니다. 자세한 API와 저장 방식은 [`backend-java/README.md`](backend-java/README.md)를 참고하세요.
 
-### Python 게임
-
-```bash
-cd games/python
-pip install -r requirements.txt
-python tictactoe_pygame.py
-```
-
-게임별 실행 방법은 [`games/python/README.md`](games/python/README.md)에 있습니다.
-
-### Flask API (대안·학습용)
-
-```bash
-cd backend-python
-pip install -r requirements.txt
-python app.py
-```
-
-기본 주소는 `http://127.0.0.1:5000`입니다. 상세 안내는 [`backend-python/README.md`](backend-python/README.md)를 참고하세요.
-
 ## 배포 및 데이터 참고
 
 - GitHub Pages는 루트 HTML과 `assets/`의 정적 파일을 제공합니다.
@@ -72,5 +50,4 @@ python app.py
 - Java 백엔드 테스트는 GitHub Actions에서 자동 실행됩니다. Windows에서 주간 DB 백업 예약을 설정하는 방법은 백엔드 README를 참고하세요.
 - 계정 비밀번호는 BCrypt로 해시해 저장하고, 7일 유효 인증 토큰은 DB에 해시 형태로 저장합니다. 계정과 일정은 JPA 데이터베이스에 저장됩니다.
 - 첫 관리자 계정은 Render 환경변수 `SAP_ADMIN_USERNAME`, `SAP_ADMIN_PASSWORD`로 설정합니다. 승인 페이지는 관리자로 로그인하면 메뉴에 표시됩니다.
-- Flask 대안은 SQLite DB와 업로드 파일을 `backend-python/` 아래에 저장합니다. Render의 임시 파일 시스템에서 실행하면 재시작 후 데이터가 유지되지 않을 수 있습니다.
 - `target/`, `uploads/`, Python 캐시와 로컬 DB 파일은 생성되거나 개발 환경에 종속되므로 Git 추적에서 제외합니다.
