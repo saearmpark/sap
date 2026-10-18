@@ -10,4 +10,6 @@ public interface GameScoreRepository extends JpaRepository<GameScore, Long> {
     Optional<GameScore> findByGameIdAndUserId(String gameId, Long userId);
 
     List<GameScore> findTop10ByGameIdOrderByScoreDescUpdatedAtAsc(String gameId);
+
+    List<GameScore> findTop10ByGameIdOrderByScoreAscUpdatedAtAsc(String gameId);
 }

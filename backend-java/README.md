@@ -79,12 +79,12 @@ mvn spring-boot:run
 
 ### 게임 점수 랭킹
 
-점수 게임의 최고 점수를 로그인 계정별로 저장하고 게임마다 상위 10명을 제공합니다. 점수는 갱신될 때마다 최고 기록만 유지됩니다.
+점수 게임의 최고 기록을 로그인 계정별로 저장하고 게임마다 상위 10명을 제공합니다. 기록은 갱신될 때마다 더 좋은 값만 유지되며, `order=asc`인 게임(반응 속도·지뢰 찾기 등)은 낮을수록 좋은 기록으로 다룹니다.
 
 | 메서드 | 경로 | 설명 |
 |---|---|---|
-| GET | `/api/game-scores?gameId={id}` | 게임 점수 상위 10명과 내 최고 점수 |
-| POST | `/api/game-scores` | 점수 제출 (`gameId`, `score` JSON, 최고 점수만 갱신) |
+| GET | `/api/game-scores?gameId={id}&order=asc` | 게임 기록 상위 10명과 내 최고 기록 (`order=asc`면 낮은 값이 상위) |
+| POST | `/api/game-scores` | 기록 제출 (`gameId`, `score` JSON, `order`가 `asc`면 낮은 값만 갱신) |
 
 ### 계정과 일정
 

@@ -29,14 +29,20 @@ public class GameScoreController {
     }
 
     @GetMapping
-    public ResponseEntity<?> get(@RequestParam String gameId, Authentication authentication) {
+    public ResponseEntity<?> get(@RequestParam String gameId,
+                                 @RequestParam(required = false) String order,
+                                 Authentication authentication) {
         String id = normalizeGameId(gameId);
         if (id == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "게임 식별자가 올바르지 않습니다."));
         }
 
         long userId = (Long) authentication.getPrincipal();
-        List<Map<String, Object>> top = scores.findTop10ByGameIdOrderByScoreDescUpdatedAtAsc(id).stream()
+        boolean ascending = isAscending(order);
+        List<GameScore> ranking = ascending
+                ? scores.findTop10ByGameIdOrderByScoreAscUpdatedAtAsc(id)
+                : scores.findTop10ByGameIdOrderByScoreDescUpdatedAtAsc(id);
+        List<Map<String, Object>> top = ranking.stream()
                 .map(entry -> {
                     Map<String, Object> row = new LinkedHashMap<>();
                     row.put("playerName", entry.getPlayerName());
@@ -62,6 +68,7 @@ public class GameScoreController {
             return ResponseEntity.badRequest().body(Map.of("error", "점수가 올바르지 않습니다."));
         }
 
+        boolean ascending = isAscending(String.valueOf(body.getOrDefault("order", "")));
         long userId = (Long) authentication.getPrincipal();
         String playerName = users.findById(userId)
                 .map(UserAccount::getDisplayName)
@@ -72,7 +79,7 @@ public class GameScoreController {
         if (record == null) {
             record = new GameScore(id, userId, playerName, score);
             improved = true;
-        } else if (score > record.getScore()) {
+        } else if (ascending ? score < record.getScore() : score > record.getScore()) {
             record.setScore(score);
             record.setPlayerName(playerName);
             improved = true;
@@ -82,6 +89,10 @@ public class GameScoreController {
         GameScore saved = scores.save(record);
 
         return ResponseEntity.ok(Map.of("bestScore", saved.getScore(), "improved", improved));
+    }
+
+    private boolean isAscending(String order) {
+        return "asc".equalsIgnoreCase(order == null ? "" : order.trim());
     }
 
     private String normalizeGameId(String value) {

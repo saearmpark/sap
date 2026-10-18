@@ -33,4 +33,17 @@ class GameScoreRepositoryTest {
         assertEquals("PlayerThree", ranking.get(1).getPlayerName());
         assertEquals("PlayerOne", ranking.get(2).getPlayerName());
     }
+
+    @Test
+    void ranksScoresAscendingWhenLowerIsBetter() {
+        scores.save(new GameScore("panel-reaction", 1L, "PlayerOne", 320));
+        scores.save(new GameScore("panel-reaction", 2L, "PlayerTwo", 180));
+        scores.save(new GameScore("panel-reaction", 3L, "PlayerThree", 260));
+
+        var ranking = scores.findTop10ByGameIdOrderByScoreAscUpdatedAtAsc("panel-reaction");
+        assertEquals(3, ranking.size());
+        assertEquals("PlayerTwo", ranking.get(0).getPlayerName());
+        assertEquals("PlayerThree", ranking.get(1).getPlayerName());
+        assertEquals("PlayerOne", ranking.get(2).getPlayerName());
+    }
 }
