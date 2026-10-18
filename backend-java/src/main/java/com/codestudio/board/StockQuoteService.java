@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -103,6 +105,12 @@ public class StockQuoteService {
         cache = fresh;
         cachedAt = System.currentTimeMillis();
         return fresh;
+    }
+
+    // 콜드 스타트 직후 첫 요청이 느리지 않도록, 서버가 뜨자마자 백그라운드에서 시세를 미리 채워 둡니다.
+    @EventListener(ApplicationReadyEvent.class)
+    public void warmOnStartup() {
+        CompletableFuture.runAsync(this::quotes);
     }
 
     private CompletableFuture<Void> task(Runnable runnable) {

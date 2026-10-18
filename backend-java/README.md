@@ -96,7 +96,7 @@ mvn spring-boot:run
 
 ### 주식정보(시세)
 
-`StockQuoteService`가 네이버(국내 주식·환율), CNBC(미국 주식·지수·금 ETF·유가), 업비트(비트코인) 시세를 받아 10초간 캐시해 제공합니다. 종목은 삼성전자(005930), SK하이닉스(000660), KODEX 200(069500), 나스닥(.IXIC), S&P 500(.SPX), 엔비디아(NVDA), 알파벳 A(GOOGL), 애플(AAPL), 금 ETF(GLD), WTI 유가(@CL.1), 비트코인(KRW-BTC), 원/달러 환율(FX_USDKRW)입니다.
+`StockQuoteService`가 네이버(국내 주식·환율), CNBC(미국 주식·지수·금 ETF·유가), 업비트(비트코인) 시세를 받아 10초간 캐시해 제공합니다. 종목은 삼성전자(005930), SK하이닉스(000660), KODEX 200(069500), 나스닥(.IXIC), S&P 500(.SPX), 엔비디아(NVDA), 알파벳 A(GOOGL), 애플(AAPL), 금 ETF(GLD), WTI 유가(@CL.1), 비트코인(KRW-BTC), 원/달러 환율(FX_USDKRW)입니다. 서버가 시작되면(`ApplicationReadyEvent`) 백그라운드에서 시세를 미리 받아 두어, 무료 플랜의 콜드 스타트 직후에도 첫 조회가 빠릅니다.
 
 | 메서드 | 경로 | 설명 |
 |---|---|---|

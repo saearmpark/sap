@@ -68,7 +68,19 @@
     const listEl = document.getElementById("stocks-list");
     const statusEl = document.getElementById("stocks-status");
     const GROUPS = ["국내", "미국", "기타"];
+    const CACHE_KEY = "sap-stocks-cache";
     let lastSignature = "";
+
+    function readCache() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+        return Array.isArray(raw) && raw.length ? raw : null;
+      } catch { return null; }
+    }
+
+    function writeCache(quotes) {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(quotes)); } catch {}
+    }
 
     function relTime(iso) {
       if (!iso) return "";
@@ -162,9 +174,19 @@
           lastSignature = signature;
           render(quotes);
         }
+        writeCache(quotes);
       } catch (error) {
-        statusEl.textContent = "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
+        statusEl.textContent = readCache()
+          ? "서버 연결이 느립니다. 저장된 시세를 표시합니다."
+          : "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
       }
+    }
+
+    const cachedQuotes = readCache();
+    if (cachedQuotes) {
+      lastSignature = JSON.stringify(cachedQuotes);
+      render(cachedQuotes);
+      statusEl.textContent = "저장된 시세를 먼저 표시합니다...";
     }
 
     load();

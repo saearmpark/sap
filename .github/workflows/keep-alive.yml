@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Ping backend
         run: |
-          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 --retry 2 --retry-delay 5 \
-            https://board-backend-nngx.onrender.com/api/auth/me)
-          echo "Backend responded with HTTP $code"
+          for path in /api/news /api/stocks /api/auth/me; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 --retry 2 --retry-delay 5 \
+              "https://board-backend-nngx.onrender.com$path")
+            echo "$path responded with HTTP $code"
+          done
