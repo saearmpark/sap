@@ -18,3 +18,12 @@ tools/desktop/*.spec
 *.mv.db
 *.lock.db
 backend-java/backups/
+
+# 실행 중 생성되는 로컬 H2 DB 폴더
+/data/
+backend-java/data/
+
+# IDE/도구가 만드는 로컬 설정과 잔여물
+/backend-java/.vscode/
+.github/modernize/
+backend-java/.github/modernize/
