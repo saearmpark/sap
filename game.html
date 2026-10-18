@@ -16,6 +16,9 @@
     max-width: 420px;
     margin-bottom: 14px;
   }
+  .game-list-heading { margin: 18px 0 4px; font-family: var(--sans); font-size: 17px; color: var(--ink); }
+  .game-list-heading:first-child { margin-top: 0; }
+  .game-list-note { margin: 0 0 8px; color: var(--ink-soft); font-size: 13px; }
   .game-list-row { display:flex; align-items:stretch; border-bottom:1px solid var(--border); background:var(--surface); }
   .game-list-row:last-child { border-bottom:0; }
   .game-list-item {
@@ -412,46 +415,60 @@
     <div class="eyebrow">GAME DEV</div>
     <h1>게임 개발</h1>
 
-    <div id="game-menu" class="game-list">
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-ttt">틱택토</button><button class="game-code-button" type="button" data-game-code-view="panel-ttt">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bo">벽돌깨기</button><button class="game-code-button" type="button" data-game-code-view="panel-bo">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sh">슈팅게임</button><button class="game-code-button" type="button" data-game-code-view="panel-sh">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pz">슬라이딩 퍼즐</button><button class="game-code-button" type="button" data-game-code-view="panel-pz">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sn">스네이크</button><button class="game-code-button" type="button" data-game-code-view="panel-sn">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-tt">테트리스</button><button class="game-code-button" type="button" data-game-code-view="panel-tt">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-2048">2048</button><button class="game-code-button" type="button" data-game-code-view="panel-2048">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-mole">두더지 잡기</button><button class="game-code-button" type="button" data-game-code-view="panel-mole">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pong">퐁 / 탁구</button><button class="game-code-button" type="button" data-game-code-view="panel-pong">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gyeol">결합 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-gyeol">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dodge">똥피하기</button><button class="game-code-button" type="button" data-game-code-view="panel-dodge">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sudoku">스도쿠</button><button class="game-code-button" type="button" data-game-code-view="panel-sudoku">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-memory">카드 짝맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-memory">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-rps">가위바위보</button><button class="game-code-button" type="button" data-game-code-view="panel-rps">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-guess">숫자 맞히기</button><button class="game-code-button" type="button" data-game-code-view="panel-guess">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-reaction">반응 속도 테스트</button><button class="game-code-button" type="button" data-game-code-view="panel-reaction">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-connect">4목 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-connect">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-mines">지뢰 찾기</button><button class="game-code-button" type="button" data-game-code-view="panel-mines">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-math">암산 챌린지</button><button class="game-code-button" type="button" data-game-code-view="panel-math">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gomoku">오목</button><button class="game-code-button" type="button" data-game-code-view="panel-gomoku">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-animal-shogi">동물장기</button><button class="game-code-button" type="button" data-game-code-view="panel-animal-shogi">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-runner">점프 달리기</button><button class="game-code-button" type="button" data-game-code-view="panel-runner">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-word-chain">끝말잇기</button><button class="game-code-button" type="button" data-game-code-view="panel-word-chain">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-blackjack">블랙잭</button><button class="game-code-button" type="button" data-game-code-view="panel-blackjack">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-holdem">텍사스 홀덤</button><button class="game-code-button" type="button" data-game-code-view="panel-holdem">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dots-boxes">점과 상자</button><button class="game-code-button" type="button" data-game-code-view="panel-dots-boxes">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dodge-rocks">운석 피하기</button><button class="game-code-button" type="button" data-game-code-view="panel-dodge-rocks">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-typing">타자 연습</button><button class="game-code-button" type="button" data-game-code-view="panel-typing">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-baseball">숫자 야구</button><button class="game-code-button" type="button" data-game-code-view="panel-baseball">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sequence">순서 기억하기</button><button class="game-code-button" type="button" data-game-code-view="panel-sequence">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-othello">오셀로 (리버시)</button><button class="game-code-button" type="button" data-game-code-view="panel-othello">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-checkers">체커</button><button class="game-code-button" type="button" data-game-code-view="panel-checkers">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-chess">체스</button><button class="game-code-button" type="button" data-game-code-view="panel-chess">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-janggi">장기</button><button class="game-code-button" type="button" data-game-code-view="panel-janggi">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-yut">윷놀이</button><button class="game-code-button" type="button" data-game-code-view="panel-yut">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pac">팩맨 (미로 탈출)</button><button class="game-code-button" type="button" data-game-code-view="panel-pac">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-frog">개구리 건너기</button><button class="game-code-button" type="button" data-game-code-view="panel-frog">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bomber">봄버맨</button><button class="game-code-button" type="button" data-game-code-view="panel-bomber">코드 보기</button></div>
-      <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-match3">보석 맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-match3">코드 보기</button></div>
+    <div id="game-menu">
+      <h2 class="game-list-heading">기록 게임</h2>
+      <p class="game-list-note">점수나 생존 기록을 겨루는 게임입니다.</p>
+      <div class="game-list">
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bo">벽돌깨기</button><button class="game-code-button" type="button" data-game-code-view="panel-bo">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sh">슈팅게임</button><button class="game-code-button" type="button" data-game-code-view="panel-sh">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sn">스네이크</button><button class="game-code-button" type="button" data-game-code-view="panel-sn">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-tt">테트리스</button><button class="game-code-button" type="button" data-game-code-view="panel-tt">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-2048">2048</button><button class="game-code-button" type="button" data-game-code-view="panel-2048">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-mole">두더지 잡기</button><button class="game-code-button" type="button" data-game-code-view="panel-mole">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dodge">똥피하기</button><button class="game-code-button" type="button" data-game-code-view="panel-dodge">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-math">암산 챌린지</button><button class="game-code-button" type="button" data-game-code-view="panel-math">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-runner">점프 달리기</button><button class="game-code-button" type="button" data-game-code-view="panel-runner">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dodge-rocks">운석 피하기</button><button class="game-code-button" type="button" data-game-code-view="panel-dodge-rocks">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pac">팩맨 (미로 탈출)</button><button class="game-code-button" type="button" data-game-code-view="panel-pac">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-frog">개구리 건너기</button><button class="game-code-button" type="button" data-game-code-view="panel-frog">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bomber">봄버맨</button><button class="game-code-button" type="button" data-game-code-view="panel-bomber">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-match3">보석 맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-match3">코드 보기</button></div>
+      </div>
+
+      <h2 class="game-list-heading">대전 게임</h2>
+      <p class="game-list-note">컴퓨터나 다른 사람과 승부를 겨루는 게임입니다.</p>
+      <div class="game-list">
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-ttt">틱택토</button><button class="game-code-button" type="button" data-game-code-view="panel-ttt">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pong">퐁 / 탁구</button><button class="game-code-button" type="button" data-game-code-view="panel-pong">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-rps">가위바위보</button><button class="game-code-button" type="button" data-game-code-view="panel-rps">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-connect">4목 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-connect">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gomoku">오목</button><button class="game-code-button" type="button" data-game-code-view="panel-gomoku">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-animal-shogi">동물장기</button><button class="game-code-button" type="button" data-game-code-view="panel-animal-shogi">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-word-chain">끝말잇기</button><button class="game-code-button" type="button" data-game-code-view="panel-word-chain">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-blackjack">블랙잭</button><button class="game-code-button" type="button" data-game-code-view="panel-blackjack">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-holdem">텍사스 홀덤</button><button class="game-code-button" type="button" data-game-code-view="panel-holdem">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dots-boxes">점과 상자</button><button class="game-code-button" type="button" data-game-code-view="panel-dots-boxes">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-baseball">숫자 야구</button><button class="game-code-button" type="button" data-game-code-view="panel-baseball">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-othello">오셀로 (리버시)</button><button class="game-code-button" type="button" data-game-code-view="panel-othello">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-checkers">체커</button><button class="game-code-button" type="button" data-game-code-view="panel-checkers">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-chess">체스</button><button class="game-code-button" type="button" data-game-code-view="panel-chess">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-janggi">장기</button><button class="game-code-button" type="button" data-game-code-view="panel-janggi">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-yut">윷놀이</button><button class="game-code-button" type="button" data-game-code-view="panel-yut">코드 보기</button></div>
+      </div>
+
+      <h2 class="game-list-heading">기타 (퍼즐·연습)</h2>
+      <p class="game-list-note">퍼즐과 연습 게임입니다.</p>
+      <div class="game-list">
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pz">슬라이딩 퍼즐</button><button class="game-code-button" type="button" data-game-code-view="panel-pz">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gyeol">결합 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-gyeol">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sudoku">스도쿠</button><button class="game-code-button" type="button" data-game-code-view="panel-sudoku">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-memory">카드 짝맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-memory">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-guess">숫자 맞히기</button><button class="game-code-button" type="button" data-game-code-view="panel-guess">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-reaction">반응 속도 테스트</button><button class="game-code-button" type="button" data-game-code-view="panel-reaction">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-mines">지뢰 찾기</button><button class="game-code-button" type="button" data-game-code-view="panel-mines">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-typing">타자 연습</button><button class="game-code-button" type="button" data-game-code-view="panel-typing">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sequence">순서 기억하기</button><button class="game-code-button" type="button" data-game-code-view="panel-sequence">코드 보기</button></div>
+      </div>
     </div>
 
     <div id="panel-ttt" class="card game-panel" hidden>
