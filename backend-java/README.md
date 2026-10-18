@@ -86,6 +86,14 @@ mvn spring-boot:run
 | GET | `/api/game-scores?gameId={id}&order=asc` | 게임 기록 상위 10명과 내 최고 기록 (`order=asc`면 낮은 값이 상위) |
 | POST | `/api/game-scores` | 기록 제출 (`gameId`, `score` JSON, `order`가 `asc`면 낮은 값만 갱신) |
 
+### 소식(자동 포스팅)
+
+`NewsCollector`가 무료 RSS(Google 뉴스 국내/해외, Google 트렌드)를 한 시간마다 수집해 `news_items`에 저장합니다. 같은 링크는 중복 저장하지 않고, 24시간이 지난 항목은 다음 수집 때 삭제되어 항상 최신 소식만 남습니다.
+
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| GET | `/api/news` | 최신 소식 목록(제목, 링크, 출처, 분류, 요약, 시각). 로그인 없이 조회 가능 |
+
 ### 계정과 일정
 
 | 메서드 | 경로 | 설명 |
