@@ -41,6 +41,7 @@ class StockQuoteServiceTest {
         assertEquals(-10500.0, row.get("change"));
         assertEquals(-4.87, row.get("changePercent"));
         assertEquals("pre", row.get("session"));
+        assertEquals("open", row.get("marketState"));
     }
 
     @Test
@@ -71,5 +72,6 @@ class StockQuoteServiceTest {
         assertEquals(-6000.0, row.get("change"));
         assertEquals(-2.95, row.get("changePercent"));
         assertEquals("regular", row.get("session"));
+        assertEquals("open", row.get("marketState"));
     }
 }

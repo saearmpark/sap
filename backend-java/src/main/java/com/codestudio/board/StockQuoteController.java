@@ -22,6 +22,7 @@ public class StockQuoteController {
         StockQuoteService.Board board = service.quotes();
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("updatedAt", board.updatedAt().toString());
+        body.put("partial", board.partial());
         body.put("quotes", board.quotes());
         return body;
     }

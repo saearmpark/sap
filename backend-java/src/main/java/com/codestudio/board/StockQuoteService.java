@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // 네이버·CNBC·업비트 시세 API에서 국내·미국 대표 종목, 환율, 코인, 원자재 시세를 받아 10초간 캐시해 제공합니다.
 // 야후 파이낸스는 일부 클라우드 IP를 차단해 국내(네이버)·미국(CNBC)·코인(업비트)으로 나눠 조회합니다.
@@ -70,7 +71,7 @@ public class StockQuoteService {
         INFO.put("CL.F", new Info("WTI 유가", "WTI", "기타", "USD"));
     }
 
-    public record Board(List<Map<String, Object>> quotes, Instant updatedAt) {
+    public record Board(List<Map<String, Object>> quotes, Instant updatedAt, boolean partial) {
     }
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -88,15 +89,17 @@ public class StockQuoteService {
             return current;
         }
         Map<String, Map<String, Object>> collected = new LinkedHashMap<>();
+        AtomicBoolean partial = new AtomicBoolean(false);
         List<CompletableFuture<Void>> tasks = List.of(
-                task(() -> collectKr(collected)),
-                task(() -> collectCnbc(collected)),
-                task(() -> collectUpbit(collected)),
-                task(() -> collectFx(collected)));
+                task(() -> collectKr(collected), partial),
+                task(() -> collectCnbc(collected), partial),
+                task(() -> collectUpbit(collected), partial),
+                task(() -> collectFx(collected), partial));
         for (CompletableFuture<Void> task : tasks) {
             try {
                 task.join();
             } catch (Exception error) {
+                partial.set(true);
                 log.warn("Quote task failed: {}", error.getMessage());
             }
         }
@@ -109,9 +112,9 @@ public class StockQuoteService {
             }
         }
         if (rows.isEmpty()) {
-            return current != null ? current : new Board(List.of(), Instant.now());
+            return current != null ? current : new Board(List.of(), Instant.now(), partial.get());
         }
-        Board fresh = new Board(rows, Instant.now());
+        Board fresh = new Board(rows, Instant.now(), partial.get());
         cache = fresh;
         cachedAt = System.currentTimeMillis();
         return fresh;
@@ -123,8 +126,15 @@ public class StockQuoteService {
         CompletableFuture.runAsync(this::quotes);
     }
 
-    private CompletableFuture<Void> task(Runnable runnable) {
-        return CompletableFuture.runAsync(runnable);
+    private CompletableFuture<Void> task(Runnable runnable, AtomicBoolean partial) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                runnable.run();
+            } catch (Exception error) {
+                partial.set(true);
+                log.warn("Quote task failed: {}", error.getMessage());
+            }
+        });
     }
 
     private void collectKr(Map<String, Map<String, Object>> collected) {
@@ -149,7 +159,7 @@ public class StockQuoteService {
                 double overChange = num(over.path("compareToPreviousClosePrice").asText(""));
                 double overPercent = num(over.path("fluctuationsRatio").asText(""));
                 collected.put(code, row(info, overPrice, overChange, overPercent,
-                        sessionOf(over.path("tradingSessionType").asText(""))));
+                        sessionOf(over.path("tradingSessionType").asText("")), "open"));
                 continue;
             }
             double price = num(data.path("closePrice").asText(""));
@@ -163,7 +173,7 @@ public class StockQuoteService {
                 change = 0;
                 percent = 0;
             }
-            collected.put(code, row(info, price, change, percent, "regular"));
+            collected.put(code, row(info, price, change, percent, "regular", regularOpen ? "open" : "closed"));
         }
     }
 
@@ -191,13 +201,13 @@ public class StockQuoteService {
                 double extChange = num(extended.path("change").asText(""));
                 double extPercent = num(extended.path("change_pct").asText(""));
                 collected.put(id, row(info, extPrice, extChange, extPercent,
-                        sessionOf(extended.path("type").asText(market))));
+                        sessionOf(extended.path("type").asText(market)), "open"));
                 continue;
             }
             double price = num(quote.path("last").asText(""));
             double change = num(quote.path("change").asText(""));
             double percent = num(quote.path("change_pct").asText(""));
-            collected.put(id, row(info, price, change, percent, "regular"));
+            collected.put(id, row(info, price, change, percent, "regular", marketStateOf(market)));
         }
     }
 
@@ -215,7 +225,7 @@ public class StockQuoteService {
             double price = coin.path("trade_price").asDouble();
             double change = coin.path("signed_change_price").asDouble();
             double percent = coin.path("signed_change_rate").asDouble() * 100;
-            collected.put(info.code(), row(info, price, change, percent, "regular"));
+            collected.put(info.code(), row(info, price, change, percent, "regular", "open"));
         }
     }
 
@@ -241,7 +251,7 @@ public class StockQuoteService {
                 change = 0;
                 percent = 0;
             }
-            collected.put(fxCode, row(info, price, change, percent, "regular"));
+            collected.put(fxCode, row(info, price, change, percent, "regular", "open"));
         }
     }
 
@@ -259,12 +269,12 @@ public class StockQuoteService {
             }
             return mapper.readTree(response.body());
         } catch (Exception error) {
-            log.warn("Could not load quotes from {}: {}", url, error.getMessage());
-            return mapper.createObjectNode();
+            throw new IllegalStateException("Could not load quotes from " + url + ": " + error.getMessage(), error);
         }
     }
 
-    private static Map<String, Object> row(Info info, double price, double change, double percent, String session) {
+    private static Map<String, Object> row(Info info, double price, double change, double percent,
+            String session, String marketState) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("symbol", info.code());
         row.put("name", info.name());
@@ -274,7 +284,12 @@ public class StockQuoteService {
         row.put("changePercent", round(percent));
         row.put("currency", info.unit());
         row.put("session", session);
+        row.put("marketState", marketState);
         return row;
+    }
+
+    private static String marketStateOf(String curmktstatus) {
+        return "CLOSED".equals(curmktstatus) || "CLOSE".equals(curmktstatus) ? "closed" : "open";
     }
 
     private static String sessionOf(String tradingSessionType) {

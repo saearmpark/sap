@@ -140,6 +140,12 @@
         badge.className = "stock-session";
         badge.textContent = quote.session === "pre" ? "장전" : "시간외";
         names.append(badge);
+      } else if (quote.marketState === "closed") {
+        const badge = document.createElement("span");
+        badge.className = "stock-session";
+        badge.textContent = "장 마감";
+        badge.title = "마지막 거래일 종가 기준";
+        names.append(badge);
       }
 
       const numbers = document.createElement("div");
@@ -193,7 +199,7 @@
           statusEl.textContent = "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
           return;
         }
-        statusEl.textContent = `시세 ${quotes.length}건 · ${relTime(data.updatedAt)} 갱신`;
+        statusEl.textContent = `시세 ${quotes.length}건 · ${relTime(data.updatedAt)} 갱신${data.partial ? " · 일부 시세 지연" : ""}`;
         const signature = JSON.stringify(quotes);
         if (signature !== lastSignature) {
           lastSignature = signature;

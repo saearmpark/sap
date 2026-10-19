@@ -100,6 +100,7 @@
     const GROUPS = [
       { key: "game", label: "게임제작" },
       { key: "learn", label: "앱제작" },
+      { key: "news", label: "소식" },
       { key: "board", label: "게시판" },
       { key: "file", label: "자료실" }
     ];
@@ -131,6 +132,19 @@
             });
           });
         } catch {}
+
+        staticIndex.push({
+          key: "news",
+          title: "이슈사항",
+          text: "경제·스포츠·연예를 제외한 국내 정치·사회 주요 소식",
+          href: "news.html"
+        });
+        staticIndex.push({
+          key: "news",
+          title: "투자정보",
+          text: "국내외 주식 시세 · 코스피 나스닥 엔비디아 애플 · 비트코인 코인 · 원달러 환율 · 금리 · 금 ETF · WTI 유가",
+          href: "stocks.html"
+        });
 
         try {
           const learn = await parsePage("learn.html");
