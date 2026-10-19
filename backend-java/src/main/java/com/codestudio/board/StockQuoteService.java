@@ -119,7 +119,10 @@ public class StockQuoteService {
     }
 
     private void collectKr(Map<String, Map<String, Object>> collected) {
-        JsonNode root = get(NAVER_KR_URL);
+        collectKrFrom(get(NAVER_KR_URL), collected);
+    }
+
+    static void collectKrFrom(JsonNode root, Map<String, Map<String, Object>> collected) {
         JsonNode datas = root.path("datas");
         if (!datas.isArray()) {
             return;
