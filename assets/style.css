@@ -672,6 +672,17 @@ code {
   color: #1a73e8;
 }
 
+.investment-news {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.investment-news-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
 /* --- 날씨(weather) --- */
 .weather-panel {
   margin: 0 0 24px;

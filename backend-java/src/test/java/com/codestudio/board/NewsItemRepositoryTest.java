@@ -37,4 +37,25 @@ class NewsItemRepositoryTest {
         assertEquals(5, news.deleteByIdLessThan(cutoff));
         assertEquals(20, news.count());
     }
+
+    @Test
+    void filtersByCategoryAndTrimsEachCategorySeparately() {
+        Instant now = Instant.now();
+        for (int i = 0; i < 25; i++) {
+            news.save(new NewsItem("국내 " + i, "https://example.com/domestic/" + i, "dom-" + i, "테스트", "국내", "요약",
+                    "", now, now));
+        }
+        for (int i = 0; i < 3; i++) {
+            news.save(new NewsItem("경제 " + i, "https://example.com/economy/" + i, "eco-" + i, "테스트", "경제", "요약",
+                    "", now, now));
+        }
+
+        assertEquals(3, news.findTop20ByCategoryOrderByIdDesc("경제").size());
+        List<NewsItem> domestic = news.findTop20ByCategoryOrderByIdDesc("국내");
+        assertEquals(20, domestic.size());
+        long cutoff = domestic.get(domestic.size() - 1).getId();
+        assertEquals(5, news.deleteByCategoryAndIdLessThan("국내", cutoff));
+        assertEquals(20, news.findTop20ByCategoryOrderByIdDesc("국내").size());
+        assertEquals(3, news.findTop20ByCategoryOrderByIdDesc("경제").size());
+    }
 }

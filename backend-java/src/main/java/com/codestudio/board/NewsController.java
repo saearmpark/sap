@@ -2,6 +2,7 @@ package com.codestudio.board;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
@@ -19,8 +20,11 @@ public class NewsController {
     }
 
     @GetMapping
-    public List<Map<String, Object>> list() {
-        return repository.findTop20ByOrderByIdDesc().stream()
+    public List<Map<String, Object>> list(@RequestParam(name = "category", required = false) String category) {
+        List<NewsItem> items = (category == null || category.isBlank())
+                ? repository.findTop20ByOrderByIdDesc()
+                : repository.findTop20ByCategoryOrderByIdDesc(category);
+        return items.stream()
                 .map(item -> {
                     Map<String, Object> row = new LinkedHashMap<>();
                     row.put("id", item.getId());

@@ -27,12 +27,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // 무료 RSS(정치·경제·산업·사회 섹션)를 10분마다 수집해 스포츠·연예를 제외한 국내 핫이슈 소식을 자동으로 게시합니다.
-// 최신 20건만 남기고 오래된 소식은 다음 수집 때 삭제합니다.
+// 분류(국내·경제)별로 최신 20건만 남기고 오래된 소식은 다음 수집 때 삭제합니다. 경제 분류는 투자정보 페이지에서도 함께 보여줍니다.
 @Component
 public class NewsCollector {
 
     private static final Logger log = LoggerFactory.getLogger(NewsCollector.class);
     private static final int KEEP_ITEMS = 20;
+    private static final List<String> CATEGORIES = List.of("국내", "경제");
     private static final Pattern IMAGE_PATTERN =
             Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
 
@@ -42,9 +43,10 @@ public class NewsCollector {
     private static final List<Feed> FEEDS = List.of(
             new Feed("https://news.google.com/rss/headlines/section/topic/NATION?hl=ko&gl=KR&ceid=KR:ko", "국내", "Google 뉴스"),
             new Feed("https://www.yna.co.kr/rss/politics.xml", "국내", "연합뉴스"),
-            new Feed("https://www.yna.co.kr/rss/economy.xml", "국내", "연합뉴스"),
-            new Feed("https://www.yna.co.kr/rss/industry.xml", "국내", "연합뉴스"),
-            new Feed("https://www.yna.co.kr/rss/society.xml", "국내", "연합뉴스"));
+            new Feed("https://www.yna.co.kr/rss/society.xml", "국내", "연합뉴스"),
+            new Feed("https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스"),
+            new Feed("https://www.yna.co.kr/rss/economy.xml", "경제", "연합뉴스"),
+            new Feed("https://www.yna.co.kr/rss/industry.xml", "경제", "연합뉴스"));
 
     private final NewsItemRepository repository;
     private final HttpClient http = HttpClient.newBuilder()
@@ -70,12 +72,16 @@ public class NewsCollector {
     }
 
     private int trimToNewest() {
-        List<NewsItem> newest = repository.findTop20ByOrderByIdDesc();
-        if (newest.size() < KEEP_ITEMS) {
-            return 0;
+        int removed = 0;
+        for (String category : CATEGORIES) {
+            List<NewsItem> newest = repository.findTop20ByCategoryOrderByIdDesc(category);
+            if (newest.size() < KEEP_ITEMS) {
+                continue;
+            }
+            long cutoff = newest.get(newest.size() - 1).getId();
+            removed += repository.deleteByCategoryAndIdLessThan(category, cutoff);
         }
-        long cutoff = newest.get(newest.size() - 1).getId();
-        return repository.deleteByIdLessThan(cutoff);
+        return removed;
     }
 
     private int collect(Feed feed) {
