@@ -1162,7 +1162,7 @@
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 55</span>
       <h3>솔리테어 · 클론다이크 (JavaScript)</h3>
-      <p>카드를 눌러 선택하고 목적지 기둥을 누르면 옮겨집니다. 카드 더미를 누르면 카드를 뒤집고, ♠♥♦♣ 에이스부터 모으면 이깁니다.</p>
+      <p>카드를 눌러 선택하고 목적지 기둥을 누르면 옮겨집니다. 카드를 더블클릭하면 갈 수 있는 기둥으로 자동으로 옮겨집니다. 카드 더미를 누르면 카드를 뒤집고, ♠♥♦♣ 에이스부터 모으면 이깁니다.</p>
       <div id="solitaire-board" class="solitaire-board" aria-label="솔리테어 게임판"></div>
       <div class="choice-controls">
         <button id="solitaire-new" type="button">새 게임</button>
@@ -10264,6 +10264,42 @@
       selectTableau(pileIndex, cardIndex);
     }
 
+    function autoMoveCard(pile, pileIndex, cardIndex) {
+      let card;
+      if (pile === "waste") {
+        if (!waste.length) return false;
+        card = waste[waste.length - 1];
+        selection = { type: "waste" };
+      } else if (pile === "foundation") {
+        const f = foundations[pileIndex];
+        if (!f.length) return false;
+        card = f[f.length - 1];
+        selection = { type: "foundation", pile: pileIndex };
+      } else if (pile === "tableau") {
+        const t = tableau[pileIndex];
+        if (!t[cardIndex] || !t[cardIndex].faceUp || !isValidRun(pileIndex, cardIndex)) return false;
+        card = t[cardIndex];
+        selection = { type: "tableau", pile: pileIndex, index: cardIndex };
+      } else {
+        return false;
+      }
+
+      const isRun = pile === "tableau" && tableau[pileIndex].length - cardIndex > 1;
+      if (!isRun) {
+        for (let i = 0; i < 4; i++) {
+          if (canMoveToFoundation(card, i)) { commit("foundation", i); return true; }
+        }
+      }
+      for (let i = 0; i < 7; i++) {
+        if (pile === "tableau" && i === pileIndex) continue;
+        if (!tableau[i].length) continue;
+        if (canMoveToTableau(card, i)) { commit("tableau", i); return true; }
+      }
+      selection = null;
+      render();
+      return false;
+    }
+
     function cardEl(card, pileType, pileIndex, cardIndex, stackIndex) {
       const btn = document.createElement("button");
       btn.type = "button";
@@ -10371,6 +10407,15 @@
       const pileIndex = el.dataset.pileindex !== undefined ? Number(el.dataset.pileindex) : undefined;
       const cardIndex = el.dataset.cardindex !== undefined ? Number(el.dataset.cardindex) : undefined;
       handleClick(pile, pileIndex, cardIndex);
+    });
+
+    boardEl.addEventListener("dblclick", (e) => {
+      const el = e.target.closest("[data-pile]");
+      if (!el) return;
+      const pile = el.dataset.pile;
+      const pileIndex = el.dataset.pileindex !== undefined ? Number(el.dataset.pileindex) : undefined;
+      const cardIndex = el.dataset.cardindex !== undefined ? Number(el.dataset.cardindex) : undefined;
+      autoMoveCard(pile, pileIndex, cardIndex);
     });
 
     newBtn.addEventListener("click", newGame);
