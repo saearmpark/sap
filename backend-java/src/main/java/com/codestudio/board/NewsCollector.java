@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-// 무료 RSS(정치·경제·산업·사회 섹션)를 10분마다 수집해 스포츠·연예를 제외한 국내 핫이슈 소식을 자동으로 게시합니다.
-// 분류(국내·경제)별로 최신 20건만 남기고 오래된 소식은 다음 수집 때 삭제합니다. 경제 분류는 투자정보 페이지에서도 함께 보여줍니다.
+// 무료 RSS·검색 피드(정치·사회, 증시·금리·환율·가상자산)를 10분마다 수집해 스포츠·연예를 제외한 국내 핫이슈와 경제 소식을 자동으로 게시합니다.
+// 분류(국내·경제)별로 최신 20건만 남기고 오래된 소식은 다음 수집 때 삭제합니다. 경제 분류는 주식·금리·환율·코인 소식 위주로 채우며 투자정보 페이지에서도 함께 보여줍니다.
 @Component
 public class NewsCollector {
 
@@ -37,16 +37,18 @@ public class NewsCollector {
     private static final Pattern IMAGE_PATTERN =
             Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
 
-    private record Feed(String url, String category, String name) {
+    private record Feed(String url, String category, String name, int limit) {
     }
 
     private static final List<Feed> FEEDS = List.of(
-            new Feed("https://news.google.com/rss/headlines/section/topic/NATION?hl=ko&gl=KR&ceid=KR:ko", "국내", "Google 뉴스"),
-            new Feed("https://www.yna.co.kr/rss/politics.xml", "국내", "연합뉴스"),
-            new Feed("https://www.yna.co.kr/rss/society.xml", "국내", "연합뉴스"),
-            new Feed("https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스"),
-            new Feed("https://www.yna.co.kr/rss/economy.xml", "경제", "연합뉴스"),
-            new Feed("https://www.yna.co.kr/rss/industry.xml", "경제", "연합뉴스"));
+            new Feed("https://news.google.com/rss/headlines/section/topic/NATION?hl=ko&gl=KR&ceid=KR:ko", "국내", "Google 뉴스", 0),
+            new Feed("https://www.yna.co.kr/rss/politics.xml", "국내", "연합뉴스", 0),
+            new Feed("https://www.yna.co.kr/rss/society.xml", "국내", "연합뉴스", 0),
+            new Feed("https://www.yna.co.kr/rss/market.xml", "경제", "연합뉴스", 4),
+            new Feed("https://news.google.com/rss/search?q=%EC%A6%9D%EC%8B%9C&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 4),
+            new Feed("https://news.google.com/rss/search?q=%EA%B8%88%EB%A6%AC&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 4),
+            new Feed("https://news.google.com/rss/search?q=%ED%99%98%EC%9C%A8&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 4),
+            new Feed("https://news.google.com/rss/search?q=%EA%B0%80%EC%83%81%EC%9E%90%EC%82%B0&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 4));
 
     private final NewsItemRepository repository;
     private final HttpClient http = HttpClient.newBuilder()
@@ -125,6 +127,9 @@ public class NewsCollector {
                     parseDate(text(item, "pubDate")),
                     now));
             added++;
+            if (feed.limit() > 0 && added >= feed.limit()) {
+                break;
+            }
         }
         return added;
     }
