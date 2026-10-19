@@ -55,7 +55,7 @@
   <main class="main">
     <div class="eyebrow">MARKETS</div>
     <h1>주식정보</h1>
-    <p>국내·미국 주요 종목과 지수, 금·비트코인·환율·유가 시세를 10초마다 갱신합니다. 정규장 밖의 장전·시간외 값은 배지로 구분합니다.</p>
+    <p>국내·미국 주요 종목과 지수, 환율·금리·코인·원자재 시세를 10초마다 갱신합니다. 정규장 밖의 장전·시간외 값은 배지로 구분합니다.</p>
 
     <p id="stocks-status" class="stocks-status" role="status" aria-live="polite">시세를 불러오는 중입니다...</p>
     <div id="stocks-list" class="stocks-list"></div>
@@ -67,7 +67,7 @@
     const API = window.SAPAuth?.API_ROOT || "https://board-backend-nngx.onrender.com/api";
     const listEl = document.getElementById("stocks-list");
     const statusEl = document.getElementById("stocks-status");
-    const GROUPS = ["국내", "미국", "기타"];
+    const GROUPS = ["국내", "미국", "환율", "금리", "코인", "기타"];
     const CACHE_KEY = "sap-stocks-cache";
     let lastSignature = "";
 
@@ -101,12 +101,19 @@
       if (currency === "USD") {
         return "$" + value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
+      if (currency === "%") {
+        return value.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 3 }) + "%";
+      }
+      if (currency === "pt") {
+        return value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) + " pt";
+      }
       const text = value.toLocaleString("ko-KR", { maximumFractionDigits: 4 });
       return currency ? `${text} ${currency}` : text;
     }
 
     function card(quote) {
       const up = quote.change >= 0;
+      const isRate = quote.currency === "%";
       const article = document.createElement("article");
       article.className = "stock-card";
 
@@ -139,7 +146,13 @@
       const arrow = quote.change > 0 ? "▲" : quote.change < 0 ? "▼" : "–";
       const percent = Math.abs(quote.changePercent).toFixed(2);
       const diff = formatPrice(Math.abs(quote.change), quote.currency);
-      change.textContent = quote.change === 0 ? "– 0.00%" : `${arrow} ${percent}% · ${diff}`;
+      if (quote.change === 0) {
+        change.textContent = isRate ? "– 0.000%p" : "– 0.00%";
+      } else if (isRate) {
+        change.textContent = `${arrow} ${Math.abs(quote.change).toFixed(3)}%p`;
+      } else {
+        change.textContent = `${arrow} ${percent}% · ${diff}`;
+      }
       numbers.append(price, change);
 
       top.append(names, numbers);

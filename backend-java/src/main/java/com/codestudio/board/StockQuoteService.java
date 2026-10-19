@@ -21,8 +21,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-// 네이버·CNBC·업비트 시세 API에서 국내·미국·기타 시세를 받아 10초간 캐시해 제공합니다.
-// 야후 파이낸스는 일부 클라우드 IP를 차단해 국내(네이버)·미국(CNBC)·코인(업비트)으로 나눠 조회합니다.
+// 네이버·CNBC·업비트 시세 API에서 주식·지수·환율·금리·코인·원자재 시세를 받아 10초간 캐시해 제공합니다.
+// 야후 파이낸스는 일부 클라우드 IP를 차단해 국내(네이버)·미국/금리(CNBC)·코인(업비트)으로 나눠 조회합니다.
 @Service
 public class StockQuoteService {
 
@@ -30,35 +30,75 @@ public class StockQuoteService {
     private static final long CACHE_MILLIS = 10_000L;
 
     private static final String CNBC_URL = "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol"
-            + "?symbols=AAPL%7CNVDA%7CGOOGL%7C.IXIC%7C.SPX%7CGLD%7C%40CL.1"
+            + "?symbols=.DJI%7C.IXIC%7C.SPX%7C.RUT%7CNVDA%7CMSFT%7CAAPL%7CGOOGL%7CAMZN%7CMETA%7CTSLA"
+            + "%7CGLD%7C%40CL.1%7CUS2Y%7CUS10Y%7CUS30Y%7CKR5Y%7CKR10Y%7C.DXY"
             + "&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1";
     private static final String NAVER_KR_URL =
-            "https://polling.finance.naver.com/api/realtime/domestic/stock/005930,000660,069500";
-    private static final String NAVER_FX_URL = "https://api.stock.naver.com/marketindex/exchange/FX_USDKRW";
-    private static final String UPBIT_URL = "https://api.upbit.com/v1/ticker?markets=KRW-BTC";
+            "https://polling.finance.naver.com/api/realtime/domestic/stock/005930,000660,069500,005380,373220,035420,035720";
+    private static final String NAVER_INDEX_URL =
+            "https://polling.finance.naver.com/api/realtime/domestic/index/KOSPI,KOSDAQ";
+    private static final String NAVER_FX_URL = "https://api.stock.naver.com/marketindex/exchange/";
+    private static final List<String> FX_CODES = List.of(
+            "FX_USDKRW", "FX_JPYKRW", "FX_EURKRW", "FX_CNYKRW", "FX_GBPKRW");
+    private static final String UPBIT_URL =
+            "https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH,KRW-XRP,KRW-SOL,KRW-DOGE";
 
-    private record Info(String name, String code, String group) {
+    private record Info(String name, String code, String group, String unit) {
     }
 
     private static final Map<String, Info> INFO = new LinkedHashMap<>();
     private static final List<String> ORDER = List.of(
-            "005930", "000660", "069500",
-            ".IXIC", ".SPX", "NVDA", "GOOGL", "AAPL",
-            "GLD", "CL.F", "BTC", "USDKRW");
+            "KOSPI", "KOSDAQ", "005930", "000660", "069500", "005380", "373220", "035420", "035720",
+            ".DJI", ".IXIC", ".SPX", ".RUT", "NVDA", "MSFT", "AAPL", "GOOGL", "AMZN", "META", "TSLA",
+            "FX_USDKRW", "FX_JPYKRW", "FX_EURKRW", "FX_CNYKRW", "FX_GBPKRW", ".DXY",
+            "US2Y", "US10Y", "US30Y", "KR5Y", "KR10Y",
+            "BTC", "ETH", "XRP", "SOL", "DOGE",
+            "GLD", "CL.F");
 
     static {
-        INFO.put("005930", new Info("삼성전자", "005930", "국내"));
-        INFO.put("000660", new Info("SK하이닉스", "000660", "국내"));
-        INFO.put("069500", new Info("KODEX 200", "069500", "국내"));
-        INFO.put(".IXIC", new Info("나스닥 지수", "NASDAQ", "미국"));
-        INFO.put(".SPX", new Info("S&P 500 지수", "S&P 500", "미국"));
-        INFO.put("NVDA", new Info("엔비디아", "NVDA", "미국"));
-        INFO.put("GOOGL", new Info("알파벳 A", "GOOGL", "미국"));
-        INFO.put("AAPL", new Info("애플", "AAPL", "미국"));
-        INFO.put("GLD", new Info("금 ETF", "GLD", "기타"));
-        INFO.put("CL.F", new Info("WTI 유가", "WTI", "기타"));
-        INFO.put("BTC", new Info("비트코인", "BTC", "기타"));
-        INFO.put("USDKRW", new Info("원/달러 환율", "USD/KRW", "기타"));
+        INFO.put("KOSPI", new Info("코스피", "KOSPI", "국내", "pt"));
+        INFO.put("KOSDAQ", new Info("코스닥", "KOSDAQ", "국내", "pt"));
+        INFO.put("005930", new Info("삼성전자", "005930", "국내", "KRW"));
+        INFO.put("000660", new Info("SK하이닉스", "000660", "국내", "KRW"));
+        INFO.put("069500", new Info("KODEX 200", "069500", "국내", "KRW"));
+        INFO.put("005380", new Info("현대차", "005380", "국내", "KRW"));
+        INFO.put("373220", new Info("LG에너지솔루션", "373220", "국내", "KRW"));
+        INFO.put("035420", new Info("NAVER", "035420", "국내", "KRW"));
+        INFO.put("035720", new Info("카카오", "035720", "국내", "KRW"));
+
+        INFO.put(".DJI", new Info("다우존스", "다우", "미국", "pt"));
+        INFO.put(".IXIC", new Info("나스닥 지수", "NASDAQ", "미국", "pt"));
+        INFO.put(".SPX", new Info("S&P 500 지수", "S&P 500", "미국", "pt"));
+        INFO.put(".RUT", new Info("러셀 2000", "RUSSELL 2000", "미국", "pt"));
+        INFO.put("NVDA", new Info("엔비디아", "NVDA", "미국", "USD"));
+        INFO.put("MSFT", new Info("마이크로소프트", "MSFT", "미국", "USD"));
+        INFO.put("AAPL", new Info("애플", "AAPL", "미국", "USD"));
+        INFO.put("GOOGL", new Info("알파벳 A", "GOOGL", "미국", "USD"));
+        INFO.put("AMZN", new Info("아마존", "AMZN", "미국", "USD"));
+        INFO.put("META", new Info("메타", "META", "미국", "USD"));
+        INFO.put("TSLA", new Info("테슬라", "TSLA", "미국", "USD"));
+
+        INFO.put("FX_USDKRW", new Info("원/달러", "USD/KRW", "환율", "KRW"));
+        INFO.put("FX_JPYKRW", new Info("원/100엔", "JPY/KRW", "환율", "KRW"));
+        INFO.put("FX_EURKRW", new Info("원/유로", "EUR/KRW", "환율", "KRW"));
+        INFO.put("FX_CNYKRW", new Info("원/위안", "CNY/KRW", "환율", "KRW"));
+        INFO.put("FX_GBPKRW", new Info("원/파운드", "GBP/KRW", "환율", "KRW"));
+        INFO.put(".DXY", new Info("달러 인덱스", "DXY", "환율", "pt"));
+
+        INFO.put("US2Y", new Info("미국 2년물", "US2Y", "금리", "%"));
+        INFO.put("US10Y", new Info("미국 10년물", "US10Y", "금리", "%"));
+        INFO.put("US30Y", new Info("미국 30년물", "US30Y", "금리", "%"));
+        INFO.put("KR5Y", new Info("국고채 5년", "KR5Y", "금리", "%"));
+        INFO.put("KR10Y", new Info("국고채 10년", "KR10Y", "금리", "%"));
+
+        INFO.put("BTC", new Info("비트코인", "BTC", "코인", "KRW"));
+        INFO.put("ETH", new Info("이더리움", "ETH", "코인", "KRW"));
+        INFO.put("XRP", new Info("리플", "XRP", "코인", "KRW"));
+        INFO.put("SOL", new Info("솔라나", "SOL", "코인", "KRW"));
+        INFO.put("DOGE", new Info("도지코인", "DOGE", "코인", "KRW"));
+
+        INFO.put("GLD", new Info("금 ETF", "GLD", "기타", "USD"));
+        INFO.put("CL.F", new Info("WTI 유가", "WTI", "기타", "USD"));
     }
 
     public record Board(List<Map<String, Object>> quotes, Instant updatedAt) {
@@ -81,6 +121,7 @@ public class StockQuoteService {
         Map<String, Map<String, Object>> collected = new LinkedHashMap<>();
         List<CompletableFuture<Void>> tasks = List.of(
                 task(() -> collectKr(collected)),
+                task(() -> collectKrIndex(collected)),
                 task(() -> collectCnbc(collected)),
                 task(() -> collectUpbit(collected)),
                 task(() -> collectFx(collected)));
@@ -139,7 +180,7 @@ public class StockQuoteService {
                 double overPrice = num(over.path("overPrice").asText(""));
                 double overChange = num(over.path("compareToPreviousClosePrice").asText(""));
                 double overPercent = num(over.path("fluctuationsRatio").asText(""));
-                collected.put(code, row(info, overPrice, overChange, overPercent, "KRW",
+                collected.put(code, row(info, overPrice, overChange, overPercent,
                         sessionOf(over.path("tradingSessionType").asText(""))));
                 continue;
             }
@@ -154,7 +195,34 @@ public class StockQuoteService {
                 change = 0;
                 percent = 0;
             }
-            collected.put(code, row(info, price, change, percent, "KRW", "regular"));
+            collected.put(code, row(info, price, change, percent, "regular"));
+        }
+    }
+
+    private void collectKrIndex(Map<String, Map<String, Object>> collected) {
+        JsonNode root = get(NAVER_INDEX_URL);
+        JsonNode datas = root.path("datas");
+        if (!datas.isArray()) {
+            return;
+        }
+        for (JsonNode data : datas) {
+            String code = data.path("itemCode").asText("");
+            Info info = INFO.get(code);
+            if (info == null) {
+                continue;
+            }
+            double price = num(data.path("closePrice").asText(""));
+            double change = num(data.path("compareToPreviousClosePrice").asText(""));
+            double percent = num(data.path("fluctuationsRatio").asText(""));
+            String sign = data.path("compareToPreviousPrice").path("code").asText("");
+            if ("4".equals(sign) || "5".equals(sign)) {
+                change = -Math.abs(change);
+                percent = -Math.abs(percent);
+            } else if ("3".equals(sign)) {
+                change = 0;
+                percent = 0;
+            }
+            collected.put(code, row(info, price, change, percent, "regular"));
         }
     }
 
@@ -182,40 +250,58 @@ public class StockQuoteService {
                 double extChange = num(extended.path("change").asText(""));
                 double extPercent = num(extended.path("change_pct").asText(""));
                 collected.put(id, row(info, extPrice, extChange, extPercent,
-                        quote.path("currencyCode").asText("USD"),
                         sessionOf(extended.path("type").asText(market))));
                 continue;
             }
             double price = num(quote.path("last").asText(""));
             double change = num(quote.path("change").asText(""));
             double percent = num(quote.path("change_pct").asText(""));
-            collected.put(id, row(info, price, change, percent,
-                    quote.path("currencyCode").asText("USD"), "regular"));
+            collected.put(id, row(info, price, change, percent, "regular"));
         }
     }
 
     private void collectUpbit(Map<String, Map<String, Object>> collected) {
         JsonNode root = get(UPBIT_URL);
-        if (!root.isArray() || root.isEmpty()) {
+        if (!root.isArray()) {
             return;
         }
-        JsonNode coin = root.get(0);
-        double price = coin.path("trade_price").asDouble();
-        double change = coin.path("signed_change_price").asDouble();
-        double percent = coin.path("signed_change_rate").asDouble() * 100;
-        collected.put("BTC", row(INFO.get("BTC"), price, change, percent, "KRW", "regular"));
+        for (JsonNode coin : root) {
+            String market = coin.path("market").asText("");
+            Info info = INFO.get(market.replace("KRW-", ""));
+            if (info == null) {
+                continue;
+            }
+            double price = coin.path("trade_price").asDouble();
+            double change = coin.path("signed_change_price").asDouble();
+            double percent = coin.path("signed_change_rate").asDouble() * 100;
+            collected.put(info.code(), row(info, price, change, percent, "regular"));
+        }
     }
 
     private void collectFx(Map<String, Map<String, Object>> collected) {
-        JsonNode root = get(NAVER_FX_URL);
-        JsonNode exchange = root.path("exchangeInfo");
-        if (exchange.isMissingNode() || exchange.isEmpty()) {
-            return;
+        for (String fxCode : FX_CODES) {
+            JsonNode root = get(NAVER_FX_URL + fxCode);
+            JsonNode exchange = root.path("exchangeInfo");
+            if (exchange.isMissingNode() || exchange.isEmpty()) {
+                continue;
+            }
+            Info info = INFO.get(fxCode);
+            if (info == null) {
+                continue;
+            }
+            double price = num(exchange.path("closePrice").asText(""));
+            double change = num(exchange.path("fluctuations").asText(""));
+            double percent = num(exchange.path("fluctuationsRatio").asText(""));
+            String sign = exchange.path("fluctuationsType").path("code").asText("");
+            if ("4".equals(sign) || "5".equals(sign)) {
+                change = -Math.abs(change);
+                percent = -Math.abs(percent);
+            } else if ("3".equals(sign)) {
+                change = 0;
+                percent = 0;
+            }
+            collected.put(fxCode, row(info, price, change, percent, "regular"));
         }
-        double price = num(exchange.path("closePrice").asText(""));
-        double change = num(exchange.path("fluctuations").asText(""));
-        double percent = num(exchange.path("fluctuationsRatio").asText(""));
-        collected.put("USDKRW", row(INFO.get("USDKRW"), price, change, percent, "KRW", "regular"));
     }
 
     private JsonNode get(String url) {
@@ -237,8 +323,7 @@ public class StockQuoteService {
         }
     }
 
-    private static Map<String, Object> row(Info info, double price, double change, double percent,
-                                           String currency, String session) {
+    private static Map<String, Object> row(Info info, double price, double change, double percent, String session) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("symbol", info.code());
         row.put("name", info.name());
@@ -246,7 +331,7 @@ public class StockQuoteService {
         row.put("price", round(price));
         row.put("change", round(change));
         row.put("changePercent", round(percent));
-        row.put("currency", currency);
+        row.put("currency", info.unit());
         row.put("session", session);
         return row;
     }
