@@ -9971,7 +9971,7 @@
       }
       ctx.fillStyle = "#3498db";
       ctx.fillRect(player.x - player.w / 2, player.y, player.w, player.h);
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = document.documentElement.dataset.theme === "dark" ? "#fff" : "#17181a";
       for (const b of bullets) ctx.fillRect(b.x - 1.5, b.y, 3, 10);
       ctx.fillStyle = "#e74c3c";
       for (const bm of bombs) ctx.fillRect(bm.x - 2, bm.y, 4, 10);
@@ -10578,7 +10578,9 @@
       if (!(invuln > 0 && Math.floor(invuln / 6) % 2 === 0)) drawTank(player, "#3498db");
       for (const e of enemies) drawTank(e, "#e74c3c");
       for (const b of bullets) {
-        ctx.fillStyle = b.owner === "player" ? "#fff" : "#ffb3a7";
+        ctx.fillStyle = b.owner === "player"
+          ? (document.documentElement.dataset.theme === "dark" ? "#fff" : "#17181a")
+          : "#ffb3a7";
         ctx.beginPath();
         ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
         ctx.fill();
