@@ -475,6 +475,7 @@
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bubble">버블 슈터</button><button class="game-code-button" type="button" data-game-code-view="panel-bubble">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-invaders">스페이스 인베이더</button><button class="game-code-button" type="button" data-game-code-view="panel-invaders">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-solitaire">솔리테어</button><button class="game-code-button" type="button" data-game-code-view="panel-solitaire">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-tanks">탱크 대전</button><button class="game-code-button" type="button" data-game-code-view="panel-tanks">코드 보기</button></div>
       </div>
 
       <h2 class="game-list-heading">대전 게임</h2>
@@ -496,7 +497,6 @@
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-chess">체스</button><button class="game-code-button" type="button" data-game-code-view="panel-chess">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-janggi">장기</button><button class="game-code-button" type="button" data-game-code-view="panel-janggi">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-yut">윷놀이</button><button class="game-code-button" type="button" data-game-code-view="panel-yut">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-tanks">탱크 대전</button><button class="game-code-button" type="button" data-game-code-view="panel-tanks">코드 보기</button></div>
       </div>
     </div>
 
@@ -5207,9 +5207,15 @@
       form.querySelector("button").disabled = false;
       input.value = "";
       historyEl.replaceChildren();
-      statusEl.textContent = "한글·외래어·전문 용어 등 단어를 입력하세요. 단어 검색 링크로 네이버 어학사전도 확인할 수 있습니다.";
+      statusEl.textContent = "차례의 첫 글자에 맞는 단어를 입력하세요. 잘못된 단어(형식 오류·중복·첫 글자 불일치)를 말하면 패배합니다.";
       dictionaryLink.href = "https://dict.naver.com/";
       input.focus();
+    }
+    function lose(message) {
+      finished = true;
+      statusEl.textContent = `${message} 내가 졌습니다. 다시 하려면 새 게임을 누르세요.`;
+      input.disabled = true;
+      form.querySelector("button").disabled = true;
     }
     input.addEventListener("input", () => {
       const word = normalizeWord(input.value);
@@ -5221,20 +5227,22 @@
       event.preventDefault();
       if (finished) return;
       const word = normalizeWord(input.value);
-      if (!word || !/^[\p{L}\p{M}\p{N}·'’\-]+$/u.test(word) || !/\p{L}/u.test(word)) {
-        statusEl.textContent = "한글, 외래어, 한자 등 단어를 입력하세요.";
+      if (!word) {
+        statusEl.textContent = "단어를 입력하세요.";
         input.select();
         return;
       }
+      if (!/^[\p{L}\p{M}\p{N}·'’\-]+$/u.test(word) || !/\p{L}/u.test(word)) {
+        lose(`“${input.value.trim()}”는 올바른 단어가 아닙니다.`);
+        return;
+      }
       if (used.has(word)) {
-        statusEl.textContent = "이미 나온 단어입니다. 다른 단어를 입력하세요.";
-        input.select();
+        lose(`이미 나온 단어 “${word}”를 말했습니다.`);
         return;
       }
       const requiredLetter = lastLetter(current);
       if (current && !word.startsWith(requiredLetter)) {
-        statusEl.textContent = `“${requiredLetter}”로 시작하는 단어를 입력하세요.`;
-        input.select();
+        lose(`“${requiredLetter}”로 시작하는 단어를 말해야 합니다(“${word}”).`);
         return;
       }
       addWord(word, "나");
@@ -10440,7 +10448,7 @@
     const W = canvas.width, H = canvas.height;
     const SIZE = 24, HALF = SIZE / 2, BASE_ENEMIES = 3;
 
-    let player, enemies, bullets, running, over, rafId, invuln, expTimer, stage;
+    let player, enemies, bullets, running, over, rafId, invuln, expTimer, stage, score;
 
     function enemyCount() { return Math.min(8, BASE_ENEMIES + (stage - 1)); }
 
@@ -10464,6 +10472,7 @@
       player = { x: W / 2, y: H - 40, face: -Math.PI / 2, hp: 3, cd: 0 };
       bullets = [];
       stage = 1;
+      score = 0;
       spawnEnemies();
       running = false;
       over = false;
@@ -10533,7 +10542,7 @@
             if (!e.dead && Math.hypot(b.x - e.x, b.y - e.y) < HALF + 4) {
               b.dead = true;
               e.hp--;
-              if (e.hp <= 0) e.dead = true;
+              if (e.hp <= 0) { e.dead = true; score += 10; }
               expTimer = 8;
               break;
             }
@@ -10542,7 +10551,7 @@
           b.dead = true;
           player.hp--;
           invuln = 70;
-          statusEl.textContent = `스테이지 ${stage} · 목숨 ${player.hp} · 남은 적 ${enemies.filter((e) => !e.dead).length}`;
+          statusEl.textContent = `스테이지 ${stage} · 점수 ${score} · 목숨 ${player.hp} · 남은 적 ${enemies.filter((e) => !e.dead).length}`;
           if (player.hp <= 0) { endGame(false); return; }
         }
       }
@@ -10550,10 +10559,11 @@
       bullets = bullets.filter((b) => !b.dead);
 
       if (!enemies.length) {
+        score += 100 * stage;
         stage++;
         player.hp = Math.min(5, player.hp + 1);
         spawnEnemies();
-        statusEl.textContent = `스테이지 ${stage} · 목숨 ${player.hp} · 남은 적 ${enemies.length}`;
+        statusEl.textContent = `스테이지 ${stage} · 점수 ${score} · 목숨 ${player.hp} · 남은 적 ${enemies.length}`;
       }
     }
 
@@ -10599,7 +10609,8 @@
       over = true;
       if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
       window.__tankKeys = { left: false, right: false, up: false, down: false, fire: false };
-      statusEl.textContent = won ? "승리! 적 탱크를 모두 격파했습니다." : "패배... 탱크가 파괴되었습니다.";
+      window.reportScore?.("panel-tanks", score);
+      statusEl.textContent = won ? `승리! 점수 ${score}` : `패배... 점수 ${score} · 시작 버튼으로 다시`;
     }
 
     function startGame() {
@@ -10607,7 +10618,7 @@
       reset();
       running = true;
       window.__tankKeys = { left: false, right: false, up: false, down: false, fire: false };
-      statusEl.textContent = `스테이지 1 · 목숨 3 · 남은 적 ${enemies.length}`;
+      statusEl.textContent = `스테이지 1 · 점수 0 · 목숨 3 · 남은 적 ${enemies.length}`;
       loop();
     }
 
@@ -10700,6 +10711,7 @@
       "panel-bubble": "버블 슈터",
       "panel-invaders": "스페이스 인베이더",
       "panel-solitaire": "솔리테어",
+      "panel-tanks": "탱크 대전",
     };
 
     const LOWER_IS_BETTER = new Set(["panel-memory", "panel-guess", "panel-reaction", "panel-mines", "panel-solitaire"]);
@@ -10711,6 +10723,7 @@
       "panel-mines": "초",
       "panel-typing": " WPM",
       "panel-solitaire": "수",
+      "panel-tanks": "점",
     };
 
     function formatScore(gameId, value) {
