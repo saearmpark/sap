@@ -26,8 +26,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-// 무료 RSS·검색 피드(정치·사회, 증시·금리·환율·가상자산)를 10분마다 수집해 스포츠·연예를 제외한 국내 핫이슈와 경제 소식을 자동으로 게시합니다.
-// 분류(국내·경제)별로 최신 20건만 남기고 오래된 소식은 다음 수집 때 삭제합니다. 경제 분류는 주식·금리·환율·코인 소식 위주로 채우며 투자정보 페이지에서도 함께 보여줍니다.
+// 무료 RSS·검색 피드(정치·사회, 증시·금리·환율·가상자산)를 10분마다 수집해 소식을 자동으로 게시합니다.
+// 분류(국내·경제)별로 최신 20건만 남기고 오래된 소식은 다음 수집 때 삭제합니다.
+// 국내는 경제·스포츠·연예를 제외한 정치·사회 소식, 경제는 주식·금리·환율·코인 소식으로 채웁니다.
 @Component
 public class NewsCollector {
 
@@ -41,9 +42,8 @@ public class NewsCollector {
     }
 
     private static final List<Feed> FEEDS = List.of(
-            new Feed("https://news.google.com/rss/headlines/section/topic/NATION?hl=ko&gl=KR&ceid=KR:ko", "국내", "Google 뉴스", 0),
-            new Feed("https://www.yna.co.kr/rss/politics.xml", "국내", "연합뉴스", 0),
-            new Feed("https://www.yna.co.kr/rss/society.xml", "국내", "연합뉴스", 0),
+            new Feed("https://www.yna.co.kr/rss/politics.xml", "국내", "연합뉴스", 10),
+            new Feed("https://www.yna.co.kr/rss/society.xml", "국내", "연합뉴스", 10),
             new Feed("https://www.yna.co.kr/rss/market.xml", "경제", "연합뉴스", 4),
             new Feed("https://news.google.com/rss/search?q=%EC%A6%9D%EC%8B%9C&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 4),
             new Feed("https://news.google.com/rss/search?q=%EA%B8%88%EB%A6%AC&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 4),

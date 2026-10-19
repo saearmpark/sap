@@ -56,7 +56,7 @@
   <main class="main">
     <div class="eyebrow">ISSUES</div>
     <h1>이슈사항</h1>
-    <p>국내 핫이슈를 10분마다 자동으로 모아 보여줍니다.</p>
+    <p>경제·스포츠·연예 소식을 제외한 국내 주요 소식을 10분마다 자동으로 모아 보여줍니다.</p>
 
     <section class="weather-panel" aria-label="오늘의 날씨">
       <div class="weather-head">
@@ -81,7 +81,7 @@
     const API = window.SAPAuth?.API_ROOT || "https://board-backend-nngx.onrender.com/api";
     const listEl = document.getElementById("news-list");
     const statusEl = document.getElementById("news-status");
-    const CACHE_KEY = "sap-news-cache";
+    const CACHE_KEY = "sap-news-cache-domestic";
     let items = [];
 
     function readCache() {
@@ -176,7 +176,7 @@
         statusEl.textContent = "소식을 불러오는 중입니다...";
       }
       try {
-        const response = await fetch(`${API}/news`, { cache: "no-store" });
+        const response = await fetch(`${API}/news?category=${encodeURIComponent("국내")}`, { cache: "no-store" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         items = await response.json();
         const updated = items[0]?.fetchedAt || items[0]?.publishedAt;
