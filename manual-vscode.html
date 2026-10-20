@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사피엔스 — Manual · VS Code 설치</title>
+<title>사피엔스 — 웹제작절차 · VS Code 설치</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-20">
+<link rel="stylesheet" href="assets/style.css?v=labels-21">
 </head>
 <body class="learning-page">
 <div class="layout">
@@ -16,11 +16,11 @@
     <nav class="manual-crumbs" aria-label="현재 위치">
       <a href="index.html">홈</a>
       <span>/</span>
-      <a href="manual.html">Manual</a>
+      <a href="manual.html">웹제작절차</a>
       <span>/</span>
       <span aria-current="page">VS Code 설치</span>
     </nav>
-    <div class="eyebrow">MANUAL 01</div>
+    <div class="eyebrow">웹제작절차 02</div>
     <h1>VS Code 설치</h1>
     <p class="manual-intro">
       VS Code는 HTML·CSS·JavaScript·Python을 한 창에서 작성하고 실행할 수 있는 무료 편집기입니다.
@@ -78,10 +78,11 @@
             <tr><td>Korean Language Pack</td><td>메뉴를 한국어로 표시</td><td>재시작 후 언어 선택</td></tr>
             <tr><td>Live Server</td><td>HTML을 로컬 서버로 미리 보기</td><td>HTML 파일 우클릭 → Open with Live Server</td></tr>
             <tr><td>Prettier - Code formatter</td><td>들여쓰기·줄바꿈 자동 정리</td><td>저장 시 자동 포맷(선택)</td></tr>
+            <tr><td>Python</td><td>Python 문법 강조·실행·디버깅</td><td>06 파이썬 제작에서 사용</td></tr>
           </tbody>
         </table>
       </div>
-      <p>확장을 설치한 뒤에는 VS Code를 껐다 켜거나 <strong>Reload</strong>를 눌러 적용하는 것이 안전합니다.</p>
+      <p>확장을 설치한 뒤에는 VS Code를 껐다 켜거나 <strong>Reload</strong>를 눌러 적용하는 것이 안전합니다. Python은 웹사이트 제작에 필수는 아니므로, 06단계를 진행할 때 설치해도 됩니다.</p>
     </section>
 
     <section class="manual-section">
@@ -100,6 +101,16 @@
           <strong>탐색기에서 파일을 확인합니다.</strong>
           왼쪽 위 파일 아이콘을 누르면 <code>index.html</code>, <code>assets</code> 폴더 등이 보입니다.
           보이지 않으면 상단의 폴더 이름을 눌러 올바른 위치인지 확인하세요.
+        </li>
+        <li>
+          <strong>새 파일과 폴더를 만듭니다.</strong>
+          탐색기 제목 줄의 <strong>새 파일</strong> 아이콘을 누르고 <code>index.html</code>을 입력합니다.
+          <code>images</code>처럼 폴더가 필요하면 <strong>새 폴더</strong> 아이콘을 사용합니다.
+        </li>
+        <li>
+          <strong>저장합니다.</strong>
+          파일을 처음 저장할 때는 <kbd>Ctrl</kbd> + <kbd>S</kbd>를 누르고 위치와 이름을 확인합니다.
+          이후에는 같은 단축키로 바로 저장됩니다.
         </li>
       </ol>
     </section>
@@ -150,20 +161,21 @@ git --version</code></pre>
         <li>VS Code를 설치하고 실행했다.</li>
         <li>한국어 팩과 Live Server를 설치했다.</li>
         <li><code>D:\sap</code> 폴더를 열었다.</li>
+        <li>탐색기에서 새 파일·폴더를 만들고 저장할 수 있다.</li>
         <li>터미널에서 <code>node --version</code>과 <code>git --version</code>을 확인했다.</li>
         <li><code>index.html</code>을 Live Server로 열어 화면을 확인했다.</li>
       </ul>
     </section>
 
     <nav class="manual-pager" aria-label="이전·다음 안내">
-      <a class="manual-pager-prev" href="manual.html">← Manual 목차</a>
-      <a class="manual-pager-next" href="manual-html.html">02 · HTML 제작 →</a>
+      <a class="manual-pager-prev" href="manual-plan.html">← 01 · 웹사이트 기획</a>
+      <a class="manual-pager-next" href="manual-html.html">03 · HTML 제작 →</a>
     </nav>
   </main>
 </div>
-<script src="assets/common.js?v=labels-20"></script>
-<script src="assets/auth.js?v=labels-20"></script>
-<script src="assets/manual.js?v=labels-20"></script>
-<script src="assets/theme.js?v=labels-20"></script>
+<script src="assets/common.js?v=labels-21"></script>
+<script src="assets/auth.js?v=labels-21"></script>
+<script src="assets/manual.js?v=labels-21"></script>
+<script src="assets/theme.js?v=labels-21"></script>
 </body>
 </html>

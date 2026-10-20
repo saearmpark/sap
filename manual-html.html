@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사피엔스 — Manual · HTML 제작</title>
+<title>사피엔스 — 웹제작절차 · HTML 제작</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-20">
+<link rel="stylesheet" href="assets/style.css?v=labels-21">
 </head>
 <body class="learning-page">
 <div class="layout">
@@ -16,11 +16,11 @@
     <nav class="manual-crumbs" aria-label="현재 위치">
       <a href="index.html">홈</a>
       <span>/</span>
-      <a href="manual.html">Manual</a>
+      <a href="manual.html">웹제작절차</a>
       <span>/</span>
       <span aria-current="page">HTML 제작</span>
     </nav>
-    <div class="eyebrow">MANUAL 02</div>
+    <div class="eyebrow">웹제작절차 03</div>
     <h1>HTML 제작</h1>
     <p class="manual-intro">
       HTML은 웹 페이지의 <strong>뼈대</strong>입니다. 제목, 문단, 목록, 링크, 이미지, 입력 폼을 배치하고
@@ -92,18 +92,20 @@
       <div class="manual-code">
         <span class="manual-code-label">HTML</span>
         <pre><code>&lt;!-- 같은 폴더의 페이지로 이동 --&gt;
-&lt;a href="manual.html"&gt;매뉴얼 목차&lt;/a&gt;
+&lt;a href="manual.html"&gt;웹제작절차 목차&lt;/a&gt;
 
 &lt;!-- 새 탭에서 외부 사이트 열기 --&gt;
 &lt;a href="https://example.com" target="_blank" rel="noopener"&gt;예시 사이트&lt;/a&gt;
 
 &lt;!-- 같은 폴더 images 폴더의 사진 --&gt;
-&lt;img src="images/photo.jpg" alt="해변 사진" width="320"&gt;</code></pre>
+&lt;img src="images/photo.jpg" alt="해변에서 찍은 단체 사진"
+     width="640" height="427" loading="lazy"&gt;</code></pre>
       </div>
       <aside class="manual-callout is-warn">
         <strong>중요</strong>
         <p><code>alt</code>는 이미지가 안 보일 때 대신 읽히는 설명입니다. 화면 낭독기 사용자에게도 필요하므로 반드시 적습니다. 링크 주소는 대소문자까지 정확히 맞춰야 합니다.</p>
       </aside>
+      <p>이미지는 <code>images</code> 폴더에 넣고, 파일명은 <code>photo.jpg</code>처럼 영문 소문자와 하이픈으로 짓습니다. <code>width</code>와 <code>height</code>를 적으면 이미지가 늦게 로드되어도 화면이 덜 흔들리고, <code>loading="lazy"</code>는 아래쪽 이미지를 필요할 때 불러옵니다.</p>
     </section>
 
     <section class="manual-section">
@@ -119,7 +121,7 @@
 
   &lt;nav aria-label="주요 메뉴"&gt;
     &lt;a href="index.html"&gt;홈&lt;/a&gt;
-    &lt;a href="manual.html"&gt;Manual&lt;/a&gt;
+    &lt;a href="manual.html"&gt;웹제작절차&lt;/a&gt;
   &lt;/nav&gt;
 
   &lt;main&gt;
@@ -182,7 +184,7 @@
 &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
 &lt;title&gt;사피엔스 — 새 페이지&lt;/title&gt;
 &lt;script&gt;try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}&lt;/script&gt;
-&lt;link rel="stylesheet" href="assets/style.css?v=labels-20"&gt;
+&lt;link rel="stylesheet" href="assets/style.css?v=labels-21"&gt;
 &lt;/head&gt;
 &lt;body&gt;
 &lt;div class="layout"&gt;
@@ -195,13 +197,13 @@
     &lt;p&gt;내용을 작성합니다.&lt;/p&gt;
   &lt;/main&gt;
 &lt;/div&gt;
-&lt;script src="assets/common.js?v=labels-20"&gt;&lt;/script&gt;
-&lt;script src="assets/auth.js?v=labels-20"&gt;&lt;/script&gt;
-&lt;script src="assets/theme.js?v=labels-20"&gt;&lt;/script&gt;
+&lt;script src="assets/common.js?v=labels-21"&gt;&lt;/script&gt;
+&lt;script src="assets/auth.js?v=labels-21"&gt;&lt;/script&gt;
+&lt;script src="assets/theme.js?v=labels-21"&gt;&lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
       </div>
-      <p>그다음 <code>assets/common.js</code>의 메뉴 목록에 링크를 추가하고, <code>.github/scripts/pages.txt</code>와 <code>search.html</code>에도 등록해야 합니다. 자세한 절차는 <a href="manual-connect.html">06 · 제작항목 연결</a>에서 다룹니다.</p>
+      <p>그다음 <code>assets/common.js</code>의 메뉴 목록에 링크를 추가하고, <code>.github/scripts/pages.txt</code>와 <code>search.html</code>에도 등록해야 합니다. 자세한 절차는 <a href="manual-connect.html">07 · 제작항목 연결</a>에서 다룹니다.</p>
     </section>
 
     <section class="manual-section">
@@ -219,25 +221,54 @@
     </section>
 
     <section class="manual-section">
+      <h2>9. 메타 정보와 접근성</h2>
+      <p>검색 결과와 브라우저 탭에 보이는 정보를 채우고, 키보드와 화면 낭독기 사용자도 이용할 수 있게 만듭니다. 이 저장소의 페이지도 같은 원칙을 따릅니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">HTML</span>
+        <pre><code>&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;meta name="description" content="사피엔스 동아리의 소개와 활동을 정리한 페이지입니다."&gt;
+  &lt;title&gt;사피엔스 동아리 — 소개&lt;/title&gt;
+&lt;/head&gt;
+
+&lt;figure&gt;
+  &lt;img src="images/photo.jpg" alt="해변에서 찍은 단체 사진"
+       width="640" height="427" loading="lazy"&gt;
+  &lt;figcaption&gt;2026년 봄 활동 사진&lt;/figcaption&gt;
+&lt;/figure&gt;</code></pre>
+      </div>
+      <ul>
+        <li>페이지마다 <code>title</code>을 다르게 쓰고, <code>description</code>은 한두 문장으로 요약합니다.</li>
+        <li>이미지의 <code>alt</code>, 폼의 <code>label</code>, 제목 순서(<code>h1 → h2 → h3</code>)를 확인합니다.</li>
+        <li>링크 글자는 “여기”보다 “활동 사진 보기”처럼 목적지가 드러나게 씁니다.</li>
+        <li>색만으로 정보를 구분하지 말고 밑줄·아이콘·문구를 함께 사용합니다.</li>
+        <li>키보드 <kbd>Tab</kbd>으로 모든 메뉴와 버튼에 접근되는지 확인합니다.</li>
+      </ul>
+    </section>
+
+    <section class="manual-section">
       <h2>완료 체크리스트</h2>
       <ul class="manual-checklist">
         <li><code>practice.html</code>을 만들고 Live Server로 열었다.</li>
         <li>제목·문단·목록·링크·이미지를 각각 하나 이상 넣었다.</li>
         <li><code>header</code>, <code>main</code>, <code>section</code>, <code>footer</code>로 구조를 나눴다.</li>
         <li>입력 폼에 <code>label</code>을 연결했다.</li>
+        <li>페이지마다 <code>title</code>과 <code>description</code>을 넣었다.</li>
+        <li>이미지에 <code>alt</code>, <code>width</code>, <code>height</code>, <code>loading</code>을 적용했다.</li>
         <li>공용 사이드바를 불러오는 페이지 골격을 이해했다.</li>
       </ul>
     </section>
 
     <nav class="manual-pager" aria-label="이전·다음 안내">
-      <a class="manual-pager-prev" href="manual-vscode.html">← 01 · VS Code 설치</a>
-      <a class="manual-pager-next" href="manual-css.html">03 · CSS 제작 →</a>
+      <a class="manual-pager-prev" href="manual-vscode.html">← 02 · VS Code 설치</a>
+      <a class="manual-pager-next" href="manual-css.html">04 · CSS 제작 →</a>
     </nav>
   </main>
 </div>
-<script src="assets/common.js?v=labels-20"></script>
-<script src="assets/auth.js?v=labels-20"></script>
-<script src="assets/manual.js?v=labels-20"></script>
-<script src="assets/theme.js?v=labels-20"></script>
+<script src="assets/common.js?v=labels-21"></script>
+<script src="assets/auth.js?v=labels-21"></script>
+<script src="assets/manual.js?v=labels-21"></script>
+<script src="assets/theme.js?v=labels-21"></script>
 </body>
 </html>

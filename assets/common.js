@@ -11,8 +11,9 @@
     { label: "학습", items: [
       {
         href: "manual.html",
-        label: "Manual",
+        label: "웹제작절차",
         pages: [
+          "manual-plan.html",
           "manual-vscode.html",
           "manual-html.html",
           "manual-css.html",
@@ -20,7 +21,8 @@
           "manual-python.html",
           "manual-connect.html",
           "manual-server.html",
-          "manual-ai-cli.html"
+          "manual-ai-cli.html",
+          "manual-finish.html"
         ]
       }
     ] },

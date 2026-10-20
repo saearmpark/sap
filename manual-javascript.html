@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사피엔스 — Manual · 자바스크립트 제작</title>
+<title>사피엔스 — 웹제작절차 · 자바스크립트 제작</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-20">
+<link rel="stylesheet" href="assets/style.css?v=labels-21">
 </head>
 <body class="learning-page">
 <div class="layout">
@@ -16,11 +16,11 @@
     <nav class="manual-crumbs" aria-label="현재 위치">
       <a href="index.html">홈</a>
       <span>/</span>
-      <a href="manual.html">Manual</a>
+      <a href="manual.html">웹제작절차</a>
       <span>/</span>
       <span aria-current="page">자바스크립트 제작</span>
     </nav>
-    <div class="eyebrow">MANUAL 04</div>
+    <div class="eyebrow">웹제작절차 05</div>
     <h1>자바스크립트 제작</h1>
     <p class="manual-intro">
       JavaScript는 페이지에 <strong>동작</strong>을 붙입니다. 버튼을 눌렀을 때 반응하고, 입력값을 검사하고,
@@ -219,6 +219,54 @@ loadNews();</code></pre>
     </section>
 
     <section class="manual-section">
+      <h2>9. 폼 데이터는 어디로 갈까요?</h2>
+      <p>지금까지 만든 폼은 브라우저 안에서만 동작합니다. 새로고침하면 입력값이 사라지고, 다른 사람과 공유되지도 않습니다. 입력값을 저장하거나 다른 사람에게 보내려면 <strong>서버</strong>가 필요합니다.</p>
+      <div class="manual-flow" aria-label="폼 전송 흐름">
+        <span>브라우저 폼</span> →
+        <span>fetch</span> →
+        <span>서버 API</span> →
+        <span>데이터베이스</span>
+      </div>
+      <p>GitHub Pages는 HTML·CSS·JS 같은 정적 파일만 제공하며 Python이나 Java 서버 코드를 실행하지 않습니다. 서버는 별도 호스팅(예: Render)이나 학교·회사 서버에 두고, 프런트엔드에서는 그 API 주소로 요청합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">JavaScript</span>
+        <pre><code>async function sendMessage(payload) {
+  const response = await fetch("/api/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`저장 실패: HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+document.querySelector("#contact-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+
+  try {
+    await sendMessage({
+      name: form.get("name"),
+      message: form.get("message")
+    });
+    alert("전송했습니다.");
+  } catch (error) {
+    console.error(error);
+    alert("전송하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+  }
+});</code></pre>
+      </div>
+      <aside class="manual-callout is-warn">
+        <strong>중요</strong>
+        <p><code>/api/messages</code>는 설명을 위한 예시 주소입니다. 실제로는 그 주소를 제공하는 서버가 있어야 하며, 이 저장소의 API는 로그인이나 권한이 필요한 경우가 있습니다. 서버 배포와 환경 변수는 <a href="manual-server.html">08 · 서버 업데이트</a>에서 다룹니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
       <h2>완료 체크리스트</h2>
       <ul class="manual-checklist">
         <li>버튼 클릭으로 화면 글자가 바뀌게 했다.</li>
@@ -226,18 +274,19 @@ loadNews();</code></pre>
         <li><code>textContent</code>로 요소를 추가했다.</li>
         <li><code>localStorage</code>에 값을 저장하고 다시 읽었다.</li>
         <li><code>fetch</code> 실패 상황을 <code>try/catch</code>로 처리했다.</li>
+        <li>데이터를 영구 저장하려면 서버와 데이터베이스가 필요함을 이해했다.</li>
       </ul>
     </section>
 
     <nav class="manual-pager" aria-label="이전·다음 안내">
-      <a class="manual-pager-prev" href="manual-css.html">← 03 · CSS 제작</a>
-      <a class="manual-pager-next" href="manual-python.html">05 · 파이썬 제작 →</a>
+      <a class="manual-pager-prev" href="manual-css.html">← 04 · CSS 제작</a>
+      <a class="manual-pager-next" href="manual-python.html">06 · 파이썬 제작 →</a>
     </nav>
   </main>
 </div>
-<script src="assets/common.js?v=labels-20"></script>
-<script src="assets/auth.js?v=labels-20"></script>
-<script src="assets/manual.js?v=labels-20"></script>
-<script src="assets/theme.js?v=labels-20"></script>
+<script src="assets/common.js?v=labels-21"></script>
+<script src="assets/auth.js?v=labels-21"></script>
+<script src="assets/manual.js?v=labels-21"></script>
+<script src="assets/theme.js?v=labels-21"></script>
 </body>
 </html>

@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사피엔스 — Manual · CSS 제작</title>
+<title>사피엔스 — 웹제작절차 · CSS 제작</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-20">
+<link rel="stylesheet" href="assets/style.css?v=labels-21">
 </head>
 <body class="learning-page">
 <div class="layout">
@@ -16,11 +16,11 @@
     <nav class="manual-crumbs" aria-label="현재 위치">
       <a href="index.html">홈</a>
       <span>/</span>
-      <a href="manual.html">Manual</a>
+      <a href="manual.html">웹제작절차</a>
       <span>/</span>
       <span aria-current="page">CSS 제작</span>
     </nav>
-    <div class="eyebrow">MANUAL 03</div>
+    <div class="eyebrow">웹제작절차 04</div>
     <h1>CSS 제작</h1>
     <p class="manual-intro">
       CSS는 HTML 뼈대에 <strong>색·간격·글꼴·배치</strong>를 입히는 언어입니다.
@@ -39,7 +39,7 @@
         <span class="manual-code-label">index.html</span>
         <pre><code>&lt;head&gt;
   &lt;meta charset="UTF-8"&gt;
-  &lt;link rel="stylesheet" href="assets/style.css?v=labels-20"&gt;
+  &lt;link rel="stylesheet" href="assets/style.css?v=labels-21"&gt;
 &lt;/head&gt;</code></pre>
       </div>
       <div class="manual-code">
@@ -52,7 +52,7 @@
   background: #fafafa;
 }</code></pre>
       </div>
-      <p><code>?v=labels-20</code>은 캐시 버전입니다. CSS를 크게 바꿨는데 브라우저가 예전 파일을 계속 쓰는 것 같으면 이 값을 올립니다.</p>
+      <p><code>?v=labels-21</code>은 캐시 버전입니다. CSS를 크게 바꿨는데 브라우저가 예전 파일을 계속 쓰는 것 같으면 이 값을 올립니다.</p>
     </section>
 
     <section class="manual-section">
@@ -222,7 +222,7 @@ body {
   color: var(--ink);
 }</code></pre>
       </div>
-      <p>테마 값은 <code>document.documentElement.dataset.theme = "dark"</code>처럼 <code>html</code>의 <code>data-theme</code> 속성을 바꿔 적용합니다. 새로고침 전에 저장하려면 <code>localStorage</code>를 사용합니다(04장).</p>
+      <p>테마 값은 <code>document.documentElement.dataset.theme = "dark"</code>처럼 <code>html</code>의 <code>data-theme</code> 속성을 바꿔 적용합니다. 새로고침 전에 저장하려면 <code>localStorage</code>를 사용합니다(05장).</p>
     </section>
 
     <section class="manual-section">
@@ -266,6 +266,54 @@ body {
     </section>
 
     <section class="manual-section">
+      <h2>10. 읽기 쉽고 접근성 좋은 화면</h2>
+      <p>예쁜 것보다 먼저 읽기 편해야 합니다. 글자 크기와 줄 간격, 대비, 키보드 포커스를 기본값으로 정해 두면 페이지마다 흔들리지 않습니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">CSS</span>
+        <pre><code>body {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #1f2937;
+  background: #ffffff;
+}
+
+.article {
+  max-width: 68ch;   /* 한 줄이 너무 길어지지 않게 */
+}
+
+a {
+  color: #0b5cad;
+  text-underline-offset: 3px;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid #b45309;
+  outline-offset: 2px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}</code></pre>
+      </div>
+      <ul>
+        <li>본문은 16px 이상, 줄 간격은 1.6~1.8이 읽기 편합니다. 한 줄은 대략 45~75자로 유지합니다.</li>
+        <li>본문 글자와 배경의 대비는 4.5:1 이상을 목표로 합니다. 연한 회색 글자는 특히 주의합니다.</li>
+        <li>링크·버튼의 기본 포커스 표시를 지웠다면 반드시 대체 표시를 넣습니다.</li>
+        <li>다크 모드는 색을 단순히 반전하지 말고, 어두운 배경에서도 대비를 다시 확인합니다.</li>
+        <li>이미지는 <code>max-width: 100%</code>로 화면 밖으로 넘치지 않게 합니다.</li>
+      </ul>
+    </section>
+
+    <section class="manual-section">
       <h2>완료 체크리스트</h2>
       <ul class="manual-checklist">
         <li>외부 CSS 파일을 만들어 HTML에 연결했다.</li>
@@ -273,18 +321,19 @@ body {
         <li>Flexbox로 가로 배치를, Grid로 카드 배치를 해 봤다.</li>
         <li>760px 이하에서 한 열로 바뀌는 반응형 규칙을 넣었다.</li>
         <li>CSS 변수로 색을 관리하고 다크 모드 값을 따로 정의했다.</li>
+        <li>본문 크기·줄 간격·대비와 키보드 포커스를 점검했다.</li>
       </ul>
     </section>
 
     <nav class="manual-pager" aria-label="이전·다음 안내">
-      <a class="manual-pager-prev" href="manual-html.html">← 02 · HTML 제작</a>
-      <a class="manual-pager-next" href="manual-javascript.html">04 · 자바스크립트 제작 →</a>
+      <a class="manual-pager-prev" href="manual-html.html">← 03 · HTML 제작</a>
+      <a class="manual-pager-next" href="manual-javascript.html">05 · 자바스크립트 제작 →</a>
     </nav>
   </main>
 </div>
-<script src="assets/common.js?v=labels-20"></script>
-<script src="assets/auth.js?v=labels-20"></script>
-<script src="assets/manual.js?v=labels-20"></script>
-<script src="assets/theme.js?v=labels-20"></script>
+<script src="assets/common.js?v=labels-21"></script>
+<script src="assets/auth.js?v=labels-21"></script>
+<script src="assets/manual.js?v=labels-21"></script>
+<script src="assets/theme.js?v=labels-21"></script>
 </body>
 </html>

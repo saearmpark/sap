@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사피엔스 — 웹제작절차 · 첫 웹사이트 완성</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-21">
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main manual-page">
+    <nav class="manual-crumbs" aria-label="현재 위치">
+      <a href="index.html">홈</a>
+      <span>/</span>
+      <a href="manual.html">웹제작절차</a>
+      <span>/</span>
+      <span aria-current="page">첫 웹사이트 완성</span>
+    </nav>
+    <div class="eyebrow">웹제작절차 10</div>
+    <h1>첫 웹사이트 완성</h1>
+    <p class="manual-intro">
+      앞에서 배운 기획·HTML·CSS·JavaScript·배포를 한 번에 연결해 <strong>1페이지 포트폴리오</strong>를 완성합니다.
+      코드를 그대로 따라 한 뒤 내 문구와 사진으로 바꾸면 첫 웹사이트가 됩니다.
+    </p>
+    <div class="manual-meta">
+      <span>난이도 · 초급</span>
+      <span>예상 시간 · 40분</span>
+      <span>준비물 · VS Code, 웹 브라우저, GitHub 계정</span>
+    </div>
+
+    <section class="manual-section">
+      <h2>1. 완성할 사이트</h2>
+      <p>한 페이지 안에 소개, 프로젝트, 연락 폼을 담고, 메뉴를 누르면 해당 위치로 이동하는 사이트를 만듭니다. 페이지를 여러 장으로 나누는 방법은 07단계에서 다룹니다.</p>
+      <div class="manual-flow">
+        <span>머리글·메뉴</span> → <span>소개</span> → <span>프로젝트</span> → <span>연락 폼</span> → <span>바닥글</span>
+      </div>
+      <p>완성 후에는 GitHub Pages에 올려 주소로 접속할 수 있게 합니다. 로그인이나 결제는 넣지 않습니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>2. 폴더와 파일 만들기</h2>
+      <p>VS Code에서 빈 폴더 <code>my-site</code>를 열고 아래 구조대로 파일을 만듭니다. 폴더를 먼저 만들고 그 안에 파일을 만드는 순서가 편합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">폴더 구조</span>
+        <pre><code>my-site/
+├── index.html
+└── assets/
+    ├── css/
+    │   └── style.css
+    ├── js/
+    │   └── main.js
+    └── images/
+        └── profile.jpg</code></pre>
+      </div>
+      <aside class="manual-callout is-tip">
+        <strong>TIP</strong>
+        <p>이미지는 내 사진이나 직접 만든 이미지를 사용하세요. 지금 사진이 없다면 <code>profile.jpg</code> 대신 색이 들어간 간단한 이미지를 임시로 넣어도 됩니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>3. HTML 작성하기</h2>
+      <p><code>index.html</code>에 아래 내용을 입력합니다. 제목, 설명, 메뉴, 본문, 연락 폼, 바닥글이 모두 들어 있습니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">index.html</span>
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="ko"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;meta name="description" content="사피엔스의 활동과 프로젝트를 소개하는 포트폴리오입니다."&gt;
+  &lt;title&gt;사피엔스 — 포트폴리오&lt;/title&gt;
+  &lt;link rel="stylesheet" href="assets/css/style.css"&gt;
+  &lt;script src="assets/js/main.js" defer&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;header class="site-header"&gt;
+    &lt;a class="logo" href="#top"&gt;사피엔스&lt;/a&gt;
+    &lt;nav aria-label="주요 메뉴"&gt;
+      &lt;a href="#about"&gt;소개&lt;/a&gt;
+      &lt;a href="#projects"&gt;프로젝트&lt;/a&gt;
+      &lt;a href="#contact"&gt;연락&lt;/a&gt;
+    &lt;/nav&gt;
+  &lt;/header&gt;
+
+  &lt;main id="top"&gt;
+    &lt;section class="hero"&gt;
+      &lt;p class="eyebrow"&gt;PORTFOLIO&lt;/p&gt;
+      &lt;h1&gt;배우고 만든 것을 기록합니다&lt;/h1&gt;
+      &lt;p&gt;HTML, CSS, JavaScript로 작은 웹사이트를 직접 만들고 있습니다.&lt;/p&gt;
+      &lt;a class="button" href="#projects"&gt;프로젝트 보기&lt;/a&gt;
+    &lt;/section&gt;
+
+    &lt;section id="about" class="section"&gt;
+      &lt;h2&gt;소개&lt;/h2&gt;
+      &lt;div class="about-grid"&gt;
+        &lt;img src="assets/images/profile.jpg" alt="프로필 사진" width="320" height="320" loading="lazy"&gt;
+        &lt;div&gt;
+          &lt;p&gt;안녕하세요. 웹 제작을 배우며 만든 결과물을 이곳에 정리합니다.&lt;/p&gt;
+          &lt;p&gt;관심 분야: 웹 프론트엔드, Python 자동화, 문서 정리&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section id="projects" class="section"&gt;
+      &lt;h2&gt;프로젝트&lt;/h2&gt;
+      &lt;div class="cards"&gt;
+        &lt;article class="card"&gt;
+          &lt;h3&gt;학습 기록 사이트&lt;/h3&gt;
+          &lt;p&gt;HTML과 CSS로 만든 첫 번째 다중 페이지 사이트입니다.&lt;/p&gt;
+        &lt;/article&gt;
+        &lt;article class="card"&gt;
+          &lt;h3&gt;텍스트 집계 도구&lt;/h3&gt;
+          &lt;p&gt;Python으로 폴더의 텍스트 파일을 읽어 줄 수와 단어 수를 세었습니다.&lt;/p&gt;
+        &lt;/article&gt;
+        &lt;article class="card"&gt;
+          &lt;h3&gt;오늘의 날씨&lt;/h3&gt;
+          &lt;p&gt;공개 API에서 데이터를 받아 화면에 표시하는 연습을 했습니다.&lt;/p&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section id="contact" class="section"&gt;
+      &lt;h2&gt;연락&lt;/h2&gt;
+      &lt;form id="contact-form" novalidate&gt;
+        &lt;label for="name"&gt;이름&lt;/label&gt;
+        &lt;input id="name" name="name" type="text" autocomplete="name" required&gt;
+
+        &lt;label for="email"&gt;이메일&lt;/label&gt;
+        &lt;input id="email" name="email" type="email" autocomplete="email" required&gt;
+
+        &lt;label for="message"&gt;내용&lt;/label&gt;
+        &lt;textarea id="message" name="message" rows="4" required&gt;&lt;/textarea&gt;
+
+        &lt;button class="button" type="submit"&gt;보내기&lt;/button&gt;
+        &lt;p id="form-status" class="form-status" role="status" aria-live="polite"&gt;&lt;/p&gt;
+      &lt;/form&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+
+  &lt;footer class="site-footer"&gt;
+    &lt;p&gt;© &lt;span id="year"&gt;2026&lt;/span&gt; 사피엔스&lt;/p&gt;
+  &lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+      </div>
+      <p><code>defer</code>를 붙이면 HTML을 모두 읽은 뒤 JavaScript가 실행됩니다. <code>#about</code>처럼 같은 페이지의 id를 링크하면 그 위치로 이동합니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>4. CSS 작성하기</h2>
+      <p><code>assets/css/style.css</code>에 아래 내용을 입력합니다. 색 변수, 여백, 카드 배치, 모바일 대응, 자동 다크 모드가 들어 있습니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">assets/css/style.css</span>
+        <pre><code>:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --ink: #1f2328;
+  --ink-soft: #5b6472;
+  --border: #dfe3e8;
+  --accent: #1d4ed8;
+  --accent-ink: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171a;
+    --surface: #202329;
+    --ink: #f2f3f5;
+    --ink-soft: #b6bcc6;
+    --border: #353a42;
+    --accent: #7aa2ff;
+    --accent-ink: #101318;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.7;
+}
+img { display: block; max-width: 100%; height: auto; }
+a { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 18px 20px;
+}
+.logo { color: var(--ink); font-weight: 700; text-decoration: none; }
+.site-header nav { display: flex; gap: 16px; }
+.site-header nav a { color: var(--ink-soft); text-decoration: none; }
+.site-header nav a:hover { color: var(--accent); text-decoration: underline; }
+
+.hero { max-width: 960px; margin: 0 auto; padding: 72px 20px 56px; }
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.hero h1 {
+  max-width: 16ch;
+  margin: 0 0 16px;
+  font-size: clamp(30px, 6vw, 52px);
+  line-height: 1.2;
+}
+.hero p { max-width: 56ch; color: var(--ink-soft); }
+
+.button {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 10px 18px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:hover { opacity: 0.88; }
+
+.section {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 20px;
+  border-top: 1px solid var(--border);
+}
+.section h2 { margin: 0 0 20px; font-size: 26px; }
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.about-grid img { border-radius: 16px; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.card {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.card h3 { margin: 0 0 8px; font-size: 18px; }
+.card p { margin: 0; color: var(--ink-soft); }
+
+form { display: grid; gap: 8px; max-width: 560px; }
+label { font-weight: 600; }
+input, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+input:focus, textarea:focus { border-color: var(--accent); }
+.form-status { min-height: 24px; margin: 4px 0 0; color: var(--ink-soft); }
+
+.site-footer {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px 20px 40px;
+  border-top: 1px solid var(--border);
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .hero { padding-top: 44px; }
+  .about-grid { grid-template-columns: 1fr; }
+  .about-grid img { width: 160px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}</code></pre>
+      </div>
+      <aside class="manual-callout is-tip">
+        <strong>TIP</strong>
+        <p><code>prefers-color-scheme</code>는 운영체제의 다크 모드 설정을 자동으로 따릅니다. 직접 토글 버튼을 만들고 싶다면 04단계의 CSS 변수와 <code>data-theme</code> 방식을 사용하세요.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>5. JavaScript 작성하기</h2>
+      <p><code>assets/js/main.js</code>에는 현재 연도를 표시하고, 연락 폼의 빈 값과 이메일 형식을 확인하는 코드를 넣습니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">assets/js/main.js</span>
+        <pre><code>const year = document.querySelector("#year");
+if (year) year.textContent = new Date().getFullYear();
+
+const form = document.querySelector("#contact-form");
+const statusEl = document.querySelector("#form-status");
+
+if (form &amp;&amp; statusEl) {
+  form.addEventListener("submit", (event) =&gt; {
+    event.preventDefault();
+
+    const name = form.elements.name.value.trim();
+    const email = form.elements.email.value.trim();
+    const message = form.elements.message.value.trim();
+
+    if (!name || !email || !message) {
+      statusEl.textContent = "이름, 이메일, 내용을 모두 입력해 주세요.";
+      return;
+    }
+
+    if (!email.includes("@")) {
+      statusEl.textContent = "이메일 주소를 확인해 주세요.";
+      form.elements.email.focus();
+      return;
+    }
+
+    statusEl.textContent = `${name}님, 입력을 확인했습니다. 실제 전송 기능은 서버가 필요합니다.`;
+    form.reset();
+  });
+}</code></pre>
+      </div>
+      <aside class="manual-callout is-warn">
+        <strong>주의</strong>
+        <p>이 폼은 화면에서 입력값을 확인할 뿐, 어디에도 저장하거나 전송하지 않습니다. 실제로 메일을 보내거나 데이터를 저장하려면 서버나 외부 서비스가 필요하며, 서버에서도 입력값을 다시 검증해야 합니다. 05단계의 <code>fetch</code>와 이 저장소의 Java API가 그 예입니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>6. 이미지 넣기</h2>
+      <p><code>assets/images/profile.jpg</code> 자리에 내 사진을 넣습니다. 파일명이 다르면 HTML의 <code>src</code>도 같은 이름으로 바꿉니다.</p>
+      <ul>
+        <li>사진은 정사각형에 가깝게 자르고, 가로 400~800px 정도로 줄입니다.</li>
+        <li><code>alt</code>에는 “프로필 사진”보다 “웃고 있는 사피엔스의 프로필 사진”처럼 구체적으로 적습니다.</li>
+        <li>프로젝트 이미지를 추가할 때는 카드 안에 <code>&lt;img&gt;</code>를 넣고 <code>width</code>, <code>height</code>, <code>loading="lazy"</code>를 함께 적습니다.</li>
+      </ul>
+    </section>
+
+    <section class="manual-section">
+      <h2>7. 로컬에서 확인하기</h2>
+      <p>VS Code에서 <code>index.html</code>을 열고 <strong>Open with Live Server</strong>로 확인합니다. 파일을 저장하면 브라우저가 자동으로 새로고침됩니다.</p>
+      <ul>
+        <li>메뉴의 소개·프로젝트·연락 링크가 각 위치로 이동하는가.</li>
+        <li>창 너비를 360px까지 줄였을 때 가로 스크롤이 생기지 않는가.</li>
+        <li><kbd>Tab</kbd> 키로 메뉴와 폼을 이동할 수 있고 포커스가 보이는가.</li>
+        <li>폼을 빈 값으로 제출하면 안내 문구가 나오는가.</li>
+        <li><kbd>F12</kbd> Console에 빨간 오류가 없는가.</li>
+        <li>이미지가 깨지지 않고 설명이 읽히는가.</li>
+      </ul>
+      <aside class="manual-callout">
+        <strong>참고</strong>
+        <p>운영체제를 다크 모드로 바꾸면 화면 색도 자동으로 바뀝니다. 라이트·다크 모드에서 각각 글자와 배경 대비를 확인하세요.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>8. GitHub Pages에 올리기</h2>
+      <ol class="manual-steps">
+        <li><strong>저장소를 만듭니다.</strong> GitHub에서 새 저장소(<code>my-site</code>)를 만들고 공개 범위를 정합니다. README로 초기화하지 않은 빈 저장소를 사용합니다.</li>
+        <li>
+          <strong>파일을 올립니다.</strong>
+          VS Code 터미널에서 아래 명령을 차례대로 실행합니다. GitHub 주소는 내 저장소 주소로 바꿉니다.
+          <div class="manual-code">
+            <span class="manual-code-label">PowerShell</span>
+            <pre><code>git init
+git add .
+git commit -m "Create first portfolio"
+git branch -M main
+git remote add origin https://github.com/내아이디/my-site.git
+git push -u origin main</code></pre>
+          </div>
+        </li>
+        <li><strong>Pages를 켭니다.</strong> 저장소의 <strong>Settings → Pages</strong>에서 배포 브랜치를 <code>main</code>, 폴더를 <code>/ (root)</code>로 지정합니다.</li>
+        <li><strong>주소를 확인합니다.</strong> <code>https://내아이디.github.io/my-site/</code> 형태의 주소가 표시됩니다.</li>
+        <li><strong>1~2분 기다립니다.</strong> 배포가 끝나기 전에는 이전 화면이나 404가 보일 수 있습니다.</li>
+      </ol>
+      <p>이미 <code>.git</code>이 있거나 <code>origin</code>이 연결되어 있다면 <code>git init</code>과 <code>git remote add</code>는 건너뜁니다. 저장소를 처음 만드는 명령과 Pages 설정은 <a href="manual-server.html">08 · 서버 업데이트</a>에 더 자세히 정리되어 있습니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>9. 배포 후 확인하기</h2>
+      <ul>
+        <li>시크릿 창에서 배포 주소를 열어 캐시 없는 화면을 확인합니다.</li>
+        <li>모든 메뉴와 이미지가 404 없이 열리는지 봅니다.</li>
+        <li>휴대폰에서 직접 열어 글자 크기와 버튼 크기를 확인합니다.</li>
+        <li>콘솔 오류와 네트워크 404가 없는지 확인합니다.</li>
+        <li>수정 후 다시 푸시했을 때 새 내용이 반영되는지 확인합니다.</li>
+      </ul>
+      <aside class="manual-callout is-warn">
+        <strong>주의</strong>
+        <p>비밀번호, API 키, 주민번호, 고객 정보는 절대 저장소에 올리지 않습니다. 공개 저장소는 누구나 볼 수 있습니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>10. 다음 단계</h2>
+      <ul>
+        <li><strong>페이지 늘리기</strong> — 07단계의 상대 경로와 공용 메뉴를 참고해 소개·활동 페이지를 추가합니다.</li>
+        <li><strong>데이터 연결</strong> — 05단계의 <code>fetch</code>로 공개 API나 이 저장소의 Java API를 붙여 봅니다.</li>
+        <li><strong>기록 남기기</strong> — 09단계처럼 AI CLI에 작은 수정을 맡기고 <code>git diff</code>로 검토합니다.</li>
+        <li><strong>개선하기</strong> — 이미지 최적화, 메타 설명, 404 페이지, 접근성 점검을 하나씩 추가합니다.</li>
+      </ul>
+    </section>
+
+    <section class="manual-section">
+      <h2>완료 체크리스트</h2>
+      <ul class="manual-checklist">
+        <li>폴더 구조와 <code>index.html</code>, CSS, JavaScript 파일을 만들었다.</li>
+        <li>메뉴 링크가 같은 페이지의 각 위치로 이동한다.</li>
+        <li>360px에서 가로 스크롤 없이 읽을 수 있다.</li>
+        <li>폼 검증 문구와 현재 연도가 표시된다.</li>
+        <li>이미지에 <code>alt</code>와 크기 속성을 넣었다.</li>
+        <li>콘솔 오류 없이 로컬에서 확인했다.</li>
+        <li>GitHub Pages 주소로 접속해 메뉴·이미지·폼을 다시 확인했다.</li>
+      </ul>
+    </section>
+
+    <nav class="manual-pager" aria-label="이전·다음 안내">
+      <a class="manual-pager-prev" href="manual-ai-cli.html">← 09 · AI CLI 활용 절차</a>
+      <a class="manual-pager-next" href="manual.html">웹제작절차 목차 →</a>
+    </nav>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-21"></script>
+<script src="assets/auth.js?v=labels-21"></script>
+<script src="assets/manual.js?v=labels-21"></script>
+<script src="assets/theme.js?v=labels-21"></script>
+</body>
+</html>

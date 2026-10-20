@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사피엔스 — Manual · 파이썬 제작</title>
+<title>사피엔스 — 웹제작절차 · 파이썬 제작</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-20">
+<link rel="stylesheet" href="assets/style.css?v=labels-21">
 </head>
 <body class="learning-page">
 <div class="layout">
@@ -16,14 +16,15 @@
     <nav class="manual-crumbs" aria-label="현재 위치">
       <a href="index.html">홈</a>
       <span>/</span>
-      <a href="manual.html">Manual</a>
+      <a href="manual.html">웹제작절차</a>
       <span>/</span>
       <span aria-current="page">파이썬 제작</span>
     </nav>
-    <div class="eyebrow">MANUAL 05</div>
+    <div class="eyebrow">웹제작절차 06</div>
     <h1>파이썬 제작</h1>
     <p class="manual-intro">
       Python은 반복 작업을 자동화하고, 파일을 정리하고, 작은 데스크톱 도구를 만드는 데 편한 언어입니다.
+      정적 웹사이트 제작에는 필수가 아니지만, 이미지·데이터·링크를 한꺼번에 점검할 때 큰 도움이 됩니다.
       설치부터 가상환경, 패키지, 파일 처리, 실행파일 만들기까지 순서대로 진행합니다.
     </p>
     <div class="manual-meta">
@@ -209,6 +210,38 @@ pyinstaller --onefile --noconsole tool.py
     </section>
 
     <section class="manual-section">
+      <h2>9. 웹사이트와 Python의 역할 구분</h2>
+      <p>브라우저는 HTML·CSS·JavaScript를 실행하지만 Python은 직접 실행하지 않습니다. Python은 웹사이트를 만들거나 점검하는 <strong>내 컴퓨터 쪽 도구</strong>, 또는 별도로 실행되는 <strong>서버</strong>에서 사용합니다.</p>
+      <div class="manual-table">
+        <table>
+          <thead><tr><th>하고 싶은 일</th><th>사용하는 곳</th></tr></thead>
+          <tbody>
+            <tr><td>화면 구성과 클릭 동작</td><td>브라우저의 HTML·CSS·JavaScript</td></tr>
+            <tr><td>이미지 이름·크기 일괄 정리</td><td>내 PC의 Python 스크립트</td></tr>
+            <tr><td>데이터로 HTML 표 생성</td><td>내 PC의 Python 스크립트</td></tr>
+            <tr><td>회원·게시글 저장 API</td><td>서버에서 실행되는 Python/Java</td></tr>
+            <tr><td>GitHub Pages 배포</td><td>정적 파일만 배포 (Python 실행 안 함)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="manual-code">
+        <span class="manual-code-label">check_pages.py</span>
+        <pre><code>from pathlib import Path
+
+root = Path(".")
+for path in sorted(root.rglob("*.html")):
+    print(path)
+
+print(f"HTML 파일 {len(list(root.rglob('*.html')))}개")</code></pre>
+      </div>
+      <p>이런 스크립트로 페이지 목록을 뽑거나, 이미지 용량을 줄이거나, 깨진 링크를 찾을 수 있습니다. 반대로 로그인·결제·게시글 저장처럼 브라우저 밖에서 데이터를 보관해야 한다면 서버가 필요합니다. Flask·FastAPI로 만든 서버는 GitHub Pages가 아니라 Render 같은 서버 호스팅에 올리고, 프런트엔드에서 <code>fetch</code>로 호출합니다.</p>
+      <aside class="manual-callout is-warn">
+        <strong>주의</strong>
+        <p>API 키나 데이터베이스 비밀번호를 HTML·JavaScript·배포용 실행파일에 넣지 마세요. 서버의 환경 변수에 보관하고, 공개 저장소에는 예시 값만 둡니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
       <h2>완료 체크리스트</h2>
       <ul class="manual-checklist">
         <li><code>py --version</code>으로 Python 설치를 확인했다.</li>
@@ -217,18 +250,19 @@ pyinstaller --onefile --noconsole tool.py
         <li><code>requirements.txt</code>로 패키지 목록을 저장했다.</li>
         <li>텍스트 파일을 읽어 결과를 출력하는 스크립트를 작성했다.</li>
         <li>PyInstaller의 역할과 생성물을 커밋하지 않는 이유를 이해했다.</li>
+        <li>브라우저는 Python을 실행하지 않으며, 서버가 필요한 경우를 구분할 수 있다.</li>
       </ul>
     </section>
 
     <nav class="manual-pager" aria-label="이전·다음 안내">
-      <a class="manual-pager-prev" href="manual-javascript.html">← 04 · 자바스크립트 제작</a>
-      <a class="manual-pager-next" href="manual-connect.html">06 · 제작항목 연결 →</a>
+      <a class="manual-pager-prev" href="manual-javascript.html">← 05 · 자바스크립트 제작</a>
+      <a class="manual-pager-next" href="manual-connect.html">07 · 제작항목 연결 →</a>
     </nav>
   </main>
 </div>
-<script src="assets/common.js?v=labels-20"></script>
-<script src="assets/auth.js?v=labels-20"></script>
-<script src="assets/manual.js?v=labels-20"></script>
-<script src="assets/theme.js?v=labels-20"></script>
+<script src="assets/common.js?v=labels-21"></script>
+<script src="assets/auth.js?v=labels-21"></script>
+<script src="assets/manual.js?v=labels-21"></script>
+<script src="assets/theme.js?v=labels-21"></script>
 </body>
 </html>

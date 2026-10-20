@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사피엔스 — Manual · 서버 업데이트</title>
+<title>사피엔스 — 웹제작절차 · 서버 업데이트</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-20">
+<link rel="stylesheet" href="assets/style.css?v=labels-21">
 </head>
 <body class="learning-page">
 <div class="layout">
@@ -16,11 +16,11 @@
     <nav class="manual-crumbs" aria-label="현재 위치">
       <a href="index.html">홈</a>
       <span>/</span>
-      <a href="manual.html">Manual</a>
+      <a href="manual.html">웹제작절차</a>
       <span>/</span>
       <span aria-current="page">서버 업데이트</span>
     </nav>
-    <div class="eyebrow">MANUAL 07</div>
+    <div class="eyebrow">웹제작절차 08</div>
     <h1>서버 업데이트</h1>
     <p class="manual-intro">
       수정한 내용을 인터넷에 반영하는 절차입니다. 이 저장소는 정적 페이지를 GitHub Pages로, Java API를 Render로 배포합니다.
@@ -47,7 +47,7 @@
     </section>
 
     <section class="manual-section">
-      <h2>2. Git 준비</h2>
+      <h2>2. Git과 GitHub 준비</h2>
       <p>Git for Windows를 설치하면 PowerShell과 VS Code 터미널에서 <code>git</code>을 사용할 수 있습니다. 처음 한 번만 이름과 이메일을 설정합니다.</p>
       <div class="manual-code">
         <span class="manual-code-label">PowerShell</span>
@@ -60,6 +60,37 @@ git config --global user.email "내 이메일"
 git status</code></pre>
       </div>
       <p>이미 저장소를 받았다면 <code>git clone</code>은 필요 없습니다. 폴더에 <code>.git</code>이 있는지 확인하세요.</p>
+
+      <h3>2-1. GitHub 저장소에 처음 올리기</h3>
+      <p>내 컴퓨터에만 있는 웹사이트를 GitHub에 올리는 순서입니다. GitHub에서 <strong>New repository</strong>를 만들 때, 로컬에 이미 파일이 있다면 README·.gitignore 추가는 체크하지 않습니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>git init
+git add .
+git commit -m "Create first website"
+git branch -M main
+git remote add origin https://github.com/내아이디/내저장소.git
+git push -u origin main</code></pre>
+      </div>
+      <ul>
+        <li><code>git init</code> — 현재 폴더를 Git 저장소로 만듭니다. 이미 <code>.git</code>이 있으면 실행하지 않습니다.</li>
+        <li><code>git remote add origin ...</code> — GitHub 저장소 주소를 <code>origin</code>이라는 이름으로 연결합니다.</li>
+        <li>인증 창이 뜨면 브라우저에서 GitHub 로그인을 완료합니다. 비밀번호를 코드에 적지 않습니다.</li>
+      </ul>
+
+      <h3>2-2. GitHub Pages 켜기</h3>
+      <p>저장소에 올렸다고 바로 웹사이트가 열리는 것은 아닙니다. 처음 한 번은 Pages를 켜야 합니다.</p>
+      <ol class="manual-steps">
+        <li>저장소의 <strong>Settings</strong> → 왼쪽 <strong>Pages</strong>로 이동합니다.</li>
+        <li><strong>Build and deployment</strong>의 Source를 <strong>Deploy from a branch</strong>로 선택합니다.</li>
+        <li>Branch를 <strong>main</strong>, 폴더를 <strong>/ (root)</strong>로 지정하고 <strong>Save</strong>를 누릅니다.</li>
+        <li><strong>Actions</strong> 탭의 <code>pages build and deployment</code>가 성공할 때까지 기다립니다.</li>
+        <li>표시된 주소로 접속합니다. 주소는 보통 <code>https://내아이디.github.io/저장소/</code>입니다.</li>
+      </ol>
+      <aside class="manual-callout is-warn">
+        <strong>중요</strong>
+        <p>Pages 사이트는 공개 주소로 제공됩니다. 비밀번호·API 키·개인정보를 HTML이나 JavaScript에 넣지 마세요. 없는 주소를 위한 <code>404.html</code>을 루트에 두면 안내 페이지를 보여 줄 수 있습니다.</p>
+      </aside>
     </section>
 
     <section class="manual-section">
@@ -100,7 +131,7 @@ git diff --cached</code></pre>
       <p>이 저장소는 “무엇을 했는지”가 드러나는 짧은 명령형 제목을 사용합니다. 한 커밋에는 한 가지 목적만 담습니다.</p>
       <div class="manual-code">
         <span class="manual-code-label">PowerShell</span>
-        <pre><code>git commit -m "Add beginner web production manual"
+        <pre><code>git commit -m "Add beginner web production guide"
 
 # 또는
 git commit -m "Fix calendar date contrast in dark mode"</code></pre>
@@ -130,7 +161,7 @@ git commit -m "Fix calendar date contrast in dark mode"</code></pre>
           <tbody>
             <tr><td>Java tests</td><td><code>mvn test</code> — 게임방 복구, 학습 진도 저장 등</td></tr>
             <tr><td>Static site checks</td><td>인라인 스크립트 문법, 페이지 목록 검사</td></tr>
-            <tr><td>Deploy to Pages</td><td>정적 페이지를 GitHub Pages에 배포</td></tr>
+            <tr><td>pages build and deployment</td><td>main 브랜치의 정적 파일을 GitHub Pages에 배포</td></tr>
             <tr><td>Build desktop tools</td><td>PyInstaller로 Windows 실행파일 패키징</td></tr>
           </tbody>
         </table>
@@ -163,6 +194,7 @@ mvn test</code></pre>
         <li><strong>콘솔을 봅니다.</strong> <kbd>F12</kbd> → Console에서 빨간 오류가 없는지 확인합니다.</li>
         <li><strong>API를 확인합니다.</strong> 뉴스·시세·로그인 등 실제 데이터가 필요한 기능을 한 번씩 실행합니다.</li>
         <li><strong>모바일 폭을 확인합니다.</strong> 개발자도구의 반응형 모드에서 메뉴와 표가 넘치지 않는지 봅니다.</li>
+        <li><strong>없는 주소를 확인합니다.</strong> <code>404.html</code>을 두었다면 일부러 없는 주소로 접속해 안내 페이지가 나오는지 봅니다.</li>
       </ol>
       <div class="manual-code">
         <span class="manual-code-label">확인용 주소</span>
@@ -204,20 +236,21 @@ git push origin main</code></pre>
         <li><code>git status</code>와 <code>git diff</code>로 변경을 검토했다.</li>
         <li>의도한 파일만 스테이징하고 커밋 메시지를 구체적으로 적었다.</li>
         <li><code>main</code>에 푸시하고 Actions가 성공한 것을 확인했다.</li>
+        <li>GitHub 저장소를 만들고 Pages를 <code>main</code> / <code>/ (root)</code>로 설정했다.</li>
         <li>Pages와 Render 배포 완료 후 라이브 화면을 직접 확인했다.</li>
         <li>문제가 생겼을 때 <code>git revert</code>로 되돌리는 방법을 알고 있다.</li>
       </ul>
     </section>
 
     <nav class="manual-pager" aria-label="이전·다음 안내">
-      <a class="manual-pager-prev" href="manual-connect.html">← 06 · 제작항목 연결</a>
-      <a class="manual-pager-next" href="manual-ai-cli.html">08 · AI CLI 활용 절차 →</a>
+      <a class="manual-pager-prev" href="manual-connect.html">← 07 · 제작항목 연결</a>
+      <a class="manual-pager-next" href="manual-ai-cli.html">09 · AI CLI 활용 절차 →</a>
     </nav>
   </main>
 </div>
-<script src="assets/common.js?v=labels-20"></script>
-<script src="assets/auth.js?v=labels-20"></script>
-<script src="assets/manual.js?v=labels-20"></script>
-<script src="assets/theme.js?v=labels-20"></script>
+<script src="assets/common.js?v=labels-21"></script>
+<script src="assets/auth.js?v=labels-21"></script>
+<script src="assets/manual.js?v=labels-21"></script>
+<script src="assets/theme.js?v=labels-21"></script>
 </body>
 </html>

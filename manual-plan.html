@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사피엔스 — 웹제작절차 · 웹사이트 기획</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-21">
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main manual-page">
+    <nav class="manual-crumbs" aria-label="현재 위치">
+      <a href="index.html">홈</a>
+      <span>/</span>
+      <a href="manual.html">웹제작절차</a>
+      <span>/</span>
+      <span aria-current="page">웹사이트 기획</span>
+    </nav>
+    <div class="eyebrow">웹제작절차 01</div>
+    <h1>웹사이트 기획</h1>
+    <p class="manual-intro">
+      코드를 쓰기 전에 <strong>무엇을, 누구에게, 어디까지</strong> 만들지 정합니다.
+      목표와 페이지 목록, 화면 스케치, 폴더 구조를 먼저 정해 두면 이후 작업에서 길을 잃지 않습니다.
+    </p>
+    <div class="manual-meta">
+      <span>난이도 · 입문</span>
+      <span>예상 시간 · 20분</span>
+      <span>준비물 · 메모장 또는 종이</span>
+    </div>
+
+    <section class="manual-section">
+      <h2>1. 무엇을 만들지 한 문장으로 정하기</h2>
+      <p>“웹사이트를 만든다”는 목표는 너무 넓습니다. 아래 세 가지 질문에 답하면서 범위를 좁혀 보세요.</p>
+      <ul>
+        <li><strong>누구에게 보여 줄까요?</strong> 친구, 신입 부원, 고객, 채용 담당자처럼 대상을 구체적으로 적습니다.</li>
+        <li><strong>방문자가 무엇을 하길 바라나요?</strong> 소개를 읽는다, 프로젝트를 본다, 연락처를 확인한다처럼 행동으로 적습니다.</li>
+        <li><strong>첫 버전에서 하지 않을 것은 무엇인가요?</strong> 로그인, 결제, 게시판, 실시간 채팅은 처음부터 넣지 않습니다.</li>
+      </ul>
+      <div class="manual-code">
+        <span class="manual-code-label">기획 메모 예시</span>
+        <pre><code>목표: 동아리 활동을 소개하는 3페이지 사이트
+대상: 신입 부원과 외부 방문자
+첫 버전 범위: 홈, 소개, 연락처
+하지 않을 것: 로그인, 결제, 게시판
+완료 기준: 휴대폰에서 메뉴가 보이고 연락처 링크가 동작한다</code></pre>
+      </div>
+      <aside class="manual-callout is-tip">
+        <strong>TIP</strong>
+        <p>처음에는 <strong>1~3페이지</strong>면 충분합니다. 작게 완성해서 인터넷에 올려 본 뒤, 필요한 페이지를 하나씩 추가하는 편이 훨씬 빠릅니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>2. 페이지 목록과 역할 정하기</h2>
+      <p>페이지마다 “이 화면에서 방문자가 얻는 것”을 한 줄로 적습니다. 메뉴에는 핵심 페이지만 넣고, 5개를 넘지 않게 시작하세요.</p>
+      <div class="manual-table">
+        <table>
+          <thead><tr><th>페이지</th><th>목적</th><th>들어갈 내용</th></tr></thead>
+          <tbody>
+            <tr><td>홈(index.html)</td><td>첫인상과 이동 안내</td><td>한 줄 소개, 대표 이미지, 주요 메뉴</td></tr>
+            <tr><td>소개(about.html)</td><td>누구인지 설명</td><td>소개 글, 사진, 경험</td></tr>
+            <tr><td>활동(projects.html)</td><td>결과물 보여 주기</td><td>카드 3~6개, 링크</td></tr>
+            <tr><td>연락처(contact.html)</td><td>연락 방법 안내</td><td>이메일, 폼, 운영 시간</td></tr>
+            <tr><td>404.html (선택)</td><td>없는 주소 안내</td><td>“페이지를 찾을 수 없습니다”, 홈 링크</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>각 페이지에는 <code>h1</code>을 하나만 두고, 메뉴 이름과 페이지 제목을 가능하면 같게 맞춥니다. 그래야 방문자가 현재 위치를 이해하기 쉽습니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>3. 종이에 화면 스케치하기</h2>
+      <p>디자인 도구를 배우기 전에 네모와 선으로 충분합니다. 머리글, 메뉴, 본문, 바닥글의 위치만 정해도 절반은 끝난 것입니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">스케치 예시</span>
+        <pre><code>┌──────────────────────────────┐
+│ 로고            홈 소개 연락 │
+├──────────────────────────────┤
+│                              │
+│   안녕하세요, 사피엔스입니다 │
+│   [활동 보기]                │
+│                              │
+├──────────────────────────────┤
+│ 소개   활동   연락처         │
+├──────────────────────────────┤
+│ © 2026 사피엔스              │
+└──────────────────────────────┘</code></pre>
+      </div>
+      <p>모바일 스케치도 한 장 그려 봅니다. 좁은 화면에서는 메뉴가 아래로 접히거나, 카드가 한 열로 쌓이는 모습을 미리 생각해 둡니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>4. 폴더와 파일 구조 만들기</h2>
+      <p>파일 이름은 <strong>소문자·숫자·하이픈</strong>으로 짓고, 공백이나 한글은 피합니다. GitHub Pages는 대소문자를 구분하므로 <code>About.html</code>과 <code>about.html</code>은 다른 파일입니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">권장 구조</span>
+        <pre><code>my-site/
+├── index.html
+├── about.html
+├── projects.html
+├── contact.html
+├── 404.html
+└── assets/
+    ├── css/
+    │   └── style.css
+    ├── js/
+    │   └── main.js
+    └── images/
+        ├── profile.jpg
+        └── project-01.jpg</code></pre>
+      </div>
+      <p>이 사이트처럼 <code>assets/style.css</code>와 <code>assets/common.js</code>를 바로 두어도 됩니다. 중요한 것은 <strong>한 가지 규칙을 정하고 모든 페이지에서 똑같이 쓰는 것</strong>입니다.</p>
+      <aside class="manual-callout is-warn">
+        <strong>주의</strong>
+        <p>이미지 파일명에 공백이나 한글이 들어가면 링크가 깨지기 쉽습니다. <code>profile.jpg</code>, <code>project-01.jpg</code>처럼 영문 소문자와 하이픈을 사용하세요.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>5. 글과 이미지 준비하기</h2>
+      <p>디자인보다 <strong>내용</strong>이 먼저입니다. 각 페이지에 들어갈 글을 메모장에 먼저 쓰고, 그다음 필요한 이미지를 고릅니다.</p>
+      <ul>
+        <li><strong>직접 찍거나 만든 이미지</strong>를 우선 사용합니다. 인터넷 이미지는 출처와 이용 허락을 확인합니다.</li>
+        <li>큰 사진은 가로 1600px 안팎으로 줄이고, JPEG·WebP 형식을 사용합니다.</li>
+        <li>이미지에는 항상 <code>alt</code> 설명을 붙입니다. 장식용 이미지라면 빈 <code>alt=""</code>도 가능합니다.</li>
+        <li>사진 아래에 설명이 필요하면 <code>figure</code>와 <code>figcaption</code>을 사용합니다.</li>
+      </ul>
+      <div class="manual-table">
+        <table>
+          <thead><tr><th>준비물</th><th>권장 기준</th><th>확인할 점</th></tr></thead>
+          <tbody>
+            <tr><td>대표 이미지</td><td>가로 1200~1600px</td><td>홈에서 가장 먼저 보이는가</td></tr>
+            <tr><td>프로필 사진</td><td>정사각형 400~800px</td><td>얼굴이 잘리지 않는가</td></tr>
+            <tr><td>글</td><td>한 문단 2~4문장</td><td>휴대폰에서 읽기 편한가</td></tr>
+            <tr><td>연락 정보</td><td>공개해도 되는 값</td><td>개인정보가 과하게 노출되지 않는가</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="manual-section">
+      <h2>6. 처음부터 챙길 기본 규칙</h2>
+      <ul>
+        <li><code>&lt;html lang="ko"&gt;</code>로 문서 언어를 알려 줍니다.</li>
+        <li>모든 페이지에 서로 다른 <code>&lt;title&gt;</code>과 한 줄 설명(<code>meta description</code>)을 넣습니다.</li>
+        <li>링크는 색만으로 구분하지 말고 밑줄이나 아이콘을 함께 사용합니다.</li>
+        <li>버튼과 링크는 키보드 <kbd>Tab</kbd>으로 이동할 수 있어야 합니다.</li>
+        <li>글자와 배경의 대비를 충분히 주고, 본문 글자는 최소 16px 안팎으로 시작합니다.</li>
+        <li>폼 입력에는 반드시 연결된 <code>label</code>을 붙입니다.</li>
+      </ul>
+      <aside class="manual-callout is-tip">
+        <strong>TIP</strong>
+        <p>기획 단계에서 이 규칙을 정해 두면, 나중에 페이지를 추가할 때마다 같은 품질을 유지하기 쉽습니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>7. 기획서 한 장으로 정리하기</h2>
+      <p>아래 항목을 메모장에 채우면 기획이 끝납니다. 이 메모는 작업 중간에 다시 확인하는 기준이 됩니다.</p>
+      <div class="manual-table">
+        <table>
+          <thead><tr><th>항목</th><th>예시</th></tr></thead>
+          <tbody>
+            <tr><td>사이트 이름</td><td>사피엔스 동아리</td></tr>
+            <tr><td>한 줄 소개</td><td>배움과 기록을 나누는 동아리</td></tr>
+            <tr><td>대상</td><td>신입 부원, 외부 방문자</td></tr>
+            <tr><td>페이지</td><td>홈, 소개, 활동, 연락처</td></tr>
+            <tr><td>색과 글꼴</td><td>파란색 계열, 시스템 글꼴</td></tr>
+            <tr><td>이미지</td><td>프로필 1장, 활동 사진 3장</td></tr>
+            <tr><td>완료 기준</td><td>휴대폰 메뉴, 연락처 링크, 콘솔 오류 없음</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="manual-section">
+      <h2>완료 체크리스트</h2>
+      <ul class="manual-checklist">
+        <li>사이트의 목표와 대상을 한 문장으로 적었다.</li>
+        <li>첫 버전에 넣을 페이지와 넣지 않을 기능을 정했다.</li>
+        <li>홈·소개·연락처 등 페이지 역할을 표로 정리했다.</li>
+        <li>데스크톱과 모바일 화면을 종이에 스케치했다.</li>
+        <li>폴더 구조와 파일 이름 규칙을 정했다.</li>
+        <li>글과 이미지, 접근성 기본 규칙을 확인했다.</li>
+      </ul>
+    </section>
+
+    <nav class="manual-pager" aria-label="이전·다음 안내">
+      <a class="manual-pager-prev" href="manual.html">← 웹제작절차 목차</a>
+      <a class="manual-pager-next" href="manual-vscode.html">02 · VS Code 설치 →</a>
+    </nav>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-21"></script>
+<script src="assets/auth.js?v=labels-21"></script>
+<script src="assets/manual.js?v=labels-21"></script>
+<script src="assets/theme.js?v=labels-21"></script>
+</body>
+</html>
