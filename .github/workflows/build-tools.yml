@@ -6,6 +6,9 @@ on:
     branches: [main]
     tags:
       - "tools-v*"
+    paths:
+      - "tools/desktop/**"
+      - ".github/workflows/build-tools.yml"
 
 permissions:
   contents: write

@@ -29,7 +29,7 @@ python file_renamer.py
 
 - 실행하면 `requirements.txt`와 `pyinstaller`를 설치한 뒤 `dist/` 폴더에 5개의 `.exe`를 만듭니다.
 - 만든 `.exe`는 다른 PC로 복사해 바로 실행할 수 있습니다.
-- GitHub Actions(`.github/workflows/build-tools.yml`)에서도 태그 푸시 시 `.exe`가 릴리스 첨부 파일로 만들어집니다.
+- GitHub Actions(`.github/workflows/build-tools.yml`)는 `tools/desktop` 변경 또는 수동 실행 시 `.exe` 빌드 artifact를 만들고, `tools-v*` 태그 푸시 시에는 릴리스 첨부 파일로도 올립니다.
 
 ## 사용 팁
 

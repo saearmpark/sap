@@ -33,3 +33,5 @@ jobs:
           done
       - name: Check inline scripts
         run: node .github/scripts/check-inline-scripts.mjs
+      - name: Check page list and links
+        run: node .github/scripts/check-links.mjs

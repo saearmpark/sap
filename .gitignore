@@ -21,7 +21,18 @@ backend-java/backups/
 /data/
 backend-java/data/
 
-# IDE/도구가 만드는 로컬 설정과 잔여물
+# 환경 변수와 로컬 로그는 저장소에 포함하지 않습니다.
+.env
+.env.*
+!.env.example
+*.log
+
+# IDE/운영체제가 만드는 로컬 설정과 잔여물
+/.vscode/
+/.idea/
 /backend-java/.vscode/
+Thumbs.db
+Desktop.ini
+.DS_Store
 .github/modernize/
 backend-java/.github/modernize/

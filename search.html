@@ -62,6 +62,7 @@
       { key: "game", label: "게임제작" },
       { key: "learn", label: "앱제작" },
       { key: "manual", label: "웹제작절차" },
+      { key: "apps", label: "공용자료" },
       { key: "news", label: "소식" },
       { key: "board", label: "게시판" },
       { key: "file", label: "자료실" }
@@ -95,6 +96,12 @@
           });
         } catch {}
 
+        staticIndex.push({
+          key: "apps",
+          title: "업무용 데스크톱 도구",
+          text: "공용자료 InputRecorder FileRenamer DuplicateFinder FolderOrganizer ImageBatch 키보드 마우스 녹화 파일 이름 변경 중복 파일 찾기 폴더 정리 이미지 일괄 변환",
+          href: "apps.html"
+        });
         staticIndex.push({
           key: "news",
           title: "이슈사항",

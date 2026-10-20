@@ -17,7 +17,7 @@ Keep static pages at the root and reuse shared assets where practical. Follow ex
 
 ## Testing Guidelines
 
-For Java changes, run `mvn test`; the checked-in tests cover game-room recovery and lesson progress persistence. For UI, API, and game changes, launch the affected page or service and check the changed behavior manually. Include the command or manual checks performed in your change description.
+For Java changes, run `mvn test`; the checked-in tests cover authentication, game persistence and room recovery, score storage, WebSocket handling, news collection, and stock quote parsing. For static-site changes, run `node .github/scripts/check-inline-scripts.mjs` and `node .github/scripts/check-links.mjs`. For UI, API, and game changes, also launch the affected page or service and check the changed behavior manually. Include the command or manual checks performed in your change description.
 
 ## Commit & Pull Request Guidelines
 
