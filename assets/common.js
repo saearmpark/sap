@@ -46,12 +46,22 @@
     return link;
   }
 
+  function themeToggle() {
+    const button = document.createElement("button");
+    button.className = "theme-toggle nav-theme-toggle";
+    button.type = "button";
+    button.dataset.themeToggle = "";
+    button.textContent = "◐ 블랙모드";
+    return button;
+  }
+
   // 각 페이지에 반복되던 사이드바를 한 곳에서 만들어, 현재 페이지만 active/open 처리합니다.
   function renderSidebar() {
     const nav = document.querySelector("nav.nav-group[data-nav]");
     if (!nav) return;
     const file = currentFile();
     const fragment = document.createDocumentFragment();
+    fragment.appendChild(themeToggle());
     for (const entry of NAV) {
       if (entry.href) {
         fragment.appendChild(navLink(entry, file));
