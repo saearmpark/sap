@@ -144,6 +144,7 @@ body, .sidebar, .card, .game-list-item, .mobile-btn, input, textarea, button {
 }
 
 .learning-page .layout { height: 100vh; overflow: hidden; }
+.learning-page .sidebar { height: 100vh; overflow-y: auto; scrollbar-gutter: stable; }
 .learning-page .main { height: 100vh; overflow-y: auto; scrollbar-gutter: stable; }
 
 .eyebrow {
@@ -476,6 +477,7 @@ code {
   .layout { flex-direction: column; }
   .sidebar { width: 100%; }
   .learning-page .layout { height: auto; min-height: 100vh; overflow: visible; }
+  .learning-page .sidebar { height: auto; overflow-y: visible; scrollbar-gutter: auto; }
   .learning-page .main { height: auto; overflow: visible; }
   .grid { grid-template-columns: 1fr; }
   table { font-size: 12px; }
