@@ -132,6 +132,25 @@ body, .sidebar, .card, .game-list-item, .mobile-btn, input, textarea, button {
 .theme-toggle:hover { background: rgba(255, 255, 255, 0.08); }
 :root[data-theme="dark"] .theme-toggle { color: #f1f1f2; }
 
+.theme-toggle-inline {
+  margin-top: 0;
+  width: auto;
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
+  white-space: nowrap;
+}
+.theme-toggle-inline:hover { background: var(--accent-soft); }
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
 /* --- Main content --- */
 .main {
   flex: 1;
