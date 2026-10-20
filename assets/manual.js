@@ -1,6 +1,5 @@
 (() => {
-  function copyText(text) {
-    if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+  function legacyCopy(text) {
     return new Promise((resolve, reject) => {
       const area = document.createElement("textarea");
       area.value = text;
@@ -18,6 +17,16 @@
         area.remove();
       }
     });
+  }
+
+  async function copyText(text) {
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return;
+      } catch {}
+    }
+    return legacyCopy(text);
   }
 
   document.querySelectorAll(".manual-code").forEach((block) => {
