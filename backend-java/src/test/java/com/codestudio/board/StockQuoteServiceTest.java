@@ -5,9 +5,12 @@ import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StockQuoteServiceTest {
 
@@ -73,5 +76,45 @@ class StockQuoteServiceTest {
         assertEquals(-2.95, row.get("changePercent"));
         assertEquals("regular", row.get("session"));
         assertEquals("open", row.get("marketState"));
+    }
+
+    @Test
+    void marksRegularSessionAsClosedWhenMarketIsClosed() throws Exception {
+        Map<String, Map<String, Object>> collected = new LinkedHashMap<>();
+
+        StockQuoteService.collectKrFrom(mapper.readTree("""
+                {"datas":[{
+                  "itemCode":"005930",
+                  "closePrice":"201,000",
+                  "compareToPreviousClosePrice":"1,000",
+                  "fluctuationsRatio":"0.50",
+                  "compareToPreviousPrice":{"code":"2"},
+                  "marketStatus":"CLOSE",
+                  "overMarketPriceInfo":{"overMarketStatus":"CLOSE"}
+                }]}
+                """), collected);
+
+        Map<String, Object> row = collected.get("005930");
+        assertNotNull(row);
+        assertEquals(201000.0, row.get("price"));
+        assertEquals("regular", row.get("session"));
+        assertEquals("closed", row.get("marketState"));
+    }
+
+    @Test
+    void marksResultPartialWhenAQuoteTaskFails() {
+        AtomicBoolean partial = new AtomicBoolean(false);
+        StockQuoteService.task(() -> {
+            throw new IllegalStateException("boom");
+        }, partial).join();
+        assertTrue(partial.get());
+    }
+
+    @Test
+    void keepsResultCompleteWhenQuoteTasksSucceed() {
+        AtomicBoolean partial = new AtomicBoolean(false);
+        StockQuoteService.task(() -> {
+        }, partial).join();
+        assertFalse(partial.get());
     }
 }

@@ -16,10 +16,6 @@ public interface NewsItemRepository extends JpaRepository<NewsItem, Long> {
     List<NewsItem> findTop20ByCategoryOrderByIdDesc(String category);
 
     @Modifying
-    @Query("delete from NewsItem n where n.id < :cutoff")
-    int deleteByIdLessThan(@Param("cutoff") long cutoff);
-
-    @Modifying
     @Query("delete from NewsItem n where n.category = :category and n.id < :cutoff")
     int deleteByCategoryAndIdLessThan(@Param("category") String category, @Param("cutoff") long cutoff);
 }

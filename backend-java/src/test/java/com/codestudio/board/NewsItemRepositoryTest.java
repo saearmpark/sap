@@ -33,9 +33,9 @@ class NewsItemRepositoryTest {
 
         List<NewsItem> newest = news.findTop20ByOrderByIdDesc();
         assertEquals(20, newest.size());
-        long cutoff = newest.get(newest.size() - 1).getId();
-        assertEquals(5, news.deleteByIdLessThan(cutoff));
-        assertEquals(20, news.count());
+        assertEquals("소식 24", newest.get(0).getTitle());
+        assertEquals("소식 5", newest.get(newest.size() - 1).getTitle());
+        assertEquals(25, news.count());
     }
 
     @Test

@@ -89,7 +89,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             case "join" -> joinRoom(session, userId, payload.path("roomCode").asText(""));
             case "move" -> makeMove(session, userId, payload.path("index").asInt(-1));
             case "rematch" -> requestRematch(session, userId);
-            case "leave" -> leaveRoom(session, true);
+            case "leave" -> leaveRoom(session);
             default -> sendError(session, "지원하지 않는 요청입니다.");
         }
     }
@@ -228,12 +228,10 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    private void leaveRoom(WebSocketSession session, boolean notifyLeavingPlayer) {
+    private void leaveRoom(WebSocketSession session) {
         GameRoom room = roomFor(session);
         if (room == null) {
-            if (notifyLeavingPlayer) {
-                sendQuietly(session, Map.of("type", "left"));
-            }
+            sendQuietly(session, Map.of("type", "left"));
             return;
         }
         synchronized (room) {
@@ -249,9 +247,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                 room.xSession.getAttributes().remove("roomCode");
             }
             session.getAttributes().remove("roomCode");
-            if (notifyLeavingPlayer) {
-                sendQuietly(session, Map.of("type", "left"));
-            }
+            sendQuietly(session, Map.of("type", "left"));
         }
     }
 

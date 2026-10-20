@@ -1,6 +1,4 @@
 # Git 추적에서 제외할 폴더/파일
-oracleJdk-27/
-**/oracleJdk-27/
 
 # 빌드 결과와 실행 중 생성되는 파일
 **/target/

@@ -44,10 +44,6 @@ public class CalendarEvent {
 
     protected CalendarEvent() {}
 
-    public CalendarEvent(Long ownerId, String title, String description, LocalDate startDate, LocalDate endDate, boolean publicEvent) {
-        this(ownerId, title, description, startDate, endDate, publicEvent, "none");
-    }
-
     public CalendarEvent(Long ownerId, String title, String description, LocalDate startDate, LocalDate endDate, boolean publicEvent, String repeatRule) {
         this.ownerId = ownerId;
         this.title = title;

@@ -185,7 +185,7 @@ public class NewsCollector {
     }
 
     // "제목 - 매체" 형태의 출처 꼬리표와 문장부호·공백을 제거해 같은 사건의 중복 제목을 가려냅니다.
-    private static String normalizeTitle(String title) {
+    static String normalizeTitle(String title) {
         String text = title == null ? "" : title;
         int sourceSep = text.lastIndexOf(" - ");
         if (sourceSep > 0) {

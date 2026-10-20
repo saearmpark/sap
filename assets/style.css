@@ -156,13 +156,6 @@ h1 {
   letter-spacing: -0.01em;
 }
 
-.lead {
-  color: var(--ink-soft);
-  font-size: 15.5px;
-  max-width: 62ch;
-  margin-bottom: 36px;
-}
-
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -479,7 +472,6 @@ code {
 @media (max-width: 760px) {
   .layout { flex-direction: column; }
   .sidebar { width: 100%; }
-  .main { padding: 32px 24px; }
   .learning-page .layout { height: auto; min-height: 100vh; overflow: visible; }
   .learning-page .main { height: auto; overflow: visible; }
   .grid { grid-template-columns: 1fr; }

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>사피엔스 — 학습(게임)</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-14">
+<link rel="stylesheet" href="assets/style.css?v=labels-15">
 <style>
   .game-list {
     display: flex;
@@ -399,46 +399,7 @@
 <body class="learning-page">
 <div class="layout">
   <aside class="sidebar">
-    <nav class="nav-group">
-      <a href="index.html">홈</a>
-      <a href="search.html">검색</a>
-      <details class="nav-menu">
-        <summary>소식</summary>
-        <div class="nav-submenu">
-          <a href="news.html">이슈사항</a>
-          <a href="stocks.html">투자정보</a>
-        </div>
-      </details>
-      <details class="nav-menu" open>
-        <summary>제작</summary>
-        <div class="nav-submenu">
-          <a href="learn.html">앱</a>
-          <a href="game.html" class="active" aria-current="page">게임</a>
-        </div>
-      </details>
-      <details class="nav-menu">
-        <summary>소통</summary>
-        <div class="nav-submenu">
-          <a href="board.html">자유 게시판</a>
-          <a href="notice.html">공지사항</a>
-          <a href="chat.html">실시간 대화</a>
-        </div>
-      </details>
-      <details class="nav-menu">
-        <summary>자료</summary>
-        <div class="nav-submenu">
-          <a href="files.html">개인자료</a>
-          <a href="apps.html">공용자료</a>
-        </div>
-      </details>
-      <details class="nav-menu">
-        <summary>계정</summary>
-        <div class="nav-submenu">
-          <a href="calendar.html">일정</a>
-          <a href="login.html" data-auth-link>로그인 / 회원가입</a>
-        </div>
-      </details>
-    </nav>
+    <nav class="nav-group" data-nav></nav>
     <button class="theme-toggle" type="button" data-theme-toggle>◐ 블랙모드</button>
   </aside>
   <main class="main">
@@ -10883,7 +10844,8 @@
     });
   })();
 </script>
-<script src="assets/auth.js?v=labels-14"></script>
-<script src="assets/theme.js"></script>
+<script src="assets/common.js?v=labels-15"></script>
+<script src="assets/auth.js?v=labels-15"></script>
+<script src="assets/theme.js?v=labels-15"></script>
 </body>
 </html>

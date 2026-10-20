@@ -38,10 +38,6 @@ public class Post {
     public Post() {
     }
 
-    public Post(String title, String content, String createdAt, String authorName) {
-        this(title, content, createdAt, authorName, null);
-    }
-
     public Post(String title, String content, String createdAt, String authorName, String category) {
         this.title = title;
         this.content = content;

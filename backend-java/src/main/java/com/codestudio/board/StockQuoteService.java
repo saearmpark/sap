@@ -126,7 +126,7 @@ public class StockQuoteService {
         CompletableFuture.runAsync(this::quotes);
     }
 
-    private CompletableFuture<Void> task(Runnable runnable, AtomicBoolean partial) {
+    static CompletableFuture<Void> task(Runnable runnable, AtomicBoolean partial) {
         return CompletableFuture.runAsync(() -> {
             try {
                 runnable.run();

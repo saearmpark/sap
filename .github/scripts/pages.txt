@@ -1,0 +1,15 @@
+index.html
+search.html
+news.html
+stocks.html
+learn.html
+game.html
+board.html
+notice.html
+chat.html
+files.html
+apps.html
+calendar.html
+login.html
+admin.html
+mypage.html

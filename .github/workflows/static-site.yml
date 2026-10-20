@@ -1,0 +1,35 @@
+name: Static site checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "*.html"
+      - "assets/**"
+      - ".github/scripts/**"
+      - ".github/workflows/static-site.yml"
+  pull_request:
+    paths:
+      - "*.html"
+      - "assets/**"
+      - ".github/scripts/**"
+      - ".github/workflows/static-site.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Check shared scripts
+        run: |
+          for file in assets/*.js; do
+            node --check "$file"
+          done
+      - name: Check inline scripts
+        run: node .github/scripts/check-inline-scripts.mjs
