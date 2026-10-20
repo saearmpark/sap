@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사피엔스 — Manual · HTML 제작</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-19">
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main manual-page">
+    <nav class="manual-crumbs" aria-label="현재 위치">
+      <a href="index.html">홈</a>
+      <span>/</span>
+      <a href="manual.html">Manual</a>
+      <span>/</span>
+      <span aria-current="page">HTML 제작</span>
+    </nav>
+    <div class="eyebrow">MANUAL 02</div>
+    <h1>HTML 제작</h1>
+    <p class="manual-intro">
+      HTML은 웹 페이지의 <strong>뼈대</strong>입니다. 제목, 문단, 목록, 링크, 이미지, 입력 폼을 배치하고
+      CSS·JavaScript가 붙을 수 있는 자리를 만듭니다. 이 단계에서는 새 페이지 한 장을 직접 만들어 봅니다.
+    </p>
+    <div class="manual-meta">
+      <span>난이도 · 입문</span>
+      <span>예상 시간 · 25분</span>
+      <span>준비물 · VS Code</span>
+    </div>
+
+    <section class="manual-section">
+      <h2>1. HTML 파일의 기본 구조</h2>
+      <p>프로젝트 폴더에 <code>practice.html</code>을 만들고 아래 내용을 그대로 입력합니다. 파일명은 소문자와 하이픈을 쓰는 것이 안전합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">practice.html</span>
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="ko"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;나의 첫 페이지&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;안녕하세요&lt;/h1&gt;
+  &lt;p&gt;처음 만든 웹 페이지입니다.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+      </div>
+      <div class="manual-table">
+        <table>
+          <thead><tr><th>부분</th><th>역할</th></tr></thead>
+          <tbody>
+            <tr><td><code>&lt;!DOCTYPE html&gt;</code></td><td>최신 HTML 문서임을 알려 줍니다.</td></tr>
+            <tr><td><code>&lt;head&gt;</code></td><td>화면에 직접 보이지 않는 설정(제목, 인코딩, 스타일 링크)을 담습니다.</td></tr>
+            <tr><td><code>&lt;meta charset="UTF-8"&gt;</code></td><td>한글이 깨지지 않게 합니다.</td></tr>
+            <tr><td><code>&lt;body&gt;</code></td><td>실제로 화면에 보이는 내용을 담습니다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="manual-section">
+      <h2>2. 글과 목록</h2>
+      <div class="manual-code">
+        <span class="manual-code-label">HTML</span>
+        <pre><code>&lt;h1&gt;사이트 제목&lt;/h1&gt;
+&lt;h2&gt;큰 소제목&lt;/h2&gt;
+&lt;h3&gt;작은 소제목&lt;/h3&gt;
+
+&lt;p&gt;문단입니다. &lt;strong&gt;중요한 말&lt;/strong&gt;은 굵게,
+&lt;em&gt;강조할 말&lt;/em&gt;은 기울임으로 표시합니다.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;순서가 없는 항목&lt;/li&gt;
+  &lt;li&gt;두 번째 항목&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;첫 번째 단계&lt;/li&gt;
+  &lt;li&gt;두 번째 단계&lt;/li&gt;
+&lt;/ol&gt;</code></pre>
+      </div>
+      <p><code>h1</code>은 페이지에 하나만 두는 것이 좋습니다. 제목 단계를 건너뛰지 말고 <code>h1 → h2 → h3</code> 순서로 사용하세요.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>3. 링크와 이미지</h2>
+      <div class="manual-code">
+        <span class="manual-code-label">HTML</span>
+        <pre><code>&lt;!-- 같은 폴더의 페이지로 이동 --&gt;
+&lt;a href="manual.html"&gt;매뉴얼 목차&lt;/a&gt;
+
+&lt;!-- 새 탭에서 외부 사이트 열기 --&gt;
+&lt;a href="https://example.com" target="_blank" rel="noopener"&gt;예시 사이트&lt;/a&gt;
+
+&lt;!-- 같은 폴더 images 폴더의 사진 --&gt;
+&lt;img src="images/photo.jpg" alt="해변 사진" width="320"&gt;</code></pre>
+      </div>
+      <aside class="manual-callout is-warn">
+        <strong>중요</strong>
+        <p><code>alt</code>는 이미지가 안 보일 때 대신 읽히는 설명입니다. 화면 낭독기 사용자에게도 필요하므로 반드시 적습니다. 링크 주소는 대소문자까지 정확히 맞춰야 합니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>4. 의미 있는 구조 태그</h2>
+      <p>페이지를 <code>div</code>로만 나누기보다 역할이 드러나는 태그를 사용하면 CSS와 검색 엔진, 화면 낭독기가 모두 이해하기 쉬워집니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">HTML</span>
+        <pre><code>&lt;body&gt;
+  &lt;header&gt;
+    &lt;h1&gt;사피엔스&lt;/h1&gt;
+    &lt;p&gt;배움과 기록을 위한 공간&lt;/p&gt;
+  &lt;/header&gt;
+
+  &lt;nav aria-label="주요 메뉴"&gt;
+    &lt;a href="index.html"&gt;홈&lt;/a&gt;
+    &lt;a href="manual.html"&gt;Manual&lt;/a&gt;
+  &lt;/nav&gt;
+
+  &lt;main&gt;
+    &lt;section&gt;
+      &lt;h2&gt;소개&lt;/h2&gt;
+      &lt;p&gt;본문 내용&lt;/p&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    &lt;p&gt;© 2026 사피엔스&lt;/p&gt;
+  &lt;/footer&gt;
+&lt;/body&gt;</code></pre>
+      </div>
+    </section>
+
+    <section class="manual-section">
+      <h2>5. class와 id</h2>
+      <p>CSS와 JavaScript가 특정 요소를 찾을 수 있도록 이름표를 붙입니다. <code>class</code>는 여러 번, <code>id</code>는 페이지 안에서 한 번만 쓰는 것이 원칙입니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">HTML</span>
+        <pre><code>&lt;p class="note"&gt;여러 곳에서 재사용하는 설명&lt;/p&gt;
+&lt;button id="save-button" type="button"&gt;저장&lt;/button&gt;
+
+&lt;!-- 이름 규칙 예시: 소문자 + 하이픈 --&gt;
+&lt;div class="manual-callout is-tip"&gt;...&lt;/div&gt;</code></pre>
+      </div>
+    </section>
+
+    <section class="manual-section">
+      <h2>6. 입력 폼</h2>
+      <p>사용자에게 글을 받으려면 <code>form</code>과 <code>input</code>을 사용합니다. 모든 입력에는 연결된 <code>label</code>이 있어야 합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">HTML</span>
+        <pre><code>&lt;form id="contact-form"&gt;
+  &lt;label for="name"&gt;이름&lt;/label&gt;
+  &lt;input id="name" name="name" type="text" required&gt;
+
+  &lt;label for="email"&gt;이메일&lt;/label&gt;
+  &lt;input id="email" name="email" type="email" required&gt;
+
+  &lt;label for="message"&gt;내용&lt;/label&gt;
+  &lt;textarea id="message" name="message" rows="4"&gt;&lt;/textarea&gt;
+
+  &lt;button type="submit"&gt;보내기&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+      </div>
+      <p><code>type="email"</code>, <code>required</code> 같은 속성은 브라우저가 기본 검사를 해 줍니다. JavaScript 검증은 그 위에 추가하는 것입니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>7. 이 사이트에 새 페이지 추가하기</h2>
+      <p>이 저장소의 페이지는 공용 사이드바와 테마를 불러오는 골격을 사용합니다. 새 파일을 루트에 만들고 아래처럼 시작하면 메뉴와 다크 모드가 자동으로 적용됩니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">my-page.html</span>
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="ko"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+&lt;title&gt;사피엔스 — 새 페이지&lt;/title&gt;
+&lt;script&gt;try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}&lt;/script&gt;
+&lt;link rel="stylesheet" href="assets/style.css?v=labels-19"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="layout"&gt;
+  &lt;aside class="sidebar"&gt;
+    &lt;nav class="nav-group" data-nav&gt;&lt;/nav&gt;
+  &lt;/aside&gt;
+  &lt;main class="main"&gt;
+    &lt;div class="eyebrow"&gt;NEW&lt;/div&gt;
+    &lt;h1&gt;새 페이지&lt;/h1&gt;
+    &lt;p&gt;내용을 작성합니다.&lt;/p&gt;
+  &lt;/main&gt;
+&lt;/div&gt;
+&lt;script src="assets/common.js?v=labels-19"&gt;&lt;/script&gt;
+&lt;script src="assets/auth.js?v=labels-19"&gt;&lt;/script&gt;
+&lt;script src="assets/theme.js?v=labels-19"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+      </div>
+      <p>그다음 <code>assets/common.js</code>의 메뉴 목록에 링크를 추가하고, <code>.github/scripts/pages.txt</code>와 <code>search.html</code>에도 등록해야 합니다. 자세한 절차는 <a href="manual-connect.html">06 · 제작항목 연결</a>에서 다룹니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>8. 확인과 디버깅</h2>
+      <ul>
+        <li>브라우저에서 <kbd>F12</kbd>를 눌러 <strong>Elements</strong> 탭을 열면 실제 DOM 구조를 볼 수 있습니다.</li>
+        <li><strong>Console</strong> 탭에 빨간 오류가 있으면 파일 경로나 문법을 먼저 확인합니다.</li>
+        <li>태그를 열었으면 반드시 닫습니다. 닫는 태그가 빠지면 뒤쪽 내용이 엉뚱한 곳에 들어갑니다.</li>
+        <li>들여쓰기는 동작에 영향이 없지만, 오류를 찾기 쉽게 하기 위해 단계마다 맞춰 줍니다.</li>
+      </ul>
+      <aside class="manual-callout is-tip">
+        <strong>TIP</strong>
+        <p>처음부터 완벽하게 만들 필요는 없습니다. 글을 먼저 넣고, 브라우저에서 확인하고, 다음에 디자인을 입히는 순서가 빠릅니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>완료 체크리스트</h2>
+      <ul class="manual-checklist">
+        <li><code>practice.html</code>을 만들고 Live Server로 열었다.</li>
+        <li>제목·문단·목록·링크·이미지를 각각 하나 이상 넣었다.</li>
+        <li><code>header</code>, <code>main</code>, <code>section</code>, <code>footer</code>로 구조를 나눴다.</li>
+        <li>입력 폼에 <code>label</code>을 연결했다.</li>
+        <li>공용 사이드바를 불러오는 페이지 골격을 이해했다.</li>
+      </ul>
+    </section>
+
+    <nav class="manual-pager" aria-label="이전·다음 안내">
+      <a class="manual-pager-prev" href="manual-vscode.html">← 01 · VS Code 설치</a>
+      <a class="manual-pager-next" href="manual-css.html">03 · CSS 제작 →</a>
+    </nav>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-19"></script>
+<script src="assets/auth.js?v=labels-19"></script>
+<script src="assets/manual.js?v=labels-19"></script>
+<script src="assets/theme.js?v=labels-19"></script>
+</body>
+</html>

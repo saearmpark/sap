@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사피엔스 — Manual · 서버 업데이트</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-19">
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main manual-page">
+    <nav class="manual-crumbs" aria-label="현재 위치">
+      <a href="index.html">홈</a>
+      <span>/</span>
+      <a href="manual.html">Manual</a>
+      <span>/</span>
+      <span aria-current="page">서버 업데이트</span>
+    </nav>
+    <div class="eyebrow">MANUAL 07</div>
+    <h1>서버 업데이트</h1>
+    <p class="manual-intro">
+      수정한 내용을 인터넷에 반영하는 절차입니다. 이 저장소는 정적 페이지를 GitHub Pages로, Java API를 Render로 배포합니다.
+      <strong>상태 확인 → 검토 → 커밋 → 푸시 → 자동 배포 확인 → 라이브 확인</strong> 순서를 지키면 실수를 크게 줄일 수 있습니다.
+    </p>
+    <div class="manual-meta">
+      <span>난이도 · 중급</span>
+      <span>예상 시간 · 30분</span>
+      <span>준비물 · Git, GitHub 계정</span>
+    </div>
+
+    <section class="manual-section">
+      <h2>1. 배포 지도</h2>
+      <div class="manual-flow">
+        <span>내 PC 수정</span> → <span>git commit</span> → <span>git push</span> → <span>GitHub Actions</span>
+      </div>
+      <div class="manual-flow">
+        <span>main 브랜치</span> → <span>GitHub Pages</span>
+      </div>
+      <div class="manual-flow">
+        <span>backend-java 변경</span> → <span>Render 자동 배포</span>
+      </div>
+      <p>정적 페이지는 푸시 후 보통 1~2분, Java API는 2~4분 정도 걸립니다. 배포가 끝나기 전에 접속하면 이전 화면이 보일 수 있습니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>2. Git 준비</h2>
+      <p>Git for Windows를 설치하면 PowerShell과 VS Code 터미널에서 <code>git</code>을 사용할 수 있습니다. 처음 한 번만 이름과 이메일을 설정합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>git --version
+
+git config --global user.name "내 이름"
+git config --global user.email "내 이메일"
+
+# 저장소가 이미 있다면
+git status</code></pre>
+      </div>
+      <p>이미 저장소를 받았다면 <code>git clone</code>은 필요 없습니다. 폴더에 <code>.git</code>이 있는지 확인하세요.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>3. 작업 전·후 상태 확인</h2>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>git status
+git diff
+git log --oneline -5</code></pre>
+      </div>
+      <ul>
+        <li><code>git status</code> — 어떤 파일이 바뀌었고, 무엇이 스테이징되었는지 확인합니다.</li>
+        <li><code>git diff</code> — 아직 스테이징하지 않은 변경 내용을 줄 단위로 봅니다.</li>
+        <li><code>git log</code> — 최근 커밋 메시지와 순서를 확인합니다.</li>
+      </ul>
+      <aside class="manual-callout is-warn">
+        <strong>중요</strong>
+        <p>커밋 전에 <code>git status</code>에 예상하지 못한 파일이 있는지 꼭 확인하세요. 데이터베이스, 업로드 파일, 빌드 결과물, 비밀번호 파일이 섞이면 안 됩니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>4. 변경 내용 검토</h2>
+      <p>수정한 파일만 골라 스테이징합니다. <code>git add .</code>은 편하지만 불필요한 파일까지 포함할 수 있으므로, 처음에는 파일명을 직접 적는 습관이 좋습니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>git diff assets/common.js
+git diff --stat
+
+git add manual.html manual-vscode.html assets/common.js assets/style.css
+git diff --cached</code></pre>
+      </div>
+      <p><code>git diff --cached</code>는 “이번 커밋에 실제로 들어갈 내용”을 보여 줍니다. 여기서 의도하지 않은 변경이 보이면 <code>git restore --staged 파일명</code>으로 뺍니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>5. 커밋 만들기</h2>
+      <p>이 저장소는 “무엇을 했는지”가 드러나는 짧은 명령형 제목을 사용합니다. 한 커밋에는 한 가지 목적만 담습니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>git commit -m "Add beginner web production manual"
+
+# 또는
+git commit -m "Fix calendar date contrast in dark mode"</code></pre>
+      </div>
+      <p>제목은 50자 안팎으로 짧게, 필요하면 본문에 이유와 검증 방법을 적습니다. “수정”, “업데이트”만으로는 나중에 이력을 이해하기 어렵습니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>6. 원격 저장소로 푸시</h2>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>git push origin main</code></pre>
+      </div>
+      <p>처음 푸시할 때 GitHub 로그인 창이 뜨면 브라우저에서 인증합니다. 비밀번호를 채팅이나 코드에 직접 붙여 넣지 마세요.</p>
+      <aside class="manual-callout is-tip">
+        <strong>TIP</strong>
+        <p>푸시 전에 <code>git pull --rebase</code>로 원격의 최신 변경을 먼저 받아 두면 충돌을 줄일 수 있습니다. 팀 작업이 아니라면 매번 필요하지는 않습니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>7. GitHub Actions 확인</h2>
+      <p>푸시하면 저장소의 <strong>Actions</strong> 탭에서 자동 검사가 실행됩니다. 이 저장소의 주요 워크플로는 다음과 같습니다.</p>
+      <div class="manual-table">
+        <table>
+          <thead><tr><th>워크플로</th><th>확인하는 것</th></tr></thead>
+          <tbody>
+            <tr><td>Java tests</td><td><code>mvn test</code> — 게임방 복구, 학습 진도 저장 등</td></tr>
+            <tr><td>Static site checks</td><td>인라인 스크립트 문법, 페이지 목록 검사</td></tr>
+            <tr><td>Deploy to Pages</td><td>정적 페이지를 GitHub Pages에 배포</td></tr>
+            <tr><td>Build desktop tools</td><td>PyInstaller로 Windows 실행파일 패키징</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>빨간 X가 뜨면 로그에서 첫 번째 오류를 확인합니다. 로컬에서 같은 검사를 먼저 실행하면 원인을 빠르게 찾을 수 있습니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>node .github/scripts/check-inline-scripts.mjs
+cd backend-java
+mvn test</code></pre>
+      </div>
+    </section>
+
+    <section class="manual-section">
+      <h2>8. Java API(Render) 업데이트</h2>
+      <p><code>backend-java</code>를 수정해 푸시하면 Render가 새 버전을 자동으로 빌드·배포합니다. API 주소는 <code>https://board-backend-nngx.onrender.com/api</code>입니다.</p>
+      <ul>
+        <li>환경 변수(DB 주소, 비밀번호, 키)는 코드가 아니라 Render 대시보드에 설정합니다.</li>
+        <li>배포 로그에서 빌드 실패·헬스 체크 실패가 없는지 확인합니다.</li>
+        <li>무료 인스턴스는 일정 시간 미사용 시 잠들어 첫 요청이 느릴 수 있습니다.</li>
+        <li>DB 구조나 데이터에 영향을 주는 변경은 배포 전에 백업합니다.</li>
+      </ul>
+    </section>
+
+    <section class="manual-section">
+      <h2>9. 라이브 확인</h2>
+      <ol class="manual-steps">
+        <li><strong>캐시를 비웁니다.</strong> <kbd>Ctrl</kbd> + <kbd>F5</kbd>로 새로고침하거나 시크릿 창을 엽니다.</li>
+        <li><strong>바뀐 페이지를 직접 엽니다.</strong> 메뉴가 아니라 주소로 접속해 404가 아닌지 확인합니다.</li>
+        <li><strong>콘솔을 봅니다.</strong> <kbd>F12</kbd> → Console에서 빨간 오류가 없는지 확인합니다.</li>
+        <li><strong>API를 확인합니다.</strong> 뉴스·시세·로그인 등 실제 데이터가 필요한 기능을 한 번씩 실행합니다.</li>
+        <li><strong>모바일 폭을 확인합니다.</strong> 개발자도구의 반응형 모드에서 메뉴와 표가 넘치지 않는지 봅니다.</li>
+      </ol>
+      <div class="manual-code">
+        <span class="manual-code-label">확인용 주소</span>
+        <pre><code>https://saearmpark.github.io/sap/
+https://saearmpark.github.io/sap/manual.html
+https://board-backend-nngx.onrender.com/api/news</code></pre>
+      </div>
+    </section>
+
+    <section class="manual-section">
+      <h2>10. 문제가 생겼을 때 되돌리기</h2>
+      <p>이미 푸시한 커밋을 되돌릴 때는 이력을 지우는 force push 대신, <strong>되돌리는 새 커밋</strong>을 만듭니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>git log --oneline -5
+git revert &lt;되돌릴-커밋-해시&gt;
+git push origin main</code></pre>
+      </div>
+      <p>아직 푸시하지 않은 로컬 변경을 버리려면 <code>git restore 파일명</code>을 사용합니다. <code>git reset --hard</code>는 작업 내용을 완전히 지우므로 습관적으로 쓰지 마세요.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>11. 절대 커밋하면 안 되는 것</h2>
+      <ul>
+        <li>비밀번호, API 키, 토큰, <code>.env</code> 파일</li>
+        <li>개인정보가 들어 있는 데이터베이스·업로드 파일</li>
+        <li><code>target/</code>, <code>build/</code>, <code>dist/</code>, <code>node_modules/</code> 같은 생성물</li>
+        <li>다른 사람의 작업을 덮어쓰는 force push</li>
+      </ul>
+      <aside class="manual-callout is-warn">
+        <strong>유출됐다면</strong>
+        <p>키를 커밋한 사실을 깨달았다면 먼저 해당 키를 <strong>폐기·재발급</strong>하세요. 파일을 지우는 것만으로는 Git 이력에 남습니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>완료 체크리스트</h2>
+      <ul class="manual-checklist">
+        <li><code>git status</code>와 <code>git diff</code>로 변경을 검토했다.</li>
+        <li>의도한 파일만 스테이징하고 커밋 메시지를 구체적으로 적었다.</li>
+        <li><code>main</code>에 푸시하고 Actions가 성공한 것을 확인했다.</li>
+        <li>Pages와 Render 배포 완료 후 라이브 화면을 직접 확인했다.</li>
+        <li>문제가 생겼을 때 <code>git revert</code>로 되돌리는 방법을 알고 있다.</li>
+      </ul>
+    </section>
+
+    <nav class="manual-pager" aria-label="이전·다음 안내">
+      <a class="manual-pager-prev" href="manual-connect.html">← 06 · 제작항목 연결</a>
+      <a class="manual-pager-next" href="manual-ai-cli.html">08 · AI CLI 활용 절차 →</a>
+    </nav>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-19"></script>
+<script src="assets/auth.js?v=labels-19"></script>
+<script src="assets/manual.js?v=labels-19"></script>
+<script src="assets/theme.js?v=labels-19"></script>
+</body>
+</html>

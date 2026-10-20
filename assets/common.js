@@ -8,6 +8,22 @@
       { href: "news.html", label: "이슈사항" },
       { href: "stocks.html", label: "투자정보" }
     ] },
+    { label: "학습", items: [
+      {
+        href: "manual.html",
+        label: "Manual",
+        pages: [
+          "manual-vscode.html",
+          "manual-html.html",
+          "manual-css.html",
+          "manual-javascript.html",
+          "manual-python.html",
+          "manual-connect.html",
+          "manual-server.html",
+          "manual-ai-cli.html"
+        ]
+      }
+    ] },
     { label: "제작", items: [
       { href: "learn.html", label: "앱" },
       { href: "game.html", label: "게임" }
@@ -39,9 +55,12 @@
     link.href = entry.href;
     link.textContent = entry.label;
     if (entry.authLink) link.dataset.authLink = "";
+    const pages = entry.pages || [];
     if (entry.href.toLowerCase() === file) {
       link.classList.add("active");
       link.setAttribute("aria-current", "page");
+    } else if (pages.includes(file)) {
+      link.classList.add("active");
     }
     return link;
   }

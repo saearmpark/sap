@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>사피엔스 — 검색</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-18">
+<link rel="stylesheet" href="assets/style.css?v=labels-19">
 <style>
   .search-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .search-form input[type="search"] {
@@ -47,8 +47,8 @@
     <div id="search-results"></div>
   </main>
 </div>
-<script src="assets/common.js?v=labels-18"></script>
-<script src="assets/auth.js?v=labels-18"></script>
+<script src="assets/common.js?v=labels-19"></script>
+<script src="assets/auth.js?v=labels-19"></script>
 <script>
   (() => {
     const form = document.getElementById("search-form");
@@ -61,6 +61,7 @@
     const GROUPS = [
       { key: "game", label: "게임제작" },
       { key: "learn", label: "앱제작" },
+      { key: "manual", label: "Manual" },
       { key: "news", label: "소식" },
       { key: "board", label: "게시판" },
       { key: "file", label: "자료실" }
@@ -118,6 +119,54 @@
             });
           });
         } catch {}
+
+        [
+          {
+            title: "Manual",
+            text: "웹 제작 매뉴얼 목차 초보자 가이드 학습 순서",
+            href: "manual.html"
+          },
+          {
+            title: "VS Code 설치",
+            text: "편집기 설치 Live Server 한국어 확장 개발 도구 터미널",
+            href: "manual-vscode.html"
+          },
+          {
+            title: "HTML 제작",
+            text: "HTML 문서 구조 태그 제목 문단 목록 링크 이미지 폼 class id",
+            href: "manual-html.html"
+          },
+          {
+            title: "CSS 제작",
+            text: "CSS 선택자 박스 모델 flex grid 반응형 미디어 쿼리 변수 다크 모드",
+            href: "manual-css.html"
+          },
+          {
+            title: "자바스크립트 제작",
+            text: "JavaScript 변수 함수 이벤트 DOM localStorage fetch async await",
+            href: "manual-javascript.html"
+          },
+          {
+            title: "파이썬 제작",
+            text: "Python 설치 가상환경 venv pip 파일 JSON PyInstaller 실행파일",
+            href: "manual-python.html"
+          },
+          {
+            title: "제작항목 연결",
+            text: "상대 경로 공용 메뉴 공용 스크립트 캐시 버전 검색 인덱스 CI 페이지 연결",
+            href: "manual-connect.html"
+          },
+          {
+            title: "서버 업데이트",
+            text: "Git 커밋 푸시 GitHub Actions Pages Render 배포 롤백 캐시",
+            href: "manual-server.html"
+          },
+          {
+            title: "AI CLI 활용 절차",
+            text: "AI CLI 프롬프트 검토 diff 테스트 보안 커밋 자동화",
+            href: "manual-ai-cli.html"
+          }
+        ].forEach(item => staticIndex.push({ key: "manual", ...item }));
       })();
       return staticReady;
     }
@@ -270,6 +319,6 @@
     }
   })();
 </script>
-<script src="assets/theme.js?v=labels-18"></script>
+<script src="assets/theme.js?v=labels-19"></script>
 </body>
 </html>

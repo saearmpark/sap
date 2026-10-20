@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사피엔스 — Manual · 파이썬 제작</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-19">
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main manual-page">
+    <nav class="manual-crumbs" aria-label="현재 위치">
+      <a href="index.html">홈</a>
+      <span>/</span>
+      <a href="manual.html">Manual</a>
+      <span>/</span>
+      <span aria-current="page">파이썬 제작</span>
+    </nav>
+    <div class="eyebrow">MANUAL 05</div>
+    <h1>파이썬 제작</h1>
+    <p class="manual-intro">
+      Python은 반복 작업을 자동화하고, 파일을 정리하고, 작은 데스크톱 도구를 만드는 데 편한 언어입니다.
+      설치부터 가상환경, 패키지, 파일 처리, 실행파일 만들기까지 순서대로 진행합니다.
+    </p>
+    <div class="manual-meta">
+      <span>난이도 · 초급</span>
+      <span>예상 시간 · 40분</span>
+      <span>준비물 · Windows PC</span>
+    </div>
+
+    <section class="manual-section">
+      <h2>1. Python 설치</h2>
+      <ol class="manual-steps">
+        <li>
+          <strong>공식 사이트에서 내려받습니다.</strong>
+          <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org/downloads</a>에서 최신 안정 버전(3.12 이상)의 Windows 설치 파일을 받습니다.
+        </li>
+        <li>
+          <strong>PATH 옵션을 체크합니다.</strong>
+          설치 첫 화면의 <strong>Add python.exe to PATH</strong>를 반드시 체크한 뒤 <strong>Install Now</strong>를 누릅니다.
+        </li>
+        <li>
+          <strong>설치를 확인합니다.</strong>
+          새 터미널에서 아래 명령을 실행합니다.
+        </li>
+      </ol>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>py --version
+python --version</code></pre>
+      </div>
+      <p><code>Python 3.x.x</code>가 출력되면 성공입니다. <code>py</code>는 Windows용 실행기이고, <code>python</code>은 PATH에 등록했을 때 동작합니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>2. 첫 스크립트 실행</h2>
+      <p>VS Code에서 <code>hello.py</code>를 만들고 아래처럼 입력합니다. 터미널에서 파일이 있는 폴더로 이동한 뒤 실행하세요.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">hello.py</span>
+        <pre><code>name = input("이름을 입력하세요: ")
+print(f"안녕하세요, {name}님!")</code></pre>
+      </div>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>python hello.py</code></pre>
+      </div>
+      <aside class="manual-callout is-tip">
+        <strong>TIP</strong>
+        <p>VS Code에서 Python 확장을 설치하면 오른쪽 위 <strong>실행</strong> 버튼으로도 실행할 수 있습니다. 다만 입력을 받는 프로그램은 터미널에서 실행하는 편이 확실합니다.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>3. 변수·조건·반복·함수</h2>
+      <div class="manual-code">
+        <span class="manual-code-label">basic.py</span>
+        <pre><code>site = "사피엔스"
+count = 3
+
+if count &gt;= 3:
+    print(f"{site}에 {count}번 방문했습니다.")
+else:
+    print("조금 더 둘러보세요.")
+
+for number in range(1, 4):
+    print(number)
+
+def greet(name):
+    return f"안녕하세요, {name}님"
+
+print(greet("사피엔스"))</code></pre>
+      </div>
+      <p>Python은 들여쓰기(보통 공백 4칸)가 문법입니다. <code>if</code>, <code>for</code>, <code>def</code> 다음 줄은 반드시 같은 깊이로 들여쓰세요.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>4. 파일 읽기와 JSON 저장</h2>
+      <p>한글 파일은 <code>encoding="utf-8"</code>을 명시하는 것이 안전합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">files.py</span>
+        <pre><code>import json
+from pathlib import Path
+
+source = Path("memo.txt")
+source.write_text("첫 줄\n둘째 줄\n", encoding="utf-8")
+
+text = source.read_text(encoding="utf-8")
+print(text)
+
+data = {"site": "사피엔스", "visits": 3}
+Path("data.json").write_text(
+    json.dumps(data, ensure_ascii=False, indent=2),
+    encoding="utf-8"
+)
+
+loaded = json.loads(Path("data.json").read_text(encoding="utf-8"))
+print(loaded["visits"])</code></pre>
+      </div>
+      <p><code>Path</code>는 현재 폴더 기준 경로를 다루기 쉽게 해 줍니다. 파일이 없을 때를 대비하려면 <code>try/except FileNotFoundError</code>로 감쌉니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>5. 가상환경 만들기</h2>
+      <p>프로젝트마다 필요한 패키지를 따로 관리하려면 가상환경을 사용합니다. 프로젝트 폴더에서 아래 순서로 실행합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# 프롬프트 앞에 (.venv)가 붙으면 활성화된 상태
+python --version
+
+# 작업이 끝나면
+deactivate</code></pre>
+      </div>
+      <aside class="manual-callout is-warn">
+        <strong>오류가 난다면</strong>
+        <p>“스크립트를 실행할 수 없습니다”가 나오면 현재 터미널에만 적용되는 정책 완화를 실행한 뒤 다시 활성화하세요.</p>
+      </aside>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass</code></pre>
+      </div>
+      <p><code>-Scope Process</code>는 이 터미널 창에만 적용되며 시스템 전체 설정을 바꾸지 않습니다. <code>.venv</code> 폴더는 Git에 올리지 않습니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>6. 패키지 설치와 requirements.txt</h2>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code># 가상환경이 활성화된 상태에서
+python -m pip install requests
+
+# 현재 환경의 패키지 목록 저장
+python -m pip freeze &gt; requirements.txt
+
+# 다른 컴퓨터에서 같은 환경 재현
+python -m pip install -r requirements.txt</code></pre>
+      </div>
+      <p><code>pip</code>를 직접 부르기보다 <code>python -m pip</code>로 실행하면 여러 Python 버전이 설치된 PC에서도 현재 인터프리터에 정확히 설치됩니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>7. 자동화 예제: 텍스트 파일 집계</h2>
+      <p>폴더 안의 <code>.txt</code> 파일을 읽어 줄 수와 단어 수를 세는 작은 도구입니다. 업무에서 반복되는 집계 작업을 이렇게 바꿀 수 있습니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">count_text.py</span>
+        <pre><code>from pathlib import Path
+
+folder = Path(".")
+rows = []
+
+for file in folder.glob("*.txt"):
+    text = file.read_text(encoding="utf-8")
+    rows.append((file.name, len(text.splitlines()), len(text.split())))
+
+rows.sort()
+for name, lines, words in rows:
+    print(f"{name}: {lines}줄, {words}단어")
+
+print(f"총 {len(rows)}개 파일")</code></pre>
+      </div>
+      <aside class="manual-callout">
+        <strong>참고</strong>
+        <p>파일을 삭제·이동하는 자동화는 위험합니다. 먼저 <strong>미리보기만 출력</strong>하고, 확인 후 실제 작업을 실행하도록 두 단계로 나누세요.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>8. 실행파일(.exe) 만들기</h2>
+      <p>Python이 설치되지 않은 PC에서도 실행하려면 PyInstaller로 묶습니다. 이 저장소의 데스크톱 도구도 같은 방식을 사용합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">PowerShell</span>
+        <pre><code>python -m pip install pyinstaller
+
+pyinstaller --onefile --noconsole tool.py
+
+# 결과: dist\tool.exe</code></pre>
+      </div>
+      <p>이 저장소에서는 <code>tools/desktop</code> 폴더에서 <code>.\build.ps1</code>을 실행하면 각 도구가 Windows 실행파일로 패키징됩니다. <code>build</code>, <code>dist</code>, <code>*.spec</code> 같은 생성물은 커밋하지 않습니다.</p>
+      <aside class="manual-callout is-warn">
+        <strong>주의</strong>
+        <p>실행파일은 백신이 오탐할 수 있습니다. 배포 전에 서명·출처 안내를 준비하고, 사용자에게 파일의 출처를 명확히 알려 주세요.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>완료 체크리스트</h2>
+      <ul class="manual-checklist">
+        <li><code>py --version</code>으로 Python 설치를 확인했다.</li>
+        <li><code>hello.py</code>를 만들어 실행했다.</li>
+        <li>가상환경을 만들고 활성화·비활성화했다.</li>
+        <li><code>requirements.txt</code>로 패키지 목록을 저장했다.</li>
+        <li>텍스트 파일을 읽어 결과를 출력하는 스크립트를 작성했다.</li>
+        <li>PyInstaller의 역할과 생성물을 커밋하지 않는 이유를 이해했다.</li>
+      </ul>
+    </section>
+
+    <nav class="manual-pager" aria-label="이전·다음 안내">
+      <a class="manual-pager-prev" href="manual-javascript.html">← 04 · 자바스크립트 제작</a>
+      <a class="manual-pager-next" href="manual-connect.html">06 · 제작항목 연결 →</a>
+    </nav>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-19"></script>
+<script src="assets/auth.js?v=labels-19"></script>
+<script src="assets/manual.js?v=labels-19"></script>
+<script src="assets/theme.js?v=labels-19"></script>
+</body>
+</html>

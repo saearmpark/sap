@@ -1,0 +1,290 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사피엔스 — Manual · CSS 제작</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-19">
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main manual-page">
+    <nav class="manual-crumbs" aria-label="현재 위치">
+      <a href="index.html">홈</a>
+      <span>/</span>
+      <a href="manual.html">Manual</a>
+      <span>/</span>
+      <span aria-current="page">CSS 제작</span>
+    </nav>
+    <div class="eyebrow">MANUAL 03</div>
+    <h1>CSS 제작</h1>
+    <p class="manual-intro">
+      CSS는 HTML 뼈대에 <strong>색·간격·글꼴·배치</strong>를 입히는 언어입니다.
+      이 단계에서는 스타일을 연결하는 방법부터 Flex·Grid 레이아웃, 모바일 대응, 다크 모드까지 익힙니다.
+    </p>
+    <div class="manual-meta">
+      <span>난이도 · 초급</span>
+      <span>예상 시간 · 30분</span>
+      <span>준비물 · HTML 페이지</span>
+    </div>
+
+    <section class="manual-section">
+      <h2>1. CSS를 HTML에 연결하기</h2>
+      <p>가장 좋은 방법은 별도 <code>.css</code> 파일을 만들어 <code>&lt;head&gt;</code>에서 불러오는 것입니다. 여러 페이지가 같은 파일을 공유할 수 있고 캐시도 활용됩니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">index.html</span>
+        <pre><code>&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;link rel="stylesheet" href="assets/style.css?v=labels-19"&gt;
+&lt;/head&gt;</code></pre>
+      </div>
+      <div class="manual-code">
+        <span class="manual-code-label">assets/style.css</span>
+        <pre><code>body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.6;
+  color: #222;
+  background: #fafafa;
+}</code></pre>
+      </div>
+      <p><code>?v=labels-19</code>은 캐시 버전입니다. CSS를 크게 바꿨는데 브라우저가 예전 파일을 계속 쓰는 것 같으면 이 값을 올립니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>2. 선택자와 우선순위</h2>
+      <div class="manual-code">
+        <span class="manual-code-label">CSS</span>
+        <pre><code>/* 태그 */
+p { color: #444; }
+
+/* 클래스: 여러 요소에 재사용 */
+.note { padding: 12px; background: #fff8dc; }
+
+/* 아이디: 페이지에 하나만 */
+#main-title { font-size: 32px; }
+
+/* 특정 부모 안의 요소 */
+.card h3 { margin-top: 0; }
+
+/* 마우스를 올렸을 때 */
+a:hover { text-decoration: underline; }
+
+/* 키보드 포커스 */
+button:focus-visible { outline: 2px solid #2f6fed; }</code></pre>
+      </div>
+      <p>같은 요소에 스타일이 겹치면 보통 <strong>나중에 쓴 규칙</strong>, <strong>더 구체적인 선택자</strong>, <strong>인라인 style</strong> 순으로 이깁니다. <code>!important</code>는 문제를 덮기만 하므로 되도록 쓰지 않습니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>3. 박스 모델: 여백의 기본</h2>
+      <p>모든 요소는 내용(content) · 안쪽 여백(padding) · 테두리(border) · 바깥 여백(margin)으로 이루어집니다. <code>box-sizing: border-box</code>를 쓰면 지정한 너비 안에 padding과 border가 포함됩니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">CSS</span>
+        <pre><code>*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.card {
+  width: 320px;
+  padding: 20px 22px;
+  margin-bottom: 14px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* 위/아래는 0, 좌/우는 자동 → 가운데 정렬 */
+.container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 20px;
+}</code></pre>
+      </div>
+      <aside class="manual-callout is-tip">
+        <strong>TIP</strong>
+        <p><strong>margin</strong>은 요소 바깥을 밀어내고, <strong>padding</strong>은 요소 안쪽을 넓힙니다. 여백이 이상하면 개발자도구에서 초록색/주황색 영역을 확인하세요.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>4. Flexbox로 한 줄 배치</h2>
+      <p>메뉴, 버튼 줄, 카드 안의 아이콘+글처럼 <strong>한 방향</strong> 배치에는 Flexbox가 편합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">CSS</span>
+        <pre><code>.toolbar {
+  display: flex;
+  align-items: center;      /* 세로 가운데 */
+  justify-content: space-between; /* 양끝 배치 */
+  gap: 12px;                /* 요소 사이 간격 */
+  flex-wrap: wrap;          /* 좁으면 다음 줄로 */
+}
+
+.toolbar .grow {
+  flex: 1;                  /* 남는 공간을 모두 차지 */
+}</code></pre>
+      </div>
+      <div class="manual-code">
+        <span class="manual-code-label">HTML</span>
+        <pre><code>&lt;div class="toolbar"&gt;
+  &lt;h2&gt;게시판&lt;/h2&gt;
+  &lt;input class="grow" type="search" placeholder="검색"&gt;
+  &lt;button type="button"&gt;검색&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+      </div>
+    </section>
+
+    <section class="manual-section">
+      <h2>5. Grid로 카드 배치</h2>
+      <p>같은 크기의 카드를 여러 줄로 배치할 때는 Grid가 깔끔합니다. <code>auto-fit</code>과 <code>minmax</code>를 쓰면 화면 너비에 따라 열 수가 자동으로 바뀝니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">CSS</span>
+        <pre><code>.manual-toc {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.manual-toc-card {
+  padding: 16px 18px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+}</code></pre>
+      </div>
+      <p>1fr은 “남는 공간을 같은 비율로 나눈다”는 뜻입니다. 카드가 너무 넓어지면 <code>max-width</code>를 함께 지정합니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>6. 반응형: 화면 크기에 맞추기</h2>
+      <p>모바일에서는 옆 메뉴를 위로 올리고, 여러 열을 한 열로 바꿉니다. 미디어 쿼리는 파일 아래쪽에 모아 두면 찾기 쉽습니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">CSS</span>
+        <pre><code>@media (max-width: 760px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  .manual-toc {
+    grid-template-columns: 1fr;
+  }
+
+  .main {
+    padding: 24px 14px;
+  }
+}</code></pre>
+      </div>
+      <aside class="manual-callout is-warn">
+        <strong>주의</strong>
+        <p>글자가 너무 작아지지 않게 하려면 고정 <code>px</code>보다 <code>rem</code>이 유리합니다. 이미지에는 <code>max-width: 100%; height: auto;</code>를 기본으로 두세요.</p>
+      </aside>
+    </section>
+
+    <section class="manual-section">
+      <h2>7. CSS 변수와 다크 모드</h2>
+      <p>이 사이트처럼 색을 변수로 정의하면 테마 전환이 간단해집니다. <code>:root</code>에 기본값을 두고, 다크 모드에서 변수만 바꿉니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">CSS</span>
+        <pre><code>:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --ink: #222222;
+  --ink-soft: #666666;
+  --border: #dddddd;
+  --accent: #2f6fed;
+}
+
+html[data-theme="dark"] {
+  --bg: #17181b;
+  --surface: #202226;
+  --ink: #f2f3f5;
+  --ink-soft: #a9adb5;
+  --border: #34373d;
+  --accent: #7aa2ff;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}</code></pre>
+      </div>
+      <p>테마 값은 <code>document.documentElement.dataset.theme = "dark"</code>처럼 <code>html</code>의 <code>data-theme</code> 속성을 바꿔 적용합니다. 새로고침 전에 저장하려면 <code>localStorage</code>를 사용합니다(04장).</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>8. 상태와 전환 효과</h2>
+      <div class="manual-code">
+        <span class="manual-code-label">CSS</span>
+        <pre><code>.button {
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.button:hover {
+  border-color: var(--accent);
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}</code></pre>
+      </div>
+      <p>전환 효과는 짧게(0.15~0.25초) 줍니다. 움직임을 줄이고 싶은 사용자를 위해 <code>@media (prefers-reduced-motion: reduce)</code>에서 <code>transition: none</code>을 지정할 수도 있습니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>9. 스타일이 안 먹을 때</h2>
+      <ul>
+        <li><strong>경로 확인</strong> — <code>&lt;link href&gt;</code>가 실제 파일 위치와 같은지 봅니다. <code>assets/style.css</code>는 HTML과 같은 폴더의 <code>assets</code> 안입니다.</li>
+        <li><strong>선택자 확인</strong> — HTML의 class 이름과 CSS의 <code>.이름</code>이 정확히 같은지 봅니다. 대소문자를 구분합니다.</li>
+        <li><strong>캐시 확인</strong> — <kbd>Ctrl</kbd> + <kbd>F5</kbd> 또는 버전 쿼리를 올립니다.</li>
+        <li><strong>개발자도구</strong> — <kbd>F12</kbd> → Elements에서 요소를 고르면 적용된 규칙과 덮어쓴 규칙(취소선)이 보입니다.</li>
+      </ul>
+    </section>
+
+    <section class="manual-section">
+      <h2>완료 체크리스트</h2>
+      <ul class="manual-checklist">
+        <li>외부 CSS 파일을 만들어 HTML에 연결했다.</li>
+        <li>클래스 선택자로 카드 스타일을 만들었다.</li>
+        <li>Flexbox로 가로 배치를, Grid로 카드 배치를 해 봤다.</li>
+        <li>760px 이하에서 한 열로 바뀌는 반응형 규칙을 넣었다.</li>
+        <li>CSS 변수로 색을 관리하고 다크 모드 값을 따로 정의했다.</li>
+      </ul>
+    </section>
+
+    <nav class="manual-pager" aria-label="이전·다음 안내">
+      <a class="manual-pager-prev" href="manual-html.html">← 02 · HTML 제작</a>
+      <a class="manual-pager-next" href="manual-javascript.html">04 · 자바스크립트 제작 →</a>
+    </nav>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-19"></script>
+<script src="assets/auth.js?v=labels-19"></script>
+<script src="assets/manual.js?v=labels-19"></script>
+<script src="assets/theme.js?v=labels-19"></script>
+</body>
+</html>

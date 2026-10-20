@@ -13,3 +13,12 @@ calendar.html
 login.html
 admin.html
 mypage.html
+manual.html
+manual-vscode.html
+manual-html.html
+manual-css.html
+manual-javascript.html
+manual-python.html
+manual-connect.html
+manual-server.html
+manual-ai-cli.html
