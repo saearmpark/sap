@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>사피엔스 — 웹제작절차 · 제작항목 연결</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-21">
+<link rel="stylesheet" href="assets/style.css?v=labels-22">
 </head>
 <body class="learning-page">
 <div class="layout">
@@ -72,7 +72,7 @@
         <li><strong>메뉴에 등록한다.</strong> <code>assets/common.js</code>의 <code>NAV</code> 배열에 항목을 추가합니다.</li>
         <li><strong>검색에 등록한다.</strong> <code>search.html</code>의 <code>GROUPS</code>와 <code>staticIndex</code>에 항목을 넣습니다.</li>
         <li><strong>CI 목록에 추가한다.</strong> <code>.github/scripts/pages.txt</code>에 파일명을 한 줄 추가합니다.</li>
-        <li><strong>캐시 버전을 올린다.</strong> 공용 CSS/JS를 바꿨다면 모든 페이지의 <code>?v=labels-21</code>를 다음 값으로 통일합니다.</li>
+        <li><strong>캐시 버전을 올린다.</strong> 공용 CSS/JS를 바꿨다면 모든 페이지의 <code>?v=labels-22</code>를 다음 값으로 통일합니다.</li>
         <li><strong>검증한다.</strong> Live Server에서 메뉴·링크·다크 모드를 확인하고, 인라인 스크립트 검사와 실제 배포를 확인합니다.</li>
       </ol>
     </section>
@@ -130,10 +130,10 @@
       <p>브라우저는 CSS와 JS를 저장해 두고 재사용합니다. 파일을 고쳐도 예전 화면이 보이면 <code>?v=</code> 값을 올려 새 주소로 인식하게 합니다.</p>
       <div class="manual-code">
         <span class="manual-code-label">HTML</span>
-        <pre><code>&lt;link rel="stylesheet" href="assets/style.css?v=labels-22"&gt;
-&lt;script src="assets/common.js?v=labels-22"&gt;&lt;/script&gt;</code></pre>
+        <pre><code>&lt;link rel="stylesheet" href="assets/style.css?v=labels-23"&gt;
+&lt;script src="assets/common.js?v=labels-23"&gt;&lt;/script&gt;</code></pre>
       </div>
-      <p>버전 값은 모든 페이지에서 <strong>같은 값</strong>을 사용합니다. 한 페이지에만 다른 값을 쓰면 페이지를 이동할 때 CSS가 다시 받아져 깜빡이거나, 반대로 이전 파일이 남을 수 있습니다. 이 사이트는 <code>labels-21</code>을 쓰고 있으므로, 다음에 공용 파일을 고칠 때 <code>labels-22</code>로 함께 올립니다.</p>
+      <p>버전 값은 모든 페이지에서 <strong>같은 값</strong>을 사용합니다. 한 페이지에만 다른 값을 쓰면 페이지를 이동할 때 CSS가 다시 받아져 깜빡이거나, 반대로 이전 파일이 남을 수 있습니다. 이 사이트는 <code>labels-22</code>를 쓰고 있으므로, 다음에 공용 파일을 고칠 때 <code>labels-23</code>으로 함께 올립니다.</p>
     </section>
 
     <section class="manual-section">
@@ -197,9 +197,9 @@ manual-html.html</code></pre>
     </nav>
   </main>
 </div>
-<script src="assets/common.js?v=labels-21"></script>
-<script src="assets/auth.js?v=labels-21"></script>
-<script src="assets/manual.js?v=labels-21"></script>
-<script src="assets/theme.js?v=labels-21"></script>
+<script src="assets/common.js?v=labels-22"></script>
+<script src="assets/auth.js?v=labels-22"></script>
+<script src="assets/manual.js?v=labels-22"></script>
+<script src="assets/theme.js?v=labels-22"></script>
 </body>
 </html>

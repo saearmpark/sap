@@ -24,7 +24,8 @@
           "manual-ai-cli.html",
           "manual-finish.html"
         ]
-      }
+      },
+      { href: "english.html", label: "영어" }
     ] },
     { label: "제작", items: [
       { href: "learn.html", label: "앱" },

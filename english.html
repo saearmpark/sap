@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사피엔스 — 영어 (OPIc IM1)</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-22">
+<style>
+  .english-page .main { max-width: 1080px; padding: 44px 48px; }
+  .english-lead { max-width: 760px; margin: 0 0 20px; color: var(--ink-soft); font-size: 14.5px; }
+  .english-overview { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap: 14px; margin-bottom: 18px; }
+  .english-overview .card { margin: 0; }
+  .english-card h2 { margin: 0 0 6px; font-size: 18px; }
+  .english-card > p { margin: 0; color: var(--ink-soft); font-size: 13.5px; }
+  .english-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin: 16px 0 14px; }
+  .english-stat { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); min-width: 0; }
+  .english-stat strong { display: block; font-size: 19px; line-height: 1.3; overflow-wrap: anywhere; }
+  .english-stat span { display: block; color: var(--ink-soft); font-size: 11.5px; }
+  .english-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 7px; color: var(--ink-soft); font-size: 12.5px; }
+  .english-progress-head strong { color: var(--ink); font-family: var(--mono); font-size: 12.5px; }
+  .progress-track { height: 8px; overflow: hidden; border-radius: 999px; background: var(--accent-soft); }
+  .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width 0.2s ease; }
+  .english-tip-list { margin: 10px 0 0; padding-left: 18px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.8; }
+  .english-tip-list strong { color: var(--ink); }
+  .english-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 20px 0 16px; border-bottom: 1px solid var(--border); }
+  .english-tab { padding: 9px 14px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--ink-soft); font-weight: 600; }
+  .english-tab:hover { background: var(--accent-soft); opacity: 1; }
+  .english-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .english-panel[hidden] { display: none; }
+  .english-section-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .english-section-head h2 { margin: 0; font-size: 21px; }
+  .english-section-head p { margin: 4px 0 0; color: var(--ink-soft); font-size: 13.5px; }
+  .english-note { color: var(--ink-soft); font-size: 12.5px; }
+  .english-today { border-color: var(--accent); }
+  .english-today h2 { margin: 2px 0 4px; font-size: 20px; }
+  .english-today p { margin: 0; color: var(--ink-soft); font-size: 13.5px; }
+  .english-today .english-button { margin-top: 12px; }
+  .english-today.is-complete { border-color: var(--border); }
+  .quest-list { display: grid; gap: 10px; }
+  .quest-card { margin: 0; padding: 0; overflow: hidden; }
+  .quest-card > summary { display: flex; align-items: flex-start; gap: 12px; padding: 15px 17px; cursor: pointer; list-style: none; }
+  .quest-card > summary::-webkit-details-marker { display: none; }
+  .quest-card > summary:hover { background: var(--accent-soft); }
+  .quest-card[open] > summary { border-bottom: 1px solid var(--border); }
+  .quest-day { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 9px; background: var(--accent-soft); color: var(--ink); font-family: var(--mono); font-size: 12px; font-weight: 700; }
+  .quest-card.is-complete .quest-day { background: var(--accent); color: var(--surface); }
+  .quest-summary-text { flex: 1; min-width: 0; }
+  .quest-title { display: block; margin: 0; font-size: 16px; overflow-wrap: anywhere; }
+  .quest-meta { display: flex; flex-wrap: wrap; gap: 5px 10px; margin-top: 3px; color: var(--ink-soft); font-size: 12px; }
+  .quest-badge { flex: none; align-self: center; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--ink-soft); font-size: 11px; white-space: nowrap; }
+  .quest-card.is-complete .quest-badge { background: var(--accent); color: var(--surface); }
+  .quest-body { padding: 14px 17px 17px; }
+  .quest-tasks { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+  .quest-task { display: flex; align-items: flex-start; gap: 9px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg); cursor: pointer; }
+  .quest-task:hover { border-color: var(--accent); }
+  .quest-task input { flex: none; width: 17px; height: 17px; margin: 2px 0 0; accent-color: var(--accent); }
+  .quest-task span { font-size: 13.5px; line-height: 1.55; overflow-wrap: anywhere; }
+  .quest-task.is-done span { color: var(--ink-soft); text-decoration: line-through; }
+  .quest-topics { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .english-chip { padding: 5px 9px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--ink); font-size: 12px; }
+  .english-chip:hover { background: var(--accent-soft); opacity: 1; }
+  .english-ghost { background: transparent; border: 1px solid var(--border); color: var(--ink); }
+  .english-ghost:hover { background: var(--accent-soft); opacity: 1; }
+  .english-ghost[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .english-button { font-size: 13px; padding: 8px 12px; }
+  .topic-list { display: grid; gap: 10px; }
+  .topic-card { margin: 0; padding: 0; overflow: hidden; }
+  .topic-card > summary { display: flex; align-items: center; gap: 12px; padding: 15px 18px; cursor: pointer; list-style: none; }
+  .topic-card > summary::-webkit-details-marker { display: none; }
+  .topic-card > summary:hover { background: var(--accent-soft); }
+  .topic-card[open] > summary { border-bottom: 1px solid var(--border); }
+  .topic-index { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--accent-soft); font-family: var(--mono); font-size: 12px; }
+  .topic-summary-text { flex: 1; min-width: 0; }
+  .topic-title { display: block; margin: 0; font-size: 17px; }
+  .topic-desc { display: block; margin: 2px 0 0; color: var(--ink-soft); font-size: 12.5px; overflow-wrap: anywhere; }
+  .topic-count { flex: none; color: var(--ink-soft); font-size: 12px; white-space: nowrap; }
+  .topic-body { padding: 0 16px 16px; }
+  .qa-card { margin-top: 12px; padding: 15px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); }
+  .qa-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .qa-type { display: inline-block; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); font-size: 11.5px; font-weight: 700; }
+  .qa-number { color: var(--ink-soft); font-family: var(--mono); font-size: 11.5px; }
+  .qa-question { margin: 9px 0 2px; font-size: 16.5px; line-height: 1.5; overflow-wrap: anywhere; }
+  .qa-question-ko { margin: 0; color: var(--ink-soft); font-size: 12.5px; }
+  .qa-answer { margin-top: 11px; padding: 11px 13px; border-left: 3px solid var(--accent); border-radius: 0 7px 7px 0; background: var(--surface); }
+  .qa-answer .answer-en { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+  .qa-answer .answer-ko { margin: 6px 0 0; color: var(--ink-soft); font-size: 12.5px; line-height: 1.6; }
+  .qa-tools { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .expression-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+  .expression-list li { padding: 4px 8px; border-radius: 6px; background: var(--accent-soft); font-size: 12px; overflow-wrap: anywhere; }
+  .expression-list span { display: block; color: var(--ink-soft); font-size: 11px; }
+  .template-box { margin-top: 10px; padding: 9px 11px; border: 1px dashed var(--border); border-radius: 7px; color: var(--ink); font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
+  .template-box strong { display: block; margin-bottom: 2px; color: var(--ink-soft); font-size: 11.5px; }
+  .followup { margin-top: 9px; }
+  .followup summary { color: var(--ink-soft); cursor: pointer; font-size: 12.5px; }
+  .followup p { margin: 6px 0 0; font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
+  .followup .answer-ko { color: var(--ink-soft); font-size: 12px; }
+  .record-area { margin-top: 9px; }
+  .record-status { color: var(--ink-soft); font-size: 12px; overflow-wrap: anywhere; }
+  .record-status[data-state="recording"] { color: #b42318; font-weight: 700; }
+  .record-playback { margin-top: 8px; }
+  .record-playback audio { width: min(100%, 360px); height: 36px; }
+  .english-status { min-height: 22px; margin: 8px 0 0; color: var(--ink-soft); font-size: 12.5px; }
+  :root[data-theme="dark"] .record-status[data-state="recording"] { color: #ff9b91; }
+  :root[data-theme="dark"] .english-page .english-tab,
+  :root[data-theme="dark"] .english-page .english-ghost,
+  :root[data-theme="dark"] .english-page .english-chip { color: var(--ink) !important; }
+  :root[data-theme="dark"] .english-page .english-ghost[aria-pressed="true"] { color: #17181a !important; }
+  @media (max-width: 900px) {
+    .english-page .main { padding: 32px 24px; }
+    .english-overview { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) {
+    .english-page .main { padding: 28px 12px; }
+    .english-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .quest-card > summary, .topic-card > summary { padding: 13px 14px; }
+    .topic-body { padding: 0 12px 14px; }
+    .qa-card { padding: 13px 12px; }
+  }
+  @media (max-width: 420px) {
+    .english-stats { grid-template-columns: 1fr; }
+    .english-tab { flex: 1; padding: 9px 8px; }
+    .quest-badge { display: none; }
+    .quest-day { width: 36px; height: 36px; }
+  }
+</style>
+</head>
+<body class="learning-page english-page">
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">ENGLISH · OPIc IM1</div>
+    <h1>영어 학습</h1>
+    <p class="english-lead">하루 25분, 14일 동안 OPIc IM1 답변을 완성합니다. 일일 퀘스트로 말하기 습관을 만들고, 8개 서베이 주제의 질문 유형과 모범답안을 내 이야기로 바꿔 연습해 보세요.</p>
+
+    <div class="english-overview">
+      <section class="card english-card" aria-labelledby="english-progress-title">
+        <h2 id="english-progress-title">14일 IM1 루틴</h2>
+        <p>체크한 작업은 이 브라우저에 자동 저장됩니다.</p>
+        <div class="english-stats">
+          <div class="english-stat"><strong id="stat-completed">0/42</strong><span>완료한 작업</span></div>
+          <div class="english-stat"><strong id="stat-days">0/14</strong><span>완료한 일차</span></div>
+          <div class="english-stat"><strong id="stat-next">Day 1</strong><span>다음 퀘스트</span></div>
+        </div>
+        <div class="english-progress-head"><span>전체 진도</span><strong id="progress-label">0%</strong></div>
+        <div id="quest-progress-track" class="progress-track" role="progressbar" aria-label="14일 퀘스트 진도" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="quest-progress" class="progress-fill"></div>
+        </div>
+      </section>
+      <section class="card english-card" aria-labelledby="english-tips-title">
+        <h2 id="english-tips-title">IM1 답변 공식</h2>
+        <ul class="english-tip-list">
+          <li><strong>3~5문장</strong>으로 짧게 말하고, 첫 문장에서 답을 분명히 합니다.</li>
+          <li><strong>because, for example, usually</strong> 같은 연결어를 넣습니다.</li>
+          <li>모범답안은 그대로 외우지 말고 <strong>내 이름·직업·취미</strong>로 바꿉니다.</li>
+          <li>녹음 후에는 내용, 시제, 긴 침묵만 먼저 확인합니다.</li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="english-tabs" role="tablist" aria-label="영어 학습 구역">
+      <button id="tab-quests" class="english-tab" type="button" role="tab" aria-selected="true" aria-controls="quests" tabindex="0" data-tab="quests">14일 퀘스트</button>
+      <button id="tab-survey" class="english-tab" type="button" role="tab" aria-selected="false" aria-controls="survey" tabindex="-1" data-tab="survey">서베이 주제</button>
+    </div>
+
+    <section id="quests" class="english-panel" role="tabpanel" aria-labelledby="tab-quests">
+      <div class="english-section-head">
+        <div>
+          <h2>일일 퀘스트</h2>
+          <p>순서대로 진행해도 좋고, 어려운 주제부터 골라도 좋습니다.</p>
+        </div>
+        <button id="reset-quests" class="english-button english-ghost" type="button">진도 초기화</button>
+      </div>
+      <div id="today-quest" aria-live="polite"></div>
+      <div id="quest-list" class="quest-list"></div>
+    </section>
+
+    <section id="survey" class="english-panel" role="tabpanel" aria-labelledby="tab-survey" hidden>
+      <div class="english-section-head">
+        <div>
+          <h2>서베이 주제</h2>
+          <p>질문 유형, 모범답안, 핵심 표현, 답변 템플릿, 예상 꼬리질문을 한 번에 확인하세요.</p>
+          <p class="english-note">TTS는 브라우저 음성으로 읽고, 녹음은 현재 탭에서만 보관됩니다.</p>
+        </div>
+      </div>
+      <div id="topic-list" class="topic-list"></div>
+    </section>
+
+    <p id="english-status" class="english-status" role="status" aria-live="polite"></p>
+    <noscript><p class="english-status">퀘스트와 서베이 주제를 보려면 JavaScript를 켜 주세요.</p></noscript>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-22"></script>
+<script src="assets/auth.js?v=labels-22"></script>
+<script src="assets/english.js?v=labels-22"></script>
+<script src="assets/theme.js?v=labels-22"></script>
+</body>
+</html>
