@@ -1,178 +1,110 @@
 (() => {
-  const STORAGE_KEY = "sap-english-quests-v1";
+  const SETTINGS_KEY = "sap-english-opic-settings-v1";
+  const HISTORY_KEY = "sap-english-opic-history-v1";
+  const DEFAULT_TOPICS = ["home", "hobby", "travel", "food"];
+  const MIN_TOPICS = 3;
+  const MAX_TOPICS = 5;
+  const QUESTION_COUNT = 6;
 
-  const QUESTS = [
-    {
-      day: 1,
-      title: "자기소개 뼈대 만들기",
-      focus: "Self-introduction",
-      minutes: 25,
-      topicIds: ["self"],
-      tasks: [
-        "자기소개 모범답안을 소리 내어 3번 읽기",
-        "내 이름·사는 곳·하는 일로 5문장 바꿔 말하기",
-        "30초 자기소개를 녹음하고 다시 듣기"
-      ]
+  const EXAM_MODES = {
+    mixed: { label: "혼합", short: "혼합" },
+    related: { label: "관련 주제", short: "관련" },
+    unexpected: { label: "돌발 주제", short: "돌발" }
+  };
+
+  const TOPIC_META = {
+    self: {
+      keywords: ["name", "introduce", "student", "work", "live", "hobby", "free time", "seoul"],
+      script: {
+        full: "Hi, my name is Jiwon. I'm a university student, and I live in Seoul. I study business, and I'm interested in marketing. In my free time, I usually watch movies or meet my friends. I'm a positive person, and I enjoy spending time with people.",
+        ko: "안녕하세요, 제 이름은 지원이에요. 저는 대학생이고 서울에 살아요. 경영학을 공부하고 마케팅에 관심이 있어요. 여가 시간에는 보통 영화를 보거나 친구들을 만나요. 저는 긍정적인 사람이고 사람들과 어울리는 것을 좋아해요."
+      }
     },
-    {
-      day: 2,
-      title: "집과 동네 설명하기",
-      focus: "Home & neighborhood",
-      minutes: 25,
-      topicIds: ["home"],
-      tasks: [
-        "집 구조를 설명하는 3문장 만들기",
-        "좋아하는 공간과 이유 말하기",
-        "동네에서 자주 가는 곳 2곳 소개하기"
-      ]
+    home: {
+      keywords: ["home", "house", "apartment", "live", "room", "neighborhood", "kitchen", "living room"],
+      script: {
+        full: "I live in a small apartment in Seoul. It has two rooms, a kitchen, and a living room. My favorite place is the living room because it is bright and comfortable. I usually read or watch TV there. The neighborhood is quiet and close to the subway, so it is convenient.",
+        ko: "저는 서울의 작은 아파트에 살아요. 방 두 개, 주방, 거실이 있어요. 가장 좋아하는 공간은 거실인데 밝고 편안하기 때문이에요. 보통 거기서 책을 읽거나 TV를 봐요. 동네는 조용하고 지하철과 가까워서 편리해요."
+      }
     },
-    {
-      day: 3,
-      title: "일과 학교 이야기",
-      focus: "Work & school",
-      minutes: 25,
-      topicIds: ["work"],
-      tasks: [
-        "전공이나 직업과 하루 일과를 4문장으로 말하기",
-        "힘들었던 프로젝트 경험 1개 말하기",
-        "질문을 듣고 30초 답변 녹음하기"
-      ]
+    work: {
+      keywords: ["work", "job", "school", "study", "class", "company", "project", "office", "university"],
+      script: {
+        full: "I'm a university student, and I study business in Seoul. On a typical day, I have three or four classes, and I study in the library after class. I'm interested in marketing, so I want to work at a company in the future. My schedule is busy, but I enjoy learning new things.",
+        ko: "저는 대학생이고 서울에서 경영학을 공부해요. 평소에는 세네 개의 수업을 듣고, 수업이 끝나면 도서관에서 공부해요. 마케팅에 관심이 있어서 앞으로 회사에서 일하고 싶어요. 일정은 바쁘지만 새로운 것을 배우는 것을 즐겨요."
+      }
     },
-    {
-      day: 4,
-      title: "취미로 말문 열기",
-      focus: "Hobbies",
-      minutes: 25,
-      topicIds: ["hobby"],
-      tasks: [
-        "좋아하는 취미와 이유 말하기",
-        "최근에 시작한 취미 소개하기",
-        "실내 취미와 실외 취미 비교하기"
-      ]
+    hobby: {
+      keywords: ["hobby", "free time", "enjoy", "weekend", "movie", "music", "park", "guitar"],
+      script: {
+        full: "My favorite hobby is watching movies. I especially like comedies because they help me relax. I usually watch movies at home with my family on weekends. I also enjoy walking in the park when the weather is nice.",
+        ko: "제가 가장 좋아하는 취미는 영화 보기예요. 특히 코미디를 좋아하는데 스트레스를 푸는 데 도움이 되기 때문이에요. 보통 주말에 가족과 집에서 영화를 봐요. 날씨가 좋을 때는 공원에서 걷는 것도 좋아해요."
+      }
     },
-    {
-      day: 5,
-      title: "여행 경험 꺼내기",
-      focus: "Travel & vacation",
-      minutes: 25,
-      topicIds: ["travel"],
-      tasks: [
-        "최근 여행지와 한 일을 4문장으로 말하기",
-        "여행 계획을 세우는 순서 설명하기",
-        "혼자 여행과 함께 여행 비교하기"
-      ]
+    travel: {
+      keywords: ["travel", "trip", "vacation", "visit", "jeju", "beach", "hotel", "country", "summer"],
+      script: {
+        full: "Last summer, I went to Jeju Island with my family. We stayed there for four days and visited the beach. We also tried local food and took many pictures. The weather was sunny, so it was a wonderful trip. I would like to go back someday.",
+        ko: "지난여름에 가족과 제주도에 갔어요. 4일 동안 머물면서 해변에 갔어요. 지역 음식도 먹어 보고 사진도 많이 찍었어요. 날씨가 맑아서 정말 멋진 여행이었어요. 언젠가 다시 가고 싶어요."
+      }
     },
-    {
-      day: 6,
-      title: "음식과 식당 묘사하기",
-      focus: "Food & restaurants",
-      minutes: 25,
-      topicIds: ["food"],
-      tasks: [
-        "좋아하는 음식과 이유 말하기",
-        "기억에 남는 식당 묘사하기",
-        "외식 빈도와 자주 주문하는 메뉴 말하기"
-      ]
+    food: {
+      keywords: ["food", "eat", "restaurant", "favorite", "cook", "meal", "lunch", "dinner", "pasta"],
+      script: {
+        full: "I like Korean food, especially kimchi stew. It is spicy and warm, so I often eat it for lunch. I also like pasta and sushi. I eat out about twice a week with my friends, but I usually cook at home on weekdays.",
+        ko: "저는 한국 음식, 특히 김치찌개를 좋아해요. 맵고 따뜻해서 자주 점심으로 먹어요. 파스타와 초밥도 좋아해요. 일주일에 두 번 정도 친구들과 외식하지만 평일에는 보통 집에서 요리해요."
+      }
     },
-    {
-      day: 7,
-      title: "1주 차 복습과 1분 말하기",
-      focus: "Review",
-      minutes: 35,
-      topicIds: ["self", "home", "work"],
-      tasks: [
-        "Day 1~6 질문 중 5개를 골라 바로 답하기",
-        "자기소개 1분 버전으로 녹음하기",
-        "어려웠던 주제 1개를 다시 연습하기"
-      ]
+    shopping: {
+      keywords: ["shop", "shopping", "buy", "online", "store", "price", "clothes", "sneakers", "product"],
+      script: {
+        full: "I usually shop online because it is fast and easy. I compare prices and read reviews before I buy something. For clothes, I sometimes go to a store because I want to try them on. I don't shop very often, but I buy what I need.",
+        ko: "저는 보통 온라인에서 쇼핑해요. 빠르고 쉽기 때문이에요. 물건을 사기 전에 가격을 비교하고 후기를 읽어요. 옷은 입어 보고 싶어서 가끔 매장에 가요. 자주 쇼핑하지는 않지만 필요한 것은 사요."
+      }
     },
-    {
-      day: 8,
-      title: "쇼핑 습관 말하기",
-      focus: "Shopping",
-      minutes: 25,
-      topicIds: ["shopping"],
-      tasks: [
-        "온라인 쇼핑 습관 설명하기",
-        "최근에 구매한 물건 소개하기",
-        "온라인 쇼핑과 매장 쇼핑 비교하기"
-      ]
-    },
-    {
-      day: 9,
-      title: "영화와 음악으로 취향 말하기",
-      focus: "Movies & music",
-      minutes: 25,
-      topicIds: ["media"],
-      tasks: [
-        "좋아하는 영화 장르와 이유 말하기",
-        "최근에 본 영화의 줄거리 말하기",
-        "좋아하는 음악과 듣는 상황 설명하기"
-      ]
-    },
-    {
-      day: 10,
-      title: "자기소개와 집 연결하기",
-      focus: "Self-introduction + home",
-      minutes: 25,
-      topicIds: ["self", "home"],
-      tasks: [
-        "자기소개에 집이나 동네 내용 1문장 추가하기",
-        "집에서 보내는 주말 루틴 말하기",
-        "두 주제를 연결해 1분 동안 말하기"
-      ]
-    },
-    {
-      day: 11,
-      title: "일과 취미 연결하기",
-      focus: "Work & school + hobbies",
-      minutes: 25,
-      topicIds: ["work", "hobby"],
-      tasks: [
-        "하는 일이나 공부와 취미를 연결하기",
-        "바쁜 날과 여유로운 날 비교하기",
-        "스트레스를 푸는 방법 말하기"
-      ]
-    },
-    {
-      day: 12,
-      title: "여행과 음식 연결하기",
-      focus: "Travel + food",
-      minutes: 25,
-      topicIds: ["travel", "food"],
-      tasks: [
-        "최근 여행에서 먹은 음식 소개하기",
-        "여행지 맛집을 친구에게 추천하기",
-        "여행과 음식 경험을 1분으로 말하기"
-      ]
-    },
-    {
-      day: 13,
-      title: "쇼핑과 영화 연결하기",
-      focus: "Shopping + movies",
-      minutes: 25,
-      topicIds: ["shopping", "media"],
-      tasks: [
-        "최근 산 물건과 본 영화를 연결하기",
-        "쇼핑 취향과 영화 취향 비교하기",
-        "친구에게 물건이나 영화를 추천하기"
-      ]
-    },
-    {
-      day: 14,
-      title: "최종 모의고사",
-      focus: "Mock test",
-      minutes: 40,
-      topicIds: ["self", "home", "work", "hobby", "travel", "food", "shopping", "media"],
-      tasks: [
-        "8개 주제에서 질문을 2개씩 골라 답하기",
-        "15문항처럼 연속으로 답변하기",
-        "취약한 주제 2개를 골라 다시 녹음하기"
-      ]
+    media: {
+      keywords: ["movie", "music", "watch", "listen", "favorite", "cinema", "song", "comedy", "singer"],
+      script: {
+        full: "I like comedy and action movies. Comedies make me feel happy, and action movies are exciting. I usually watch movies at home on weekends. I also listen to pop music and Korean ballads when I walk or study.",
+        ko: "저는 코미디와 액션 영화를 좋아해요. 코미디는 저를 행복하게 하고 액션 영화는 흥미진진해요. 보통 주말에 집에서 영화를 봐요. 걸을 때나 공부할 때 팝 음악과 한국 발라드도 들어요."
+      }
     }
+  };
+
+  const LEVELS = [
+    { min: 95, grade: "AL", desc: "복잡한 주제도 논리적으로 길게 설명할 수 있는 수준" },
+    { min: 88, grade: "IH", desc: "다양한 주제를 유창하게 설명하고 근거를 제시하는 수준" },
+    { min: 80, grade: "IM3", desc: "경험과 의견을 구체적으로 연결하는 수준" },
+    { min: 72, grade: "IM2", desc: "이유와 예시를 들어 자연스럽게 설명하는 수준" },
+    { min: 64, grade: "IM1", desc: "익숙한 주제를 3~5문장으로 설명하는 수준" },
+    { min: 55, grade: "IL", desc: "일상 주제에 간단한 문장으로 답하는 수준" },
+    { min: 45, grade: "NH", desc: "기본 문장은 가능하지만 확장이 부족한 수준" },
+    { min: 32, grade: "NM", desc: "짧은 문장과 외운 표현 중심인 수준" },
+    { min: 0, grade: "NL", desc: "단어나 아주 짧은 문장 수준" }
   ];
 
-  const TOPICS = [
+  const STOP_WORDS = new Set([
+    "a", "about", "after", "all", "also", "am", "an", "and", "any", "are", "as", "at",
+    "be", "because", "been", "before", "but", "by", "can", "could", "did", "do", "does",
+    "for", "from", "had", "has", "have", "he", "her", "here", "him", "his", "how", "i",
+    "if", "in", "into", "is", "it", "its", "just", "like", "me", "more", "most", "my",
+    "no", "not", "of", "on", "or", "our", "please", "she", "so", "some", "tell", "than",
+    "that", "the", "their", "them", "then", "there", "they", "this", "to", "too", "up",
+    "us", "very", "was", "we", "were", "what", "when", "where", "which", "who", "why",
+    "will", "with", "would", "you", "your", "yours"
+  ]);
+
+  const CONNECTORS = [
+    "because", "so", "but", "also", "for example", "however", "although", "when", "if",
+    "after", "before", "usually", "sometimes", "actually", "especially", "since", "while",
+    "instead", "in my opinion"
+  ];
+
+  const COMPLEX_MARKERS = [
+    "because", "although", "when", "if", "after", "before", "that", "which", "who", "while", "since"
+  ];
+
+    const TOPICS = [
     {
       id: "self",
       title: "자기소개",
@@ -647,65 +579,108 @@
     }
   ];
 
-  const questByDay = new Map(QUESTS.map((quest) => [quest.day, quest]));
   const topicById = new Map(TOPICS.map((topic) => [topic.id, topic]));
-  const totalTaskCount = QUESTS.reduce((sum, quest) => sum + quest.tasks.length, 0);
-  let progress = loadProgress();
-  let activeRecorder = null;
-  let recordPending = false;
-  let activeSpeakButton = null;
+  const ttsSupported = "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined";
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let settings = loadSettings();
+  let examHistory = loadHistory();
+  let exam = null;
   let statusTimer = null;
+  let activeSpeakButton = null;
+  let recognition = null;
+  let recognizing = false;
+  let recognitionBase = "";
+  let recognitionFinal = "";
+  let recognitionInterim = "";
+  let recognitionError = "";
 
-  function loadProgress() {
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => (
+      { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]
+    ));
+  }
+
+  function shuffle(items) {
+    const copy = [...items];
+    for (let index = copy.length - 1; index > 0; index--) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+    }
+    return copy;
+  }
+
+  function englishWords(value) {
+    return (String(value).toLowerCase().match(/[a-z]+(?:'[a-z]+)?/g) || []);
+  }
+
+  function contentWords(value) {
+    return englishWords(value).filter((word) => !STOP_WORDS.has(word));
+  }
+
+  function sentenceUnits(value) {
+    const actual = String(value).split(/[.!?]+|\n+/).map((part) => part.trim()).filter(Boolean).length;
+    const estimated = Math.min(6, Math.max(1, Math.round(englishWords(value).length / 15)));
+    return Math.max(actual, estimated);
+  }
+
+  function foundPhrases(text, phrases) {
+    const lower = ` ${String(text).toLowerCase()} `;
+    return phrases.filter((phrase) => {
+      const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`\\b${escaped}\\b`).test(lower);
+    });
+  }
+
+  function loadSettings() {
+    const fallback = { topics: DEFAULT_TOPICS, examMode: "mixed", answerMode: "write" };
     try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      if (!saved || typeof saved !== "object" || !saved.tasks || typeof saved.tasks !== "object") return {};
-      const result = {};
-      for (const quest of QUESTS) {
-        const values = saved.tasks[String(quest.day)];
-        if (Array.isArray(values)) result[quest.day] = quest.tasks.map((_, index) => Boolean(values[index]));
-      }
-      return result;
+      const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+      if (!saved || typeof saved !== "object") return fallback;
+      const topics = Array.isArray(saved.topics)
+        ? [...new Set(saved.topics.filter((id) => id !== "self" && topicById.has(id)))].slice(0, MAX_TOPICS)
+        : DEFAULT_TOPICS;
+      return {
+        topics: topics.length ? topics : DEFAULT_TOPICS,
+        examMode: EXAM_MODES[saved.examMode] ? saved.examMode : "mixed",
+        answerMode: saved.answerMode === "speak" || saved.answerMode === "write" ? saved.answerMode : "write"
+      };
     } catch {
-      return {};
+      return fallback;
     }
   }
 
-  function saveProgress() {
+  function saveSettings() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks: progress, updatedAt: new Date().toISOString() }));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch {}
+  }
+
+  function loadHistory() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      if (!Array.isArray(saved)) return [];
+      return saved.filter((record) => record && typeof record.averageScore === "number").slice(0, 10);
     } catch {
-      setStatus("브라우저에 진도를 저장하지 못했습니다.");
+      return [];
     }
   }
 
-  function stateFor(day) {
-    const quest = questByDay.get(Number(day));
-    if (!quest) return [];
-    const current = Array.isArray(progress[day]) ? progress[day] : [];
-    progress[day] = quest.tasks.map((_, index) => Boolean(current[index]));
-    return progress[day];
+  function saveHistory() {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(examHistory.slice(0, 10)));
+    } catch {
+      setStatus("브라우저에 응시 기록을 저장하지 못했습니다.");
+    }
   }
 
-  function completedTaskCount(day) {
-    return stateFor(day).filter(Boolean).length;
+  function formatDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
   }
 
-  function isDayComplete(day) {
-    const state = stateFor(day);
-    return state.length > 0 && state.every(Boolean);
-  }
-
-  function completedDayCount() {
-    return QUESTS.filter((quest) => isDayComplete(quest.day)).length;
-  }
-
-  function doneTaskCount() {
-    return QUESTS.reduce((sum, quest) => sum + completedTaskCount(quest.day), 0);
-  }
-
-  function nextQuest() {
-    return QUESTS.find((quest) => !isDayComplete(quest.day)) || null;
+  function gradeForScore(score) {
+    return LEVELS.find((level) => score >= level.min) || LEVELS[LEVELS.length - 1];
   }
 
   function setStatus(message) {
@@ -716,204 +691,598 @@
     if (message) statusTimer = setTimeout(() => { element.textContent = ""; }, 4500);
   }
 
-  function renderQuests() {
-    const list = document.getElementById("quest-list");
+  function updateOverview() {
+    const latest = examHistory[0];
+    const grade = document.getElementById("latest-grade");
+    const score = document.getElementById("latest-score");
+    const count = document.getElementById("history-count");
+    const date = document.getElementById("latest-date");
+    if (grade) grade.textContent = latest ? latest.averageGrade : "—";
+    if (score) score.textContent = latest ? `${latest.averageScore}점` : "—";
+    if (count) count.textContent = `${examHistory.length}회`;
+    if (date) {
+      date.textContent = latest
+        ? `${formatDate(latest.date)} · ${EXAM_MODES[latest.mode]?.short || "혼합"} · ${latest.answerMode === "speak" ? "Speak" : "Write"}`
+        : "아직 응시 기록이 없습니다.";
+    }
+  }
+
+  function renderTopicChoices() {
+    const container = document.getElementById("topic-choices");
+    if (!container) return;
+    container.innerHTML = TOPICS.filter((topic) => topic.id !== "self").map((topic, index) => {
+      const active = settings.topics.includes(topic.id);
+      return `<button type="button" class="choice-chip${active ? " is-active" : ""}" data-topic-choice="${topic.id}" aria-pressed="${active}">
+        <span class="choice-code">${String(index + 1).padStart(2, "0")}</span>
+        <span><strong>${escapeHtml(topic.title)}</strong><small>${escapeHtml(topic.english)}</small></span>
+      </button>`;
+    }).join("");
+  }
+
+  function renderModeButtons() {
+    document.querySelectorAll("[data-exam-mode]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.examMode === settings.examMode));
+    });
+    document.querySelectorAll("[data-answer-mode]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.answerMode === settings.answerMode));
+      if (button.dataset.answerMode === "speak") {
+        button.disabled = !SpeechRecognitionCtor;
+        button.title = SpeechRecognitionCtor ? "" : "이 브라우저는 말하기 인식을 지원하지 않습니다.";
+      }
+    });
+    const speechNote = document.getElementById("speech-note");
+    if (speechNote && !SpeechRecognitionCtor) {
+      speechNote.textContent = "이 브라우저는 Speak 모드를 지원하지 않아 Write 모드로 시작합니다. Chrome 또는 Edge에서 말하기를 사용할 수 있습니다.";
+    }
+  }
+
+  function planText() {
+    if (settings.examMode === "related") return "자기소개 1 + 선택 주제 5문항";
+    if (settings.examMode === "unexpected") return "자기소개 1 + 돌발 주제 5문항";
+    return "자기소개 1 + 관련 주제 3 + 돌발 주제 2";
+  }
+
+  function updateSetupSummary() {
+    const count = settings.topics.length;
+    const selectionCount = document.getElementById("selection-count");
+    const plan = document.getElementById("exam-plan");
+    const start = document.getElementById("start-exam");
+    if (selectionCount) selectionCount.textContent = `${count}/${MAX_TOPICS} 선택`;
+    if (plan) plan.textContent = `${planText()} · ${settings.answerMode === "speak" ? "Speak" : "Write"}로 응시`;
+    if (start) start.disabled = count < MIN_TOPICS;
+  }
+
+  function renderSetup() {
+    renderTopicChoices();
+    renderModeButtons();
+    updateSetupSummary();
+  }
+
+  function makeQuestion(topic, question, questionIndex, origin) {
+    return {
+      ...question,
+      topicId: topic.id,
+      topicTitle: topic.title,
+      topicEnglish: topic.english,
+      questionIndex,
+      origin
+    };
+  }
+
+  function takeQuestions(topics, count, origin, used, output) {
+    if (count <= 0 || !topics.length) return;
+    const target = output.length + count;
+    const queues = shuffle(topics).map((topic) => ({
+      topic,
+      items: shuffle(topic.questions.map((question, index) => ({ question, index })))
+    }));
+    while (output.length < target) {
+      let added = false;
+      for (const queue of queues) {
+        if (output.length >= target) break;
+        let item = null;
+        while (queue.items.length) {
+          const candidate = queue.items.shift();
+          if (!used.has(`${queue.topic.id}:${candidate.index}`)) {
+            item = candidate;
+            break;
+          }
+        }
+        if (!item) continue;
+        used.add(`${queue.topic.id}:${item.index}`);
+        output.push(makeQuestion(queue.topic, item.question, item.index, origin));
+        added = true;
+      }
+      if (!added) break;
+    }
+  }
+
+  function buildExam() {
+    const selectedIds = new Set(settings.topics);
+    const selected = TOPICS.filter((topic) => topic.id !== "self" && selectedIds.has(topic.id));
+    const unselected = TOPICS.filter((topic) => topic.id !== "self" && !selectedIds.has(topic.id));
+    const selfTopic = topicById.get("self");
+    const used = new Set(["self:0"]);
+    const questions = [makeQuestion(selfTopic, selfTopic.questions[0], 0, "기본")];
+    const relatedCount = settings.examMode === "unexpected" ? 0 : settings.examMode === "related" ? 5 : 3;
+    const unexpectedCount = QUESTION_COUNT - 1 - relatedCount;
+    takeQuestions(selected, relatedCount, "관련", used, questions);
+    takeQuestions(unselected, unexpectedCount, "돌발", used, questions);
+    if (questions.length < QUESTION_COUNT) {
+      takeQuestions(TOPICS.filter((topic) => topic.id !== "self"), QUESTION_COUNT - questions.length, "돌발", used, questions);
+    }
+    return { questions, index: 0, results: [], startedAt: new Date().toISOString() };
+  }
+
+  function currentQuestion() {
+    return exam?.questions[exam.index] || null;
+  }
+
+  function renderQuestion() {
+    const question = currentQuestion();
+    if (!question) return;
+    stopRecognition(true);
+    stopSpeech();
+    const progressLabel = document.getElementById("exam-progress-label");
+    const progressFill = document.getElementById("exam-progress-fill");
+    const progressTrack = document.querySelector(".exam-top .progress-track");
+    const origin = document.getElementById("question-origin");
+    const topic = document.getElementById("question-topic");
+    const type = document.getElementById("question-type");
+    const text = document.getElementById("question-text");
+    const korean = document.getElementById("question-ko");
+    const modeLabel = document.getElementById("answer-mode-label");
+    const guide = document.getElementById("answer-guide");
+    const speakControls = document.getElementById("speak-controls");
+    const input = document.getElementById("answer-input");
+    const evaluation = document.getElementById("evaluation");
+    const speakQuestion = document.getElementById("speak-question");
+    if (progressLabel) progressLabel.textContent = `Q${exam.index + 1} / ${exam.questions.length}`;
+    if (progressFill) progressFill.style.width = `${((exam.index + 1) / exam.questions.length) * 100}%`;
+    if (progressTrack) progressTrack.setAttribute("aria-valuenow", String(exam.index + 1));
+    if (origin) {
+      origin.textContent = question.origin;
+      origin.dataset.origin = question.origin;
+    }
+    if (topic) topic.textContent = `${question.topicTitle} · ${question.topicEnglish}`;
+    if (type) type.textContent = question.type;
+    if (text) text.textContent = question.question;
+    if (korean) korean.textContent = question.questionKo;
+    if (modeLabel) modeLabel.textContent = settings.answerMode === "speak" ? "SPEAK" : "WRITE";
+    if (guide) {
+      guide.textContent = settings.answerMode === "speak"
+        ? "말하기 시작을 누르고 영어로 답하세요. 인식된 문장은 제출 전에 직접 수정할 수 있습니다."
+        : "질문을 읽고 영어로 3~5문장을 입력하세요. 이유나 예시를 함께 넣으면 좋습니다.";
+    }
+    if (input) {
+      input.value = "";
+      input.disabled = false;
+    }
+    if (evaluation) {
+      evaluation.hidden = true;
+      evaluation.innerHTML = "";
+    }
+    if (speakControls) speakControls.hidden = settings.answerMode !== "speak";
+    if (speakQuestion) {
+      speakQuestion.disabled = !ttsSupported;
+      speakQuestion.textContent = "질문 듣기";
+      speakQuestion.setAttribute("aria-pressed", "false");
+    }
+    const submit = document.getElementById("submit-answer");
+    if (submit) submit.disabled = false;
+    const answerStatus = document.getElementById("answer-status");
+    if (answerStatus) answerStatus.textContent = "";
+    setSpeakStatus(settings.answerMode === "speak"
+      ? (SpeechRecognitionCtor ? "말하기 버튼을 눌러 답변을 시작하세요." : "이 브라우저는 말하기 인식을 지원하지 않습니다.")
+      : "", "");
+    updateAnswerCount();
+    document.getElementById("speak-toggle")?.removeAttribute("disabled");
+    if (settings.answerMode === "speak" && !SpeechRecognitionCtor) {
+      const toggle = document.getElementById("speak-toggle");
+      if (toggle) toggle.disabled = true;
+    }
+  }
+
+  function updateAnswerCount() {
+    const input = document.getElementById("answer-input");
+    const count = document.getElementById("answer-count");
+    if (count) count.textContent = String(englishWords(input?.value || "").length);
+  }
+
+  function explainRelevance(question, text) {
+    const topicWords = TOPIC_META[question.topicId]?.keywords || [];
+    const questionWords = englishWords(question.question).filter((word) => word.length >= 4 && !STOP_WORDS.has(word));
+    const keys = [...new Set([...topicWords, ...questionWords])];
+    const lower = String(text).toLowerCase();
+    const wordSet = new Set(englishWords(text));
+    const hits = keys.filter((key) => key.includes(" ") ? lower.includes(key) : wordSet.has(key));
+    return { keys, hits };
+  }
+
+  function evaluateAnswer(text, question) {
+    const words = englishWords(text);
+    const content = contentWords(text);
+    const uniqueContent = new Set(content);
+    const units = sentenceUnits(text);
+    const connectors = foundPhrases(text, CONNECTORS);
+    const complex = foundPhrases(text, COMPLEX_MARKERS);
+    const relevance = explainRelevance(question, text);
+    const ratio = content.length ? uniqueContent.size / content.length : 0;
+
+    let lengthScore = 0;
+    if (words.length >= 40 && words.length <= 95) lengthScore = 25;
+    else if (words.length > 95 && words.length <= 120) lengthScore = 20;
+    else if (words.length > 120) lengthScore = 15;
+    else if (words.length >= 30) lengthScore = 18;
+    else if (words.length >= 20) lengthScore = 13;
+    else if (words.length >= 10) lengthScore = 8;
+    else if (words.length > 0) lengthScore = 3;
+
+    let structureScore = units >= 5 ? 12 : units === 4 ? 11 : units === 3 ? 9 : units === 2 ? 5 : 2;
+    if (complex.length >= 3) structureScore += 8;
+    else if (complex.length === 2) structureScore += 6;
+    else if (complex.length === 1) structureScore += 4;
+    structureScore = Math.min(20, structureScore);
+
+    let vocabScore = 1;
+    if (uniqueContent.size >= 35 && ratio >= 0.55) vocabScore = 20;
+    else if (uniqueContent.size >= 28 && ratio >= 0.5) vocabScore = 18;
+    else if (uniqueContent.size >= 20 && ratio >= 0.45) vocabScore = 15;
+    else if (uniqueContent.size >= 14) vocabScore = 11;
+    else if (uniqueContent.size >= 9) vocabScore = 7;
+    else if (uniqueContent.size >= 5) vocabScore = 4;
+
+    const connectorScore = connectors.length >= 4 ? 20 : connectors.length === 3 ? 17 : connectors.length === 2 ? 13 : connectors.length === 1 ? 8 : 0;
+    const relevanceScore = relevance.hits.length >= 4 ? 15 : relevance.hits.length === 3 ? 13 : relevance.hits.length === 2 ? 10 : relevance.hits.length === 1 ? 6 : 1;
+    const total = lengthScore + structureScore + vocabScore + connectorScore + relevanceScore;
+    const level = gradeForScore(total);
+    const feedback = [];
+
+    if (words.length < 30) feedback.push("답변이 짧습니다. 이유나 예시를 한 문장 더 넣어 3~5문장으로 늘려 보세요.");
+    else if (words.length > 100) feedback.push("답변이 깁니다. 핵심 답변을 먼저 말하고 세부 내용은 1~2문장으로 줄여 보세요.");
+    if (units < 3) feedback.push("문장이 1~2개에 머물렀습니다. 도입, 이유, 예시로 문장을 나눠 보세요.");
+    if (!connectors.length) feedback.push("because, for example, also 같은 연결어를 넣으면 답변의 흐름이 좋아집니다.");
+    if (ratio < 0.45 && content.length > 8) feedback.push("같은 단어가 반복됩니다. 비슷한 표현이나 구체적인 형용사를 바꿔 보세요.");
+    if (!relevance.hits.length) feedback.push("질문의 주제와 연결되는 단어를 답변에 포함해 보세요.");
+    if (!complex.length && words.length >= 25) feedback.push("when, if, because 같은 표현으로 문장을 조금 더 확장해 보세요.");
+    if (!feedback.length) feedback.push("분량, 문장 구조, 연결어, 주제 적합도가 고르게 갖춰진 답변입니다.");
+    if (total < 55) feedback.push("모범답안을 소리 내어 읽은 뒤, 같은 질문에 다시 답해 보세요.");
+
+    return {
+      score: total,
+      grade: level.grade,
+      gradeDesc: level.desc,
+      feedback: feedback.slice(0, 5),
+      words: words.length,
+      sentences: units,
+      connectors: connectors.length,
+      relevanceHits: relevance.hits.length,
+      relevanceEmphasis: relevance.hits.slice(0, 4),
+      breakdown: [
+        { label: "분량", score: lengthScore, max: 25 },
+        { label: "문장 구성", score: structureScore, max: 20 },
+        { label: "어휘 다양성", score: vocabScore, max: 20 },
+        { label: "연결어", score: connectorScore, max: 20 },
+        { label: "주제 적합도", score: relevanceScore, max: 15 }
+      ]
+    };
+  }
+
+  function renderEvaluation(question) {
+    const container = document.getElementById("evaluation");
+    const result = exam?.results[exam.index];
+    if (!container || !result) return;
+    const last = exam.index === exam.questions.length - 1;
+    const bars = result.breakdown.map((item) => `<div class="score-bar">
+      <span>${item.label}</span>
+      <span class="score-bar-track"><span class="score-bar-fill" style="width:${Math.round((item.score / item.max) * 100)}%"></span></span>
+      <em>${item.score}/${item.max}</em>
+    </div>`).join("");
+    const expressions = question.expressions.map(([english, korean]) => `<li>${escapeHtml(english)}<span>${escapeHtml(korean)}</span></li>`).join("");
+    container.innerHTML = `<section class="grade-hero">
+      <div><span>예상 등급</span><h3>${escapeHtml(result.grade)}</h3><p>${escapeHtml(result.gradeDesc)}</p></div>
+      <div class="grade-score"><strong>${result.score}</strong><small>/100</small></div>
+    </section>
+    <p class="grade-disclaimer">문장 길이·구조·연결어·주제 적합도를 바탕으로 한 학습용 추정입니다.</p>
+    <div class="score-bars">${bars}</div>
+    <ul class="feedback-list">${result.feedback.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    <section class="model-answer">
+      <h3>모범 답안</h3>
+      <p class="model-en" lang="en">${escapeHtml(question.answer)}</p>
+      <p class="model-ko">${escapeHtml(question.answerKo)}</p>
+      <div class="model-tools">
+        <button type="button" class="english-button english-ghost" data-speak-model data-speak-label="모범답안 듣기"${ttsSupported ? "" : " disabled"}>모범답안 듣기</button>
+        <button type="button" class="english-button english-ghost" data-open-script="${question.topicId}">주제 스크립트 보기</button>
+      </div>
+      <ul class="expression-list">${expressions}</ul>
+      <div class="template-box"><strong>답변 템플릿</strong>${escapeHtml(question.template)}</div>
+      <details class="followup">
+        <summary>예상 꼬리질문</summary>
+        <p>${escapeHtml(question.followUp.q)}</p>
+        <p class="answer-ko">${escapeHtml(question.followUp.a)}</p>
+      </details>
+    </section>
+    <div class="summary-actions">
+      <button type="button" class="english-button" data-next-question>${last ? "결과 보기" : "다음 질문"}</button>
+    </div>`;
+    container.hidden = false;
+    container.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function submitAnswer() {
+    const input = document.getElementById("answer-input");
+    const status = document.getElementById("answer-status");
+    const question = currentQuestion();
+    if (!input || !question) return;
+    const answer = input.value.trim();
+    if (!answer) {
+      if (status) status.textContent = "답변을 입력하거나 말한 뒤 제출해 주세요.";
+      return;
+    }
+    if (/[가-힣]/.test(answer)) {
+      if (status) status.textContent = "영어로 답변해 주세요. 한글은 채점에 반영되지 않습니다.";
+      return;
+    }
+    stopRecognition(true);
+    stopSpeech();
+    const result = evaluateAnswer(answer, question);
+    exam.results[exam.index] = {
+      ...result,
+      answer,
+      question: question.question,
+      topicId: question.topicId,
+      topicTitle: question.topicTitle,
+      origin: question.origin
+    };
+    if (input) input.disabled = true;
+    const submit = document.getElementById("submit-answer");
+    if (submit) submit.disabled = true;
+    const toggle = document.getElementById("speak-toggle");
+    if (toggle) toggle.disabled = true;
+    if (status) status.textContent = "채점이 완료되었습니다. 모범답안과 비교해 보세요.";
+    renderEvaluation(question);
+  }
+
+  function nextQuestion() {
+    if (!exam) return;
+    if (exam.index >= exam.questions.length - 1) {
+      finishExam();
+      return;
+    }
+    exam.index += 1;
+    const evaluation = document.getElementById("evaluation");
+    if (evaluation) {
+      evaluation.hidden = true;
+      evaluation.innerHTML = "";
+    }
+    renderQuestion();
+    document.getElementById("exam-run")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function finishExam() {
+    const results = exam.results.filter(Boolean);
+    const average = Math.round(results.reduce((sum, result) => sum + result.score, 0) / Math.max(1, results.length));
+    const averageGrade = gradeForScore(average).grade;
+    const record = {
+      date: new Date().toISOString(),
+      averageScore: average,
+      averageGrade,
+      mode: settings.examMode,
+      answerMode: settings.answerMode,
+      topics: [...settings.topics],
+      results: results.map((result) => ({
+        question: result.question,
+        topicTitle: result.topicTitle,
+        origin: result.origin,
+        score: result.score,
+        grade: result.grade
+      }))
+    };
+    examHistory.unshift(record);
+    examHistory = examHistory.slice(0, 10);
+    saveHistory();
+    updateOverview();
+    const container = document.getElementById("exam-summary");
+    const run = document.getElementById("exam-run");
+    const setup = document.getElementById("exam-setup");
+    if (run) run.hidden = true;
+    if (setup) setup.hidden = true;
+    if (!container) return;
+    container.innerHTML = `<section class="summary-hero">
+      <span class="exam-badge">EXAM COMPLETE</span>
+      <h2>평균 ${escapeHtml(averageGrade)} · ${average}점</h2>
+      <p>${escapeHtml(EXAM_MODES[settings.examMode]?.label || "혼합")} · ${settings.answerMode === "speak" ? "Speak" : "Write"} · ${formatDate(record.date)}</p>
+    </section>
+    <div class="summary-rows">${results.map((result, index) => `<div class="summary-row">
+      <strong>Q${index + 1} · ${escapeHtml(result.topicTitle)}</strong>
+      <span>${escapeHtml(result.origin)}</span>
+      <em>${result.score}점 · ${escapeHtml(result.grade)}</em>
+    </div>`).join("")}</div>
+    <div class="summary-actions">
+      <button type="button" class="english-button" data-retry-exam>같은 설정으로 다시 응시</button>
+      <button type="button" class="english-button english-ghost" data-edit-settings>시험 설정 변경</button>
+    </div>`;
+    container.hidden = false;
+    container.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function renderScripts() {
+    const list = document.getElementById("script-list");
     if (!list) return;
-    const next = nextQuest();
-    list.innerHTML = QUESTS.map((quest) => {
-      const state = stateFor(quest.day);
-      const done = state.every(Boolean);
-      const finished = state.filter(Boolean).length;
-      const topicButtons = quest.topicIds
-        .map((id) => {
-          const topic = topicById.get(id);
-          return topic ? `<button type="button" class="english-chip" data-topic="${topic.id}">${topic.title}</button>` : "";
-        })
-        .join("");
-      return `<details class="card quest-card${done ? " is-complete" : ""}" data-day="${quest.day}"${next && next.day === quest.day ? " open" : ""}>
+    const selected = new Set(settings.topics);
+    const ordered = [
+      ...TOPICS.filter((topic) => topic.id === "self"),
+      ...TOPICS.filter((topic) => topic.id !== "self" && selected.has(topic.id)),
+      ...TOPICS.filter((topic) => topic.id !== "self" && !selected.has(topic.id))
+    ];
+    const firstSelected = ordered.find((topic) => topic.id !== "self" && selected.has(topic.id))?.id;
+    list.innerHTML = ordered.map((topic, index) => {
+      const meta = TOPIC_META[topic.id];
+      const isRequired = topic.id === "self";
+      const isSelected = !isRequired && selected.has(topic.id);
+      const expressions = topic.questions[0].expressions.map(([english, korean]) => `<li>${escapeHtml(english)}<span>${escapeHtml(korean)}</span></li>`).join("");
+      const questions = topic.questions.map((question) => `<li>${escapeHtml(question.question)}<span>${escapeHtml(question.questionKo)}</span></li>`).join("");
+      return `<details class="card script-card" id="topic-${topic.id}"${topic.id === firstSelected ? " open" : ""}>
         <summary>
-          <span class="quest-day">D${quest.day}</span>
-          <span class="quest-summary-text">
-            <strong class="quest-title">${quest.title}</strong>
-            <span class="quest-meta"><span>${quest.focus}</span><span>약 ${quest.minutes}분</span></span>
+          <span class="topic-index">${String(index + 1).padStart(2, "0")}</span>
+          <span class="topic-summary-text">
+            <strong class="topic-title">${escapeHtml(topic.title)}<span class="script-badge${isRequired ? " is-required" : isSelected ? " is-selected" : ""}">${isRequired ? "고정" : isSelected ? "내 선택" : "돌발 대비"}</span></strong>
+            <span class="topic-desc">${escapeHtml(topic.english)} · ${escapeHtml(topic.summary)}</span>
           </span>
-          <span class="quest-badge">${done ? "완료" : `${finished}/${quest.tasks.length}`}</span>
         </summary>
-        <div class="quest-body">
-          <ul class="quest-tasks">
-            ${quest.tasks.map((task, index) => `<li><label class="quest-task${state[index] ? " is-done" : ""}">
-              <input type="checkbox" data-day="${quest.day}" data-task-index="${index}"${state[index] ? " checked" : ""}>
-              <span>${task}</span>
-            </label></li>`).join("")}
-          </ul>
-          <div class="quest-topics">${topicButtons}</div>
+        <div class="script-body">
+          <p class="script-en" lang="en">${escapeHtml(meta.script.full)}</p>
+          <p class="script-ko">${escapeHtml(meta.script.ko)}</p>
+          <div class="script-actions">
+            <button type="button" class="english-button english-ghost" data-script-speak="${topic.id}" data-speak-label="스크립트 듣기"${ttsSupported ? "" : " disabled"}>스크립트 듣기</button>
+          </div>
+          <ul class="expression-list">${expressions}</ul>
+          <details class="script-questions">
+            <summary>이 스크립트로 답할 수 있는 질문 ${topic.questions.length}개</summary>
+            <ul>${questions}</ul>
+          </details>
         </div>
       </details>`;
     }).join("");
   }
 
-  function renderTopics() {
-    const list = document.getElementById("topic-list");
-    if (!list) return;
-    list.innerHTML = TOPICS.map((topic, topicIndex) => `<details class="card topic-card" id="topic-${topic.id}"${topicIndex === 0 ? " open" : ""}>
-      <summary>
-        <span class="topic-index">${String(topicIndex + 1).padStart(2, "0")}</span>
-        <span class="topic-summary-text">
-          <strong class="topic-title">${topic.title}</strong>
-          <span class="topic-desc">${topic.english} · ${topic.summary}</span>
-        </span>
-        <span class="topic-count">${topic.questions.length}개 질문</span>
-      </summary>
-      <div class="topic-body">
-        ${topic.questions.map((question, questionIndex) => renderQuestion(topic, question, questionIndex)).join("")}
-      </div>
-    </details>`).join("");
-  }
-
-  function renderQuestion(topic, question, index) {
-    const key = `${topic.id}:${index}`;
-    return `<article class="qa-card" data-qa="${key}">
-      <div class="qa-head"><span class="qa-type">${question.type}</span><span class="qa-number">Q${index + 1}</span></div>
-      <h3 class="qa-question">${question.question}</h3>
-      <p class="qa-question-ko">${question.questionKo}</p>
-      <div class="qa-answer">
-        <p class="answer-en">${question.answer}</p>
-        <p class="answer-ko">${question.answerKo}</p>
-      </div>
-      <div class="qa-tools">
-        <button type="button" class="english-button english-ghost" data-speak="question" data-qa="${key}" aria-pressed="false">질문 듣기</button>
-        <button type="button" class="english-button english-ghost" data-speak="answer" data-qa="${key}" aria-pressed="false">답변 듣기</button>
-        <button type="button" class="english-button english-ghost" data-record="${key}" aria-pressed="false">녹음 시작</button>
-      </div>
-      <div class="record-area">
-        <p class="record-status" data-record-status="${key}" role="status" aria-live="polite"></p>
-        <div class="record-playback" data-playback="${key}" hidden><audio controls preload="metadata"></audio></div>
-      </div>
-      <ul class="expression-list">
-        ${question.expressions.map(([english, korean]) => `<li>${english}<span>${korean}</span></li>`).join("")}
-      </ul>
-      <div class="template-box"><strong>답변 템플릿</strong>${question.template}</div>
-      <details class="followup">
-        <summary>예상 꼬리질문</summary>
-        <p>${question.followUp.q}</p>
-        <p class="answer-ko">${question.followUp.a}</p>
-      </details>
-    </article>`;
-  }
-
-  function renderToday() {
-    const container = document.getElementById("today-quest");
-    if (!container) return;
-    const next = nextQuest();
-    if (!next) {
-      container.innerHTML = `<section class="card english-today is-complete">
-        <span class="tag">COMPLETE</span>
-        <h2>14일 코스를 완료했습니다</h2>
-        <p>모든 퀘스트를 마쳤습니다. 취약한 주제를 골라 다시 녹음하거나 처음부터 복습해 보세요.</p>
-        <button type="button" class="english-button english-ghost" data-reset-quests>다시 시작하기</button>
-      </section>`;
-      return;
-    }
-    const state = stateFor(next.day);
-    const remaining = state.filter((done) => !done).length;
-    const nextTaskIndex = state.findIndex((done) => !done);
-    container.innerHTML = `<section class="card english-today">
-      <span class="tag">NEXT QUEST</span>
-      <h2>Day ${next.day} · ${next.title}</h2>
-      <p>${next.focus} · 약 ${next.minutes}분 · 남은 작업 ${remaining}개</p>
-      <p class="english-note">다음 작업: ${next.tasks[nextTaskIndex]}</p>
-      <button type="button" class="english-button" data-open-day="${next.day}">퀘스트 열기</button>
-    </section>`;
-  }
-
-  function updateProgressUi() {
-    const done = doneTaskCount();
-    const percent = totalTaskCount ? Math.round((done / totalTaskCount) * 100) : 0;
-    const next = nextQuest();
-    const completed = document.getElementById("stat-completed");
-    const days = document.getElementById("stat-days");
-    const nextEl = document.getElementById("stat-next");
-    const label = document.getElementById("progress-label");
-    const fill = document.getElementById("quest-progress");
-    const track = document.getElementById("quest-progress-track");
-    if (completed) completed.textContent = `${done}/${totalTaskCount}`;
-    if (days) days.textContent = `${completedDayCount()}/${QUESTS.length}`;
-    if (nextEl) nextEl.textContent = next ? `Day ${next.day}` : "완료";
-    if (label) label.textContent = `${percent}%`;
-    if (fill) fill.style.width = `${percent}%`;
-    if (track) track.setAttribute("aria-valuenow", String(percent));
-    renderToday();
-  }
-
-  function updateQuestVisual(day) {
-    const card = document.querySelector(`.quest-card[data-day="${day}"]`);
-    if (!card) return;
-    const quest = questByDay.get(Number(day));
-    if (!quest) return;
-    const state = stateFor(day);
-    const done = state.every(Boolean);
-    card.classList.toggle("is-complete", done);
-    const badge = card.querySelector(".quest-badge");
-    if (badge) badge.textContent = done ? "완료" : `${state.filter(Boolean).length}/${quest.tasks.length}`;
-    card.querySelectorAll(".quest-task").forEach((task, index) => {
-      task.classList.toggle("is-done", Boolean(state[index]));
-    });
-  }
-
-  function activateTab(name, updateHash = true) {
-    const target = name === "survey" ? "survey" : "quests";
-    document.querySelectorAll("[data-tab]").forEach((tab) => {
-      const selected = tab.dataset.tab === target;
-      tab.setAttribute("aria-selected", String(selected));
-      tab.tabIndex = selected ? 0 : -1;
-    });
-    document.querySelectorAll(".english-panel").forEach((panel) => {
-      panel.hidden = panel.id !== target;
-    });
-    if (target !== "survey" && activeRecorder && activeRecorder.recorder.state !== "inactive") {
-      activeRecorder.recorder.stop();
-    }
-    if (updateHash) history.replaceState(null, "", `#${target}`);
-  }
-
-  function openTopic(id, updateHash = true) {
-    activateTab("survey", false);
+  function openScript(id, updateHash = true) {
+    activateTab("scripts", false);
     const section = document.getElementById(`topic-${id}`);
     if (!section) return;
     section.open = true;
-    if (updateHash) history.replaceState(null, "", `#topic-${id}`);
+    if (updateHash) window.history.replaceState(null, "", `#topic-${id}`);
     section.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function findQuestion(key) {
-    const [topicId, index] = key.split(":");
-    return topicById.get(topicId)?.questions[Number(index)];
+  function setSpeakStatus(message, state) {
+    const status = document.getElementById("speak-status");
+    if (!status) return;
+    status.textContent = message;
+    if (state) status.dataset.state = state;
+    else delete status.dataset.state;
   }
 
-  function resetSpeechButton(button) {
+  function setRecognitionUi(active) {
+    const toggle = document.getElementById("speak-toggle");
+    if (!toggle) return;
+    toggle.textContent = active ? "말하기 중지" : "말하기 시작";
+    toggle.setAttribute("aria-pressed", String(active));
+    toggle.disabled = false;
+    if (active) setSpeakStatus("듣는 중... 영어로 답해 보세요.", "recording");
+  }
+
+  function combineTranscript(...parts) {
+    return parts.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+  }
+
+  function startRecognition() {
+    if (!SpeechRecognitionCtor) {
+      setSpeakStatus("이 브라우저는 말하기 인식을 지원하지 않습니다. Write 모드로 답해 주세요.");
+      return;
+    }
+    if (recognizing || recognition) return;
+    const input = document.getElementById("answer-input");
+    if (!input) return;
+    recognitionError = "";
+    recognitionBase = input.value.trim();
+    recognitionFinal = "";
+    recognitionInterim = "";
+    try {
+      recognition = new SpeechRecognitionCtor();
+      recognition.lang = "en-US";
+      recognition.interimResults = true;
+      recognition.continuous = true;
+      recognition.onstart = () => {
+        recognizing = true;
+        setRecognitionUi(true);
+      };
+      recognition.onresult = (event) => {
+        recognitionInterim = "";
+        for (let index = event.resultIndex; index < event.results.length; index += 1) {
+          const transcript = event.results[index][0].transcript;
+          if (event.results[index].isFinal) recognitionFinal = combineTranscript(recognitionFinal, transcript);
+          else recognitionInterim = combineTranscript(recognitionInterim, transcript);
+        }
+        input.value = combineTranscript(recognitionBase, recognitionFinal, recognitionInterim);
+        updateAnswerCount();
+      };
+      recognition.onerror = (event) => {
+        recognitionError = event.error === "not-allowed"
+          ? "마이크 권한을 허용해야 말하기 모드를 사용할 수 있습니다."
+          : event.error === "no-speech"
+            ? "음성이 감지되지 않았습니다. 다시 시도해 주세요."
+            : "음성 인식 중 문제가 발생했습니다. Write 모드로 답해도 됩니다.";
+      };
+      recognition.onend = () => {
+        recognition = null;
+        recognizing = false;
+        input.value = combineTranscript(recognitionBase, recognitionFinal || recognitionInterim);
+        updateAnswerCount();
+        setRecognitionUi(false);
+        if (recognitionError) {
+          setSpeakStatus(recognitionError);
+          return;
+        }
+        setSpeakStatus(input.value.trim()
+          ? "말한 내용을 확인하고 제출 전에 수정하세요."
+          : "인식된 문장이 없습니다. 다시 시도하거나 직접 입력하세요.");
+      };
+      recognition.start();
+      setRecognitionUi(true);
+    } catch {
+      recognition = null;
+      recognizing = false;
+      setRecognitionUi(false);
+      setSpeakStatus("말하기를 시작하지 못했습니다. Write 모드로 답해 주세요.");
+    }
+  }
+
+  function stopRecognition(discard = false) {
+    if (!recognition) return;
+    if (discard) {
+      const current = recognition;
+      current.onresult = null;
+      current.onend = null;
+      current.onerror = null;
+      try { current.abort(); } catch {}
+      recognition = null;
+      recognizing = false;
+      setRecognitionUi(false);
+      return;
+    }
+    try {
+      recognition.stop();
+      setSpeakStatus("음성 인식을 마무리하는 중...");
+    } catch {
+      recognition = null;
+      recognizing = false;
+      setRecognitionUi(false);
+    }
+  }
+
+  function resetSpeakButton(button) {
     if (!button) return;
-    button.textContent = button.dataset.speak === "question" ? "질문 듣기" : "답변 듣기";
+    button.textContent = button.dataset.speakLabel || "듣기";
     button.setAttribute("aria-pressed", "false");
   }
 
   function stopSpeech() {
-    if (activeSpeakButton) resetSpeechButton(activeSpeakButton);
+    if (activeSpeakButton) resetSpeakButton(activeSpeakButton);
     activeSpeakButton = null;
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    if (ttsSupported) window.speechSynthesis.cancel();
   }
 
-  function speak(button) {
-    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+  function speak(button, text) {
+    if (!ttsSupported) {
       setStatus("이 브라우저는 음성 읽기를 지원하지 않습니다.");
       return;
     }
+    if (!text) return;
     if (activeSpeakButton === button) {
       stopSpeech();
       return;
     }
-    const question = findQuestion(button.dataset.qa);
-    if (!question) return;
-    const text = button.dataset.speak === "question" ? question.question : question.answer;
     stopSpeech();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
@@ -933,97 +1302,76 @@
     window.speechSynthesis.speak(utterance);
   }
 
-  function setRecordStatus(key, message, state = "") {
-    const element = document.querySelector(`[data-record-status="${key}"]`);
-    if (!element) return;
-    element.textContent = message;
-    if (state) element.dataset.state = state;
-    else delete element.dataset.state;
+  function speakTextFor(button) {
+    if (button.id === "speak-question") return currentQuestion()?.question || "";
+    if (button.hasAttribute("data-speak-model")) return currentQuestion()?.answer || "";
+    if (button.dataset.scriptSpeak) return TOPIC_META[button.dataset.scriptSpeak]?.script.full || "";
+    return "";
   }
 
-  function stopRecording() {
-    if (activeRecorder && activeRecorder.recorder.state !== "inactive") {
-      try { activeRecorder.recorder.stop(); } catch {}
+  function activateTab(name, updateHash = true) {
+    const target = name === "scripts" ? "scripts" : "exam";
+    document.querySelectorAll("[data-tab]").forEach((tab) => {
+      const selected = tab.dataset.tab === target;
+      tab.setAttribute("aria-selected", String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+    });
+    document.querySelectorAll(".english-panel").forEach((panel) => {
+      panel.hidden = panel.id !== target;
+    });
+    if (target !== "exam") {
+      stopRecognition(true);
+      stopSpeech();
     }
-  }
-
-  async function toggleRecording(button) {
-    const key = button.dataset.record;
-    if (recordPending) return;
-    if (activeRecorder) {
-      if (activeRecorder.key === key && activeRecorder.recorder.state !== "inactive") {
-        activeRecorder.recorder.stop();
-      } else {
-        setStatus("다른 답변의 녹음을 먼저 중지해 주세요.");
-      }
-      return;
-    }
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-      setStatus("이 브라우저는 녹음을 지원하지 않습니다.");
-      return;
-    }
-    recordPending = true;
-    button.disabled = true;
-    setRecordStatus(key, "마이크 권한을 확인하는 중...");
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"]
-        .find((type) => MediaRecorder.isTypeSupported?.(type)) || "";
-      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-      const chunks = [];
-      activeRecorder = { key, recorder, stream, chunks };
-      recorder.addEventListener("dataavailable", (event) => {
-        if (event.data.size) chunks.push(event.data);
-      });
-      recorder.addEventListener("stop", () => {
-        stream.getTracks().forEach((track) => track.stop());
-        const blob = new Blob(chunks, { type: recorder.mimeType || mimeType || "audio/webm" });
-        const playback = document.querySelector(`[data-playback="${key}"]`);
-        const audio = playback?.querySelector("audio");
-        if (playback && audio) {
-          if (audio.dataset.objectUrl) URL.revokeObjectURL(audio.dataset.objectUrl);
-          const url = URL.createObjectURL(blob);
-          audio.src = url;
-          audio.dataset.objectUrl = url;
-          playback.hidden = false;
-        }
-        activeRecorder = null;
-        button.disabled = false;
-        button.textContent = "다시 녹음";
-        button.setAttribute("aria-pressed", "false");
-        setRecordStatus(key, "녹음 완료. 재생 버튼으로 확인하세요.");
-      });
-      recorder.start();
-      button.disabled = false;
-      button.textContent = "녹음 중지";
-      button.setAttribute("aria-pressed", "true");
-      setRecordStatus(key, "녹음 중...", "recording");
-    } catch (error) {
-      button.disabled = false;
-      button.textContent = "녹음 시작";
-      button.setAttribute("aria-pressed", "false");
-      setRecordStatus(key, error?.name === "NotAllowedError"
-        ? "마이크 권한을 허용해야 녹음할 수 있습니다."
-        : "녹음을 시작하지 못했습니다.");
-    } finally {
-      recordPending = false;
-    }
-  }
-
-  function resetProgress() {
-    if (!window.confirm("14일 퀘스트 진도를 모두 초기화할까요?")) return;
-    progress = {};
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
-    renderQuests();
-    updateProgressUi();
-    setStatus("퀘스트 진도를 초기화했습니다.");
+    if (updateHash) window.history.replaceState(null, "", `#${target}`);
   }
 
   function applyHash() {
     const hash = decodeURIComponent(location.hash.slice(1));
-    if (hash === "survey") activateTab("survey", false);
-    else if (hash === "quests") activateTab("quests", false);
-    else if (hash.startsWith("topic-")) openTopic(hash.slice(6), false);
+    if (hash === "scripts" || hash === "survey") activateTab("scripts", false);
+    else if (hash.startsWith("topic-")) openScript(hash.slice(6), false);
+    else activateTab("exam", false);
+  }
+
+  function resetExamView() {
+    exam = null;
+    stopRecognition(true);
+    stopSpeech();
+    const setup = document.getElementById("exam-setup");
+    const run = document.getElementById("exam-run");
+    const summary = document.getElementById("exam-summary");
+    const evaluation = document.getElementById("evaluation");
+    if (setup) setup.hidden = false;
+    if (run) run.hidden = true;
+    if (summary) {
+      summary.hidden = true;
+      summary.innerHTML = "";
+    }
+    if (evaluation) {
+      evaluation.hidden = true;
+      evaluation.innerHTML = "";
+    }
+  }
+
+  function startExam() {
+    if (settings.topics.length < MIN_TOPICS) {
+      const status = document.getElementById("setup-status");
+      if (status) status.textContent = "좋아하는 항목을 3개 이상 선택해 주세요.";
+      return;
+    }
+    exam = buildExam();
+    const setup = document.getElementById("exam-setup");
+    const run = document.getElementById("exam-run");
+    const summary = document.getElementById("exam-summary");
+    if (setup) setup.hidden = true;
+    if (run) run.hidden = false;
+    if (summary) {
+      summary.hidden = true;
+      summary.innerHTML = "";
+    }
+    activateTab("exam", true);
+    renderQuestion();
+    document.getElementById("exam")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function bindEvents() {
@@ -1033,46 +1381,96 @@
         activateTab(tab.dataset.tab);
         return;
       }
-      const reset = event.target.closest("#reset-quests, [data-reset-quests]");
-      if (reset) {
-        resetProgress();
+      const topicChoice = event.target.closest("[data-topic-choice]");
+      if (topicChoice) {
+        const id = topicChoice.dataset.topicChoice;
+        const selected = settings.topics.includes(id);
+        if (selected) {
+          settings.topics = settings.topics.filter((topicId) => topicId !== id);
+        } else if (settings.topics.length >= MAX_TOPICS) {
+          const status = document.getElementById("setup-status");
+          if (status) status.textContent = `좋아하는 항목은 최대 ${MAX_TOPICS}개까지 선택할 수 있습니다.`;
+          return;
+        } else {
+          settings.topics = [...settings.topics, id];
+        }
+        saveSettings();
+        renderTopicChoices();
+        updateSetupSummary();
+        renderScripts();
         return;
       }
-      const openDay = event.target.closest("[data-open-day]");
-      if (openDay) {
-        const card = document.querySelector(`.quest-card[data-day="${openDay.dataset.openDay}"]`);
-        if (card) {
-          card.open = true;
-          card.scrollIntoView({ behavior: "smooth", block: "start" });
+      const examMode = event.target.closest("[data-exam-mode]");
+      if (examMode) {
+        settings.examMode = examMode.dataset.examMode;
+        saveSettings();
+        renderModeButtons();
+        updateSetupSummary();
+        return;
+      }
+      const answerMode = event.target.closest("[data-answer-mode]");
+      if (answerMode) {
+        if (answerMode.dataset.answerMode === "speak" && !SpeechRecognitionCtor) {
+          const status = document.getElementById("setup-status");
+          if (status) status.textContent = "이 브라우저는 Speak 모드를 지원하지 않습니다. Chrome 또는 Edge를 사용해 주세요.";
+          return;
+        }
+        settings.answerMode = answerMode.dataset.answerMode;
+        saveSettings();
+        renderModeButtons();
+        updateSetupSummary();
+        return;
+      }
+      if (event.target.closest("#start-exam")) {
+        startExam();
+        return;
+      }
+      if (event.target.closest("#exit-exam")) {
+        if (window.confirm("진행 중인 모의고사를 중단할까요? 제출한 답변은 저장되지 않습니다.")) {
+          resetExamView();
+          activateTab("exam", true);
         }
         return;
       }
-      const chip = event.target.closest("[data-topic]");
-      if (chip) {
-        openTopic(chip.dataset.topic);
+      if (event.target.closest("#speak-toggle")) {
+        if (recognizing || recognition) stopRecognition();
+        else startRecognition();
         return;
       }
-      const speakButton = event.target.closest("[data-speak]");
+      if (event.target.closest("#submit-answer")) {
+        submitAnswer();
+        return;
+      }
+      if (event.target.closest("#speak-question")) {
+        speak(event.target.closest("#speak-question"), currentQuestion()?.question || "");
+        return;
+      }
+      const speakButton = event.target.closest("[data-speak-model], [data-script-speak]");
       if (speakButton) {
-        speak(speakButton);
+        speak(speakButton, speakTextFor(speakButton));
         return;
       }
-      const recordButton = event.target.closest("[data-record]");
-      if (recordButton) toggleRecording(recordButton);
+      const next = event.target.closest("[data-next-question]");
+      if (next) {
+        nextQuestion();
+        return;
+      }
+      const openScriptButton = event.target.closest("[data-open-script]");
+      if (openScriptButton) {
+        openScript(openScriptButton.dataset.openScript);
+        return;
+      }
+      if (event.target.closest("[data-retry-exam]")) {
+        startExam();
+        return;
+      }
+      if (event.target.closest("[data-edit-settings]")) {
+        resetExamView();
+        activateTab("exam", true);
+      }
     });
 
-    document.getElementById("quest-list")?.addEventListener("change", (event) => {
-      const input = event.target.closest("input[data-day]");
-      if (!input) return;
-      const day = Number(input.dataset.day);
-      const index = Number(input.dataset.taskIndex);
-      const state = stateFor(day);
-      state[index] = input.checked;
-      saveProgress();
-      input.closest(".quest-task")?.classList.toggle("is-done", input.checked);
-      updateQuestVisual(day);
-      updateProgressUi();
-    });
+    document.getElementById("answer-input")?.addEventListener("input", updateAnswerCount);
 
     document.querySelector(".english-tabs")?.addEventListener("keydown", (event) => {
       if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
@@ -1090,31 +1488,29 @@
     });
 
     window.addEventListener("hashchange", applyHash);
-    window.addEventListener("pagehide", stopRecording);
-  }
-
-  function disableUnsupported() {
-    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
-      document.querySelectorAll("[data-speak]").forEach((button) => {
-        button.disabled = true;
-        button.title = "이 브라우저는 음성 읽기를 지원하지 않습니다.";
-      });
-    }
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-      document.querySelectorAll("[data-record]").forEach((button) => {
-        button.disabled = true;
-        button.title = "이 브라우저는 녹음을 지원하지 않습니다.";
-      });
-    }
+    window.addEventListener("pagehide", () => {
+      stopRecognition(true);
+      stopSpeech();
+    });
   }
 
   function init() {
-    renderTopics();
-    renderQuests();
-    updateProgressUi();
+    if (!SpeechRecognitionCtor && settings.answerMode === "speak") {
+      settings.answerMode = "write";
+      saveSettings();
+    }
+    renderSetup();
+    renderScripts();
+    updateOverview();
     bindEvents();
-    disableUnsupported();
     applyHash();
+    if (!ttsSupported) {
+      const questionButton = document.getElementById("speak-question");
+      if (questionButton) {
+        questionButton.disabled = true;
+        questionButton.title = "이 브라우저는 음성 읽기를 지원하지 않습니다.";
+      }
+    }
   }
 
   if (document.readyState === "loading") {

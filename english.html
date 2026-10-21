@@ -3,24 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사피엔스 — 영어 (OPIc IM1)</title>
+<title>사피엔스 — 영어 (OPIc 실전 모의고사)</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-22">
+<link rel="stylesheet" href="assets/style.css?v=labels-23">
 <style>
-  .english-page .main { max-width: 1080px; padding: 44px 48px; }
-  .english-lead { max-width: 760px; margin: 0 0 20px; color: var(--ink-soft); font-size: 14.5px; }
-  .english-overview { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap: 14px; margin-bottom: 18px; }
+  .english-page .main { max-width: 1120px; padding: 44px 48px; }
+  .english-lead { max-width: 800px; margin: 0 0 20px; color: var(--ink-soft); font-size: 14.5px; line-height: 1.7; }
+  .english-overview { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 14px; margin-bottom: 18px; }
   .english-overview .card { margin: 0; }
   .english-card h2 { margin: 0 0 6px; font-size: 18px; }
   .english-card > p { margin: 0; color: var(--ink-soft); font-size: 13.5px; }
-  .english-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin: 16px 0 14px; }
+  .english-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin: 16px 0 10px; }
   .english-stat { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); min-width: 0; }
   .english-stat strong { display: block; font-size: 19px; line-height: 1.3; overflow-wrap: anywhere; }
   .english-stat span { display: block; color: var(--ink-soft); font-size: 11.5px; }
-  .english-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 7px; color: var(--ink-soft); font-size: 12.5px; }
-  .english-progress-head strong { color: var(--ink); font-family: var(--mono); font-size: 12.5px; }
-  .progress-track { height: 8px; overflow: hidden; border-radius: 999px; background: var(--accent-soft); }
-  .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width 0.2s ease; }
+  .latest-date { min-height: 19px; margin: 0; color: var(--ink-soft); font-size: 12px; }
   .english-tip-list { margin: 10px 0 0; padding-left: 18px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.8; }
   .english-tip-list strong { color: var(--ink); }
   .english-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 20px 0 16px; border-bottom: 1px solid var(--border); }
@@ -28,84 +25,138 @@
   .english-tab:hover { background: var(--accent-soft); opacity: 1; }
   .english-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
   .english-panel[hidden] { display: none; }
-  .english-section-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .english-section-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
   .english-section-head h2 { margin: 0; font-size: 21px; }
   .english-section-head p { margin: 4px 0 0; color: var(--ink-soft); font-size: 13.5px; }
-  .english-note { color: var(--ink-soft); font-size: 12.5px; }
-  .english-today { border-color: var(--accent); }
-  .english-today h2 { margin: 2px 0 4px; font-size: 20px; }
-  .english-today p { margin: 0; color: var(--ink-soft); font-size: 13.5px; }
-  .english-today .english-button { margin-top: 12px; }
-  .english-today.is-complete { border-color: var(--border); }
-  .quest-list { display: grid; gap: 10px; }
-  .quest-card { margin: 0; padding: 0; overflow: hidden; }
-  .quest-card > summary { display: flex; align-items: flex-start; gap: 12px; padding: 15px 17px; cursor: pointer; list-style: none; }
-  .quest-card > summary::-webkit-details-marker { display: none; }
-  .quest-card > summary:hover { background: var(--accent-soft); }
-  .quest-card[open] > summary { border-bottom: 1px solid var(--border); }
-  .quest-day { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 9px; background: var(--accent-soft); color: var(--ink); font-family: var(--mono); font-size: 12px; font-weight: 700; }
-  .quest-card.is-complete .quest-day { background: var(--accent); color: var(--surface); }
-  .quest-summary-text { flex: 1; min-width: 0; }
-  .quest-title { display: block; margin: 0; font-size: 16px; overflow-wrap: anywhere; }
-  .quest-meta { display: flex; flex-wrap: wrap; gap: 5px 10px; margin-top: 3px; color: var(--ink-soft); font-size: 12px; }
-  .quest-badge { flex: none; align-self: center; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--ink-soft); font-size: 11px; white-space: nowrap; }
-  .quest-card.is-complete .quest-badge { background: var(--accent); color: var(--surface); }
-  .quest-body { padding: 14px 17px 17px; }
-  .quest-tasks { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
-  .quest-task { display: flex; align-items: flex-start; gap: 9px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg); cursor: pointer; }
-  .quest-task:hover { border-color: var(--accent); }
-  .quest-task input { flex: none; width: 17px; height: 17px; margin: 2px 0 0; accent-color: var(--accent); }
-  .quest-task span { font-size: 13.5px; line-height: 1.55; overflow-wrap: anywhere; }
-  .quest-task.is-done span { color: var(--ink-soft); text-decoration: line-through; }
-  .quest-topics { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-  .english-chip { padding: 5px 9px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--ink); font-size: 12px; }
-  .english-chip:hover { background: var(--accent-soft); opacity: 1; }
+  .english-note { color: var(--ink-soft); font-size: 12.5px; line-height: 1.6; }
+  .setup-block { margin-top: 22px; }
+  .setup-block:first-of-type { margin-top: 0; }
+  .setup-block h3 { margin: 0 0 8px; font-size: 15.5px; }
+  .setup-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .setup-heading h3 { margin: 0; }
+  .selection-count { color: var(--ink-soft); font-family: var(--mono); font-size: 12px; }
+  .choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 8px; margin-top: 9px; }
+  .choice-chip { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); color: var(--ink); text-align: left; }
+  .choice-chip:hover { border-color: var(--accent); background: var(--accent-soft); opacity: 1; }
+  .choice-chip.is-active { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+  .choice-code { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: var(--surface); color: var(--ink-soft); font-family: var(--mono); font-size: 11px; }
+  .choice-chip.is-active .choice-code { background: var(--accent); color: #fff; }
+  .choice-chip strong { display: block; font-size: 13.5px; line-height: 1.35; }
+  .choice-chip small { display: block; margin-top: 1px; color: var(--ink-soft); font-size: 11.5px; overflow-wrap: anywhere; }
+  .segmented { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; padding: 4px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); }
+  .segmented button { flex: 1 1 150px; min-height: 40px; padding: 7px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-soft); font-weight: 600; }
+  .segmented button:hover { background: var(--accent-soft); opacity: 1; }
+  .segmented button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .segmented button:disabled { cursor: not-allowed; opacity: 0.45; }
+  .setup-plan { margin: 9px 0 0; color: var(--ink-soft); font-size: 12.5px; }
+  .start-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; padding: 15px 17px; border: 1px solid var(--accent); border-radius: 10px; background: var(--accent-soft); }
+  .start-bar strong { display: block; font-size: 16px; }
+  .start-bar span { display: block; margin-top: 2px; color: var(--ink-soft); font-size: 12.5px; }
+  .english-button { font-size: 13px; padding: 8px 12px; }
   .english-ghost { background: transparent; border: 1px solid var(--border); color: var(--ink); }
   .english-ghost:hover { background: var(--accent-soft); opacity: 1; }
   .english-ghost[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .english-button { font-size: 13px; padding: 8px 12px; }
-  .topic-list { display: grid; gap: 10px; }
-  .topic-card { margin: 0; padding: 0; overflow: hidden; }
-  .topic-card > summary { display: flex; align-items: center; gap: 12px; padding: 15px 18px; cursor: pointer; list-style: none; }
-  .topic-card > summary::-webkit-details-marker { display: none; }
-  .topic-card > summary:hover { background: var(--accent-soft); }
-  .topic-card[open] > summary { border-bottom: 1px solid var(--border); }
-  .topic-index { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--accent-soft); font-family: var(--mono); font-size: 12px; }
-  .topic-summary-text { flex: 1; min-width: 0; }
-  .topic-title { display: block; margin: 0; font-size: 17px; }
-  .topic-desc { display: block; margin: 2px 0 0; color: var(--ink-soft); font-size: 12.5px; overflow-wrap: anywhere; }
-  .topic-count { flex: none; color: var(--ink-soft); font-size: 12px; white-space: nowrap; }
-  .topic-body { padding: 0 16px 16px; }
-  .qa-card { margin-top: 12px; padding: 15px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); }
-  .qa-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .qa-type { display: inline-block; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); font-size: 11.5px; font-weight: 700; }
-  .qa-number { color: var(--ink-soft); font-family: var(--mono); font-size: 11.5px; }
-  .qa-question { margin: 9px 0 2px; font-size: 16.5px; line-height: 1.5; overflow-wrap: anywhere; }
-  .qa-question-ko { margin: 0; color: var(--ink-soft); font-size: 12.5px; }
-  .qa-answer { margin-top: 11px; padding: 11px 13px; border-left: 3px solid var(--accent); border-radius: 0 7px 7px 0; background: var(--surface); }
-  .qa-answer .answer-en { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
-  .qa-answer .answer-ko { margin: 6px 0 0; color: var(--ink-soft); font-size: 12.5px; line-height: 1.6; }
-  .qa-tools { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
-  .expression-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+  .english-status { min-height: 22px; margin: 8px 0 0; color: var(--ink-soft); font-size: 12.5px; }
+  .exam-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .exam-progress-wrap { flex: 1; min-width: 0; }
+  .exam-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; color: var(--ink-soft); font-size: 12px; }
+  .exam-progress-head strong { color: var(--ink); font-family: var(--mono); font-size: 12px; }
+  .progress-track { height: 8px; overflow: hidden; border-radius: 999px; background: var(--accent-soft); }
+  .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width 0.2s ease; }
+  .exam-question { margin: 0 0 10px; }
+  .question-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 9px; color: var(--ink-soft); font-size: 12px; }
+  .exam-badge { display: inline-block; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); font-size: 11.5px; font-weight: 700; }
+  .exam-badge[data-origin="돌발"] { background: #fef0c7; color: #7a4d00; }
+  .exam-badge[data-origin="기본"] { background: var(--surface); color: var(--ink-soft); }
+  .question-type { margin-left: auto; font-family: var(--mono); font-size: 11px; }
+  .question-text { margin: 14px 0 4px; font-size: clamp(20px, 2.4vw, 27px); line-height: 1.35; overflow-wrap: anywhere; }
+  .question-ko { margin: 0; color: var(--ink-soft); font-size: 13.5px; }
+  .question-tools { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+  .answer-card { margin: 0; }
+  .answer-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .answer-head h3 { margin: 0; font-size: 16px; }
+  .answer-mode-label { padding: 3px 8px; border-radius: 999px; background: var(--surface); color: var(--ink-soft); font-family: var(--mono); font-size: 11px; }
+  .answer-guide { margin: 5px 0 10px; }
+  .speak-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-bottom: 9px; padding: 10px; border: 1px dashed var(--border); border-radius: 8px; background: var(--bg); }
+  .speak-controls[hidden] { display: none; }
+  .speak-status { color: var(--ink-soft); font-size: 12.5px; overflow-wrap: anywhere; }
+  .speak-status[data-state="recording"] { color: #b42318; font-weight: 700; }
+  .answer-input { width: 100%; min-height: 170px; resize: vertical; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; line-height: 1.65; }
+  .answer-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .answer-input:disabled { color: var(--ink-soft); }
+  .answer-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-top: 7px; color: var(--ink-soft); font-size: 12px; }
+  .answer-foot strong { color: var(--ink); font-family: var(--mono); }
+  .answer-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .evaluation { margin-top: 14px; }
+  .evaluation[hidden] { display: none; }
+  .grade-hero { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 20px; border: 1px solid var(--accent); border-radius: 11px; background: var(--accent-soft); }
+  .grade-hero span { display: block; color: var(--ink-soft); font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; }
+  .grade-hero h3 { margin: 2px 0 2px; font-size: 30px; line-height: 1.1; }
+  .grade-hero p { margin: 0; color: var(--ink-soft); font-size: 13px; }
+  .grade-score { flex: none; text-align: right; }
+  .grade-score strong { display: inline; font-family: var(--mono); font-size: 28px; }
+  .grade-score small { color: var(--ink-soft); font-family: var(--mono); font-size: 12px; }
+  .grade-disclaimer { margin: 8px 0 0; color: var(--ink-soft); font-size: 11.5px; }
+  .score-bars { display: grid; gap: 8px; margin-top: 14px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); }
+  .score-bar { display: grid; grid-template-columns: 86px minmax(0, 1fr) 48px; align-items: center; gap: 9px; color: var(--ink-soft); font-size: 12px; }
+  .score-bar-track { height: 6px; overflow: hidden; border-radius: 999px; background: var(--border); }
+  .score-bar-fill { height: 100%; border-radius: inherit; background: var(--accent); }
+  .score-bar em { color: var(--ink); font-family: var(--mono); font-size: 11.5px; font-style: normal; text-align: right; }
+  .feedback-list { margin: 12px 0 0; padding-left: 19px; color: var(--ink-soft); font-size: 13px; line-height: 1.7; }
+  .model-answer { margin-top: 14px; padding: 16px 17px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }
+  .model-answer h3 { margin: 0 0 8px; font-size: 16px; }
+  .model-en { margin: 0; color: var(--ink); font-size: 14.5px; line-height: 1.75; overflow-wrap: anywhere; }
+  .model-ko { margin: 7px 0 0; color: var(--ink-soft); font-size: 12.5px; line-height: 1.65; }
+  .model-tools { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+  .expression-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 11px 0 0; padding: 0; list-style: none; }
   .expression-list li { padding: 4px 8px; border-radius: 6px; background: var(--accent-soft); font-size: 12px; overflow-wrap: anywhere; }
   .expression-list span { display: block; color: var(--ink-soft); font-size: 11px; }
   .template-box { margin-top: 10px; padding: 9px 11px; border: 1px dashed var(--border); border-radius: 7px; color: var(--ink); font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
   .template-box strong { display: block; margin-bottom: 2px; color: var(--ink-soft); font-size: 11.5px; }
-  .followup { margin-top: 9px; }
+  .followup { margin-top: 10px; }
   .followup summary { color: var(--ink-soft); cursor: pointer; font-size: 12.5px; }
   .followup p { margin: 6px 0 0; font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
   .followup .answer-ko { color: var(--ink-soft); font-size: 12px; }
-  .record-area { margin-top: 9px; }
-  .record-status { color: var(--ink-soft); font-size: 12px; overflow-wrap: anywhere; }
-  .record-status[data-state="recording"] { color: #b42318; font-weight: 700; }
-  .record-playback { margin-top: 8px; }
-  .record-playback audio { width: min(100%, 360px); height: 36px; }
-  .english-status { min-height: 22px; margin: 8px 0 0; color: var(--ink-soft); font-size: 12.5px; }
-  :root[data-theme="dark"] .record-status[data-state="recording"] { color: #ff9b91; }
-  :root[data-theme="dark"] .english-page .english-tab,
-  :root[data-theme="dark"] .english-page .english-ghost,
-  :root[data-theme="dark"] .english-page .english-chip { color: var(--ink) !important; }
-  :root[data-theme="dark"] .english-page .english-ghost[aria-pressed="true"] { color: #17181a !important; }
+  .summary-hero { padding: 20px; border: 1px solid var(--accent); border-radius: 11px; background: var(--accent-soft); }
+  .summary-hero h2 { margin: 4px 0; font-size: 26px; }
+  .summary-hero p { margin: 0; color: var(--ink-soft); font-size: 13px; }
+  .summary-rows { display: grid; gap: 8px; margin: 14px 0 0; }
+  .summary-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+  .summary-row span { color: var(--ink-soft); font-size: 12px; }
+  .summary-row strong { font-size: 13px; }
+  .summary-row em { color: var(--ink-soft); font-family: var(--mono); font-size: 11.5px; font-style: normal; }
+  .summary-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .script-list { display: grid; gap: 10px; }
+  .script-card { margin: 0; padding: 0; overflow: hidden; }
+  .script-card > summary { display: flex; align-items: center; gap: 12px; padding: 15px 18px; cursor: pointer; list-style: none; }
+  .script-card > summary::-webkit-details-marker { display: none; }
+  .script-card > summary:hover { background: var(--accent-soft); }
+  .script-card[open] > summary { border-bottom: 1px solid var(--border); }
+  .topic-index { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--accent-soft); font-family: var(--mono); font-size: 12px; }
+  .topic-summary-text { flex: 1; min-width: 0; }
+  .topic-title { display: block; margin: 0; font-size: 17px; }
+  .topic-desc { display: block; margin: 2px 0 0; color: var(--ink-soft); font-size: 12.5px; overflow-wrap: anywhere; }
+  .script-badge { display: inline-block; margin-left: 6px; padding: 2px 7px; border-radius: 999px; background: var(--border); color: var(--ink-soft); font-size: 10.5px; font-weight: 700; vertical-align: 1px; }
+  .script-badge.is-selected { background: var(--accent); color: #fff; }
+  .script-badge.is-required { border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+  .script-body { padding: 0 17px 17px; }
+  .script-en { margin: 14px 0 0; color: var(--ink); font-size: 14.5px; line-height: 1.8; overflow-wrap: anywhere; }
+  .script-ko { margin: 7px 0 0; color: var(--ink-soft); font-size: 12.5px; line-height: 1.65; }
+  .script-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+  .script-questions { margin-top: 12px; }
+  .script-questions summary { color: var(--ink-soft); cursor: pointer; font-size: 12.5px; }
+  .script-questions ul { margin: 7px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.7; }
+  .script-questions span { display: block; color: var(--ink-soft); font-size: 11.5px; }
+  :root[data-theme="dark"] .exam-badge[data-origin="돌발"] { background: #5b430f; color: #ffdf9e; }
+  :root[data-theme="dark"] .speak-status[data-state="recording"] { color: #ff9b91; }
+  :root[data-theme="dark"] .english-page #tab-exam,
+  :root[data-theme="dark"] .english-page #tab-scripts,
+  :root[data-theme="dark"] .english-page #exam .choice-chip,
+  :root[data-theme="dark"] .english-page #exam .segmented button:not([aria-pressed="true"]),
+  :root[data-theme="dark"] .english-page #exam .english-ghost:not([aria-pressed="true"]),
+  :root[data-theme="dark"] .english-page #scripts .english-ghost:not([aria-pressed="true"]) { color: var(--ink) !important; }
+  :root[data-theme="dark"] .english-page #exam .choice-chip.is-active .choice-code,
+  :root[data-theme="dark"] .english-page .script-badge.is-selected { color: #17181a; }
   @media (max-width: 900px) {
     .english-page .main { padding: 32px 24px; }
     .english-overview { grid-template-columns: 1fr; }
@@ -113,15 +164,20 @@
   @media (max-width: 760px) {
     .english-page .main { padding: 28px 12px; }
     .english-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .quest-card > summary, .topic-card > summary { padding: 13px 14px; }
-    .topic-body { padding: 0 12px 14px; }
-    .qa-card { padding: 13px 12px; }
+    .answer-card, .exam-question { padding: 14px 13px; }
+    .grade-hero { padding: 15px 14px; }
+    .score-bar { grid-template-columns: 70px minmax(0, 1fr) 42px; }
+    .script-card > summary { padding: 13px 14px; }
+    .script-body { padding: 0 13px 14px; }
   }
   @media (max-width: 420px) {
     .english-stats { grid-template-columns: 1fr; }
     .english-tab { flex: 1; padding: 9px 8px; }
-    .quest-badge { display: none; }
-    .quest-day { width: 36px; height: 36px; }
+    .choice-grid { grid-template-columns: 1fr; }
+    .segmented button { flex-basis: 100%; }
+    .start-bar { align-items: stretch; }
+    .start-bar .english-button { width: 100%; }
+    .grade-score { text-align: left; }
   }
 </style>
 </head>
@@ -131,70 +187,150 @@
     <nav class="nav-group" data-nav></nav>
   </aside>
   <main class="main">
-    <div class="eyebrow">ENGLISH · OPIc IM1</div>
-    <h1>영어 학습</h1>
-    <p class="english-lead">하루 25분, 14일 동안 OPIc IM1 답변을 완성합니다. 일일 퀘스트로 말하기 습관을 만들고, 8개 서베이 주제의 질문 유형과 모범답안을 내 이야기로 바꿔 연습해 보세요.</p>
+    <div class="eyebrow">ENGLISH · OPIc MOCK TEST</div>
+    <h1>OPIc 실전 모의고사</h1>
+    <p class="english-lead">좋아하는 서베이 항목을 고르면 선택한 유형에 따라 관련 주제와 돌발 주제로 구성된 6문항이 생성됩니다. 실제 OPIc처럼 자기소개로 시작하고, Speak로 말하거나 Write로 직접 입력해 답해 보세요. 제출하면 예상 등급과 모범답안을 바로 확인할 수 있습니다.</p>
 
     <div class="english-overview">
-      <section class="card english-card" aria-labelledby="english-progress-title">
-        <h2 id="english-progress-title">14일 IM1 루틴</h2>
-        <p>체크한 작업은 이 브라우저에 자동 저장됩니다.</p>
+      <section class="card english-card" aria-labelledby="recent-title">
+        <h2 id="recent-title">내 최근 기록</h2>
+        <p>응시 결과는 이 브라우저에 저장됩니다.</p>
         <div class="english-stats">
-          <div class="english-stat"><strong id="stat-completed">0/42</strong><span>완료한 작업</span></div>
-          <div class="english-stat"><strong id="stat-days">0/14</strong><span>완료한 일차</span></div>
-          <div class="english-stat"><strong id="stat-next">Day 1</strong><span>다음 퀘스트</span></div>
+          <div class="english-stat"><strong id="latest-grade">—</strong><span>최근 예상 등급</span></div>
+          <div class="english-stat"><strong id="latest-score">—</strong><span>최근 점수</span></div>
+          <div class="english-stat"><strong id="history-count">0회</strong><span>누적 응시</span></div>
         </div>
-        <div class="english-progress-head"><span>전체 진도</span><strong id="progress-label">0%</strong></div>
-        <div id="quest-progress-track" class="progress-track" role="progressbar" aria-label="14일 퀘스트 진도" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          <div id="quest-progress" class="progress-fill"></div>
-        </div>
+        <p id="latest-date" class="latest-date">아직 응시 기록이 없습니다.</p>
       </section>
-      <section class="card english-card" aria-labelledby="english-tips-title">
-        <h2 id="english-tips-title">IM1 답변 공식</h2>
+      <section class="card english-card" aria-labelledby="exam-flow-title">
+        <h2 id="exam-flow-title">실전 진행</h2>
         <ul class="english-tip-list">
-          <li><strong>3~5문장</strong>으로 짧게 말하고, 첫 문장에서 답을 분명히 합니다.</li>
-          <li><strong>because, for example, usually</strong> 같은 연결어를 넣습니다.</li>
-          <li>모범답안은 그대로 외우지 말고 <strong>내 이름·직업·취미</strong>로 바꿉니다.</li>
-          <li>녹음 후에는 내용, 시제, 긴 침묵만 먼저 확인합니다.</li>
+          <li><strong>1. 항목 선택</strong> 좋아하는 주제 3~5개를 고릅니다.</li>
+          <li><strong>2. 출제 유형</strong> 관련 주제, 돌발 주제, 혼합 중 하나를 선택합니다.</li>
+          <li><strong>3. 답변</strong> Speak로 말하거나 Write로 직접 입력합니다.</li>
+          <li><strong>4. 즉시 피드백</strong> 예상 등급, 문장력, 모범답안을 확인합니다.</li>
         </ul>
       </section>
     </div>
 
     <div class="english-tabs" role="tablist" aria-label="영어 학습 구역">
-      <button id="tab-quests" class="english-tab" type="button" role="tab" aria-selected="true" aria-controls="quests" tabindex="0" data-tab="quests">14일 퀘스트</button>
-      <button id="tab-survey" class="english-tab" type="button" role="tab" aria-selected="false" aria-controls="survey" tabindex="-1" data-tab="survey">서베이 주제</button>
+      <button id="tab-exam" class="english-tab" type="button" role="tab" aria-selected="true" aria-controls="exam" tabindex="0" data-tab="exam">모의고사</button>
+      <button id="tab-scripts" class="english-tab" type="button" role="tab" aria-selected="false" aria-controls="scripts" tabindex="-1" data-tab="scripts">주제별 스크립트</button>
     </div>
 
-    <section id="quests" class="english-panel" role="tabpanel" aria-labelledby="tab-quests">
-      <div class="english-section-head">
-        <div>
-          <h2>일일 퀘스트</h2>
-          <p>순서대로 진행해도 좋고, 어려운 주제부터 골라도 좋습니다.</p>
+    <section id="exam" class="english-panel" role="tabpanel" aria-labelledby="tab-exam">
+      <div id="exam-setup">
+        <div class="english-section-head">
+          <div>
+            <h2>시험 설정</h2>
+            <p>좋아하는 항목을 고르면 그 주제의 질문과 스크립트가 함께 준비됩니다.</p>
+          </div>
         </div>
-        <button id="reset-quests" class="english-button english-ghost" type="button">진도 초기화</button>
+
+        <section class="setup-block" aria-labelledby="topic-choice-title">
+          <div class="setup-heading">
+            <h3 id="topic-choice-title">1. 좋아하는 서베이 항목</h3>
+            <span id="selection-count" class="selection-count">0/5 선택</span>
+          </div>
+          <p class="english-note">좋아하는 항목 3~5개를 선택하세요. 자기소개는 고정으로 출제되며, 선택하지 않은 항목은 돌발 주제로 출제될 수 있습니다.</p>
+          <div id="topic-choices" class="choice-grid"></div>
+        </section>
+
+        <section class="setup-block" aria-labelledby="exam-mode-title">
+          <h3 id="exam-mode-title">2. 출제 유형</h3>
+          <div id="exam-mode" class="segmented" role="group" aria-labelledby="exam-mode-title">
+            <button type="button" data-exam-mode="mixed" aria-pressed="true">혼합 · 관련 3 + 돌발 2</button>
+            <button type="button" data-exam-mode="related" aria-pressed="false">관련 주제</button>
+            <button type="button" data-exam-mode="unexpected" aria-pressed="false">돌발 주제</button>
+          </div>
+          <p id="exam-plan" class="setup-plan"></p>
+        </section>
+
+        <section class="setup-block" aria-labelledby="answer-mode-title">
+          <h3 id="answer-mode-title">3. 답변 방식</h3>
+          <div id="answer-mode" class="segmented" role="group" aria-labelledby="answer-mode-title">
+            <button type="button" data-answer-mode="speak" aria-pressed="false">Speak · 말해서 답하기</button>
+            <button type="button" data-answer-mode="write" aria-pressed="true">Write · 직접 입력</button>
+          </div>
+          <p id="speech-note" class="english-note">Speak 모드는 Chrome 또는 Edge에서 사용할 수 있습니다. 인식된 문장은 제출 전에 직접 수정할 수 있습니다.</p>
+        </section>
+
+        <div class="start-bar">
+          <div>
+            <strong>6문항 · 약 8분</strong>
+            <span>자기소개 1문항 + 선택한 유형 5문항</span>
+          </div>
+          <button id="start-exam" class="english-button" type="button">모의고사 시작</button>
+        </div>
+        <p id="setup-status" class="english-status" role="status" aria-live="polite"></p>
       </div>
-      <div id="today-quest" aria-live="polite"></div>
-      <div id="quest-list" class="quest-list"></div>
+
+      <div id="exam-run" hidden>
+        <div class="exam-top">
+          <div class="exam-progress-wrap">
+            <div class="exam-progress-head"><strong id="exam-progress-label">Q1 / 6</strong><span>실전 모의고사</span></div>
+            <div class="progress-track" role="progressbar" aria-label="모의고사 진행" aria-valuemin="0" aria-valuemax="6" aria-valuenow="1">
+              <div id="exam-progress-fill" class="progress-fill"></div>
+            </div>
+          </div>
+          <button id="exit-exam" class="english-button english-ghost" type="button">시험 중단</button>
+        </div>
+
+        <article class="card exam-question">
+          <div class="question-meta">
+            <span id="question-origin" class="exam-badge" data-origin="기본">기본</span>
+            <span id="question-topic"></span>
+            <span id="question-type" class="question-type"></span>
+          </div>
+          <h2 id="question-text" class="question-text" lang="en"></h2>
+          <p id="question-ko" class="question-ko"></p>
+          <div class="question-tools">
+            <button id="speak-question" class="english-button english-ghost" type="button" data-speak-label="질문 듣기">질문 듣기</button>
+          </div>
+        </article>
+
+        <section class="card answer-card" aria-labelledby="answer-title">
+          <div class="answer-head">
+            <h3 id="answer-title">내 답변</h3>
+            <span id="answer-mode-label" class="answer-mode-label">WRITE</span>
+          </div>
+          <p id="answer-guide" class="english-note"></p>
+          <div id="speak-controls" class="speak-controls" hidden>
+            <button id="speak-toggle" class="english-button" type="button" aria-pressed="false">말하기 시작</button>
+            <span id="speak-status" class="speak-status" role="status" aria-live="polite"></span>
+          </div>
+          <textarea id="answer-input" class="answer-input" rows="7" maxlength="4000" spellcheck="true" placeholder="영어로 답변을 입력하세요."></textarea>
+          <div class="answer-foot"><span>영어 단어 <strong id="answer-count">0</strong>개</span><span>권장 40~60초 · 3~5문장</span></div>
+          <div class="answer-actions">
+            <button id="submit-answer" class="english-button" type="button">답변 제출하고 등급 보기</button>
+          </div>
+          <p id="answer-status" class="english-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <section id="evaluation" class="evaluation" aria-live="polite" hidden></section>
+      </div>
+
+      <div id="exam-summary" hidden></div>
     </section>
 
-    <section id="survey" class="english-panel" role="tabpanel" aria-labelledby="tab-survey" hidden>
+    <section id="scripts" class="english-panel" role="tabpanel" aria-labelledby="tab-scripts" hidden>
       <div class="english-section-head">
         <div>
-          <h2>서베이 주제</h2>
-          <p>질문 유형, 모범답안, 핵심 표현, 답변 템플릿, 예상 꼬리질문을 한 번에 확인하세요.</p>
-          <p class="english-note">TTS는 브라우저 음성으로 읽고, 녹음은 현재 탭에서만 보관됩니다.</p>
+          <h2>주제별 맞춤 스크립트</h2>
+          <p>선택한 항목은 <strong>내 선택</strong>, 나머지는 <strong>돌발 대비</strong>로 표시됩니다. 자기소개는 <strong>고정</strong> 문항입니다.</p>
+          <p class="english-note">스크립트를 듣고 내 이야기로 바꿔 말한 뒤, 모의고사에서 다시 확인해 보세요.</p>
         </div>
       </div>
-      <div id="topic-list" class="topic-list"></div>
+      <div id="script-list" class="script-list"></div>
     </section>
 
     <p id="english-status" class="english-status" role="status" aria-live="polite"></p>
-    <noscript><p class="english-status">퀘스트와 서베이 주제를 보려면 JavaScript를 켜 주세요.</p></noscript>
+    <noscript><p class="english-status">모의고사와 스크립트를 보려면 JavaScript를 켜 주세요.</p></noscript>
   </main>
 </div>
-<script src="assets/common.js?v=labels-22"></script>
-<script src="assets/auth.js?v=labels-22"></script>
-<script src="assets/english.js?v=labels-22"></script>
-<script src="assets/theme.js?v=labels-22"></script>
+<script src="assets/common.js?v=labels-23"></script>
+<script src="assets/auth.js?v=labels-23"></script>
+<script src="assets/english.js?v=labels-23"></script>
+<script src="assets/theme.js?v=labels-23"></script>
 </body>
 </html>
