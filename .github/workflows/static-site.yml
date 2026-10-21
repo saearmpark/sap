@@ -35,3 +35,5 @@ jobs:
         run: node .github/scripts/check-inline-scripts.mjs
       - name: Check page list and links
         run: node .github/scripts/check-links.mjs
+      - name: Check shared asset versions
+        run: node .github/scripts/check-assets.mjs
