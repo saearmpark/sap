@@ -1,10 +1,19 @@
 (() => {
-  // news.html(이슈사항)과 stocks.html(투자정보)에 중복돼 있던 소식 목록 렌더링을 한 곳으로 모았습니다.
+  // stocks.html(투자정보)의 경제 소식 목록을 렌더링합니다.
   function mount(options) {
     const { listEl, statusEl, cacheKey, noun, countLabel = noun, category = "", intervalMs = 5 * 60 * 1000 } = options;
     if (!listEl || !statusEl) return;
     const API = window.SAPCommon.API_ROOT;
     let items = [];
+
+    function timestamp(item) {
+      const parsed = Date.parse(item.publishedAt || item.fetchedAt || "");
+      return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    function newestFirst(list) {
+      return [...list].sort((a, b) => timestamp(b) - timestamp(a) || (b.id || 0) - (a.id || 0));
+    }
 
     function card(item) {
       const link = document.createElement("a");
@@ -68,7 +77,7 @@
     async function load() {
       const cached = window.SAPCommon.readCache(cacheKey);
       if (cached) {
-        items = cached.items;
+        items = newestFirst(cached.items);
         render();
         statusEl.textContent = `저장된 ${noun} ${items.length}건을 먼저 표시합니다...`;
       } else {
@@ -78,7 +87,7 @@
         const query = category ? `?category=${encodeURIComponent(category)}` : "";
         const response = await fetch(`${API}/news${query}`, { cache: "no-store" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        items = await response.json();
+        items = newestFirst(await response.json());
         render();
         if (items.length) {
           window.SAPCommon.writeCache(cacheKey, items);

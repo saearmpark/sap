@@ -5,7 +5,7 @@
     { href: "index.html", label: "홈" },
     { href: "search.html", label: "검색" },
     { label: "소식", items: [
-      { href: "news.html", label: "이슈" },
+      { href: "news.html", label: "날씨" },
       { href: "stocks.html", label: "투자" }
     ] },
     { label: "학습", items: [

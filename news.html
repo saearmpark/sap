@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사피엔스 — 이슈사항</title>
+<title>사피엔스 — 날씨</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-25">
+<link rel="stylesheet" href="assets/style.css?v=labels-26">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
 <body>
@@ -14,9 +14,9 @@
     <nav class="nav-group" data-nav></nav>
   </aside>
   <main class="main">
-    <div class="eyebrow">ISSUES</div>
-    <h1>이슈사항</h1>
-    <p>경제·스포츠·연예 소식을 제외한 국내 주요 소식을 10분마다 자동으로 모아 보여줍니다.</p>
+    <div class="eyebrow">WEATHER</div>
+    <h1>날씨</h1>
+    <p>대한민국 주요 도시의 오늘 날씨와 천안의 현재부터 24시간 시간대별 예상을 보여줍니다.</p>
 
     <section class="weather-panel" aria-label="오늘의 날씨">
       <div class="weather-head">
@@ -26,28 +26,14 @@
       <div id="weather-map" class="weather-map" aria-label="대한민국 도시별 날씨 지도"></div>
       <div id="weather-grid" class="weather-grid" hidden></div>
       <div id="weather-hourly" class="weather-hourly" hidden>
-        <h3 class="weather-hourly-title">천안 시간대별 예상</h3>
+        <h3 class="weather-hourly-title">천안 시간대별 예상 · 현재부터 24시간</h3>
         <div id="weather-hourly-strip" class="weather-hourly-strip"></div>
       </div>
     </section>
-
-    <p id="news-status" class="news-status" role="status" aria-live="polite">소식을 불러오는 중입니다...</p>
-    <div id="news-list" class="news-list"></div>
   </main>
 </div>
-<script src="assets/common.js?v=labels-25"></script>
-<script src="assets/auth.js?v=labels-25"></script>
-<script src="assets/feed.js?v=labels-25"></script>
-<script>
-  SAPFeed.mount({
-    listEl: document.getElementById("news-list"),
-    statusEl: document.getElementById("news-status"),
-    cacheKey: "sap-news-cache-domestic",
-    category: "국내",
-    noun: "소식",
-    countLabel: "총",
-  });
-</script>
+<script src="assets/common.js?v=labels-26"></script>
+<script src="assets/auth.js?v=labels-26"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
   (() => {
@@ -56,7 +42,7 @@
     const hourlyEl = document.getElementById("weather-hourly");
     const stripEl = document.getElementById("weather-hourly-strip");
     const statusEl = document.getElementById("weather-status");
-    const CACHE_KEY = "sap-weather-cache";
+    const CACHE_KEY = "sap-weather-cache-v2";
     const CITIES = [
       { name: "서울", lat: 37.5665, lon: 126.9780 },
       { name: "부산", lat: 35.1796, lon: 129.0756 },
@@ -197,29 +183,39 @@
       renderHourly(items);
     }
 
-    function seoulHour() {
+    function seoulNow() {
       try {
-        const hour = new Intl.DateTimeFormat("en-US", {
-          timeZone: "Asia/Seoul", hour: "numeric", hour12: false,
-        }).format(new Date());
-        return Number(hour) % 24;
+        const values = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Seoul",
+          year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", hour12: false,
+        }).formatToParts(new Date())
+          .filter((part) => part.type !== "literal")
+          .map((part) => [part.type, part.value]));
+        const hour = String(Number(values.hour) % 24).padStart(2, "0");
+        const date = `${values.year}-${values.month}-${values.day}`;
+        return { date, key: `${date}T${hour}:00` };
       } catch {
-        return new Date().getHours();
+        const now = new Date();
+        const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        return { date, key: `${date}T${String(now.getHours()).padStart(2, "0")}:00` };
       }
     }
 
-    function hourChip(hour, isNow) {
+    function hourChip(hour, isNow, today) {
       const el = document.createElement("div");
       el.className = isNow ? "weather-hour is-now" : "weather-hour";
       const time = document.createElement("span");
       time.className = "weather-hour-time";
-      time.textContent = isNow ? "지금" : `${hour.h}시`;
+      const day = hour.iso?.slice(0, 10) === today ? "오늘" : "내일";
+      time.textContent = isNow ? "지금" : `${day} ${hour.h}시`;
       const temp = document.createElement("span");
       temp.className = "weather-hour-temp";
       temp.textContent = fmtTemp(hour.t);
       const rain = document.createElement("span");
       rain.className = "weather-hour-rain";
       rain.textContent = Number.isFinite(hour.p) ? `${hour.p}%` : "-";
+      el.title = `${hour.iso?.slice(0, 10) || day} ${String(hour.h).padStart(2, "0")}시 · ${fmtTemp(hour.t)} · 강수 ${Number.isFinite(hour.p) ? `${hour.p}%` : "-"}`;
       el.append(time, temp, rain);
       return el;
     }
@@ -227,14 +223,15 @@
     function renderHourly(items) {
       const cheonan = items.find((item) => item.name === "천안");
       const hours = cheonan && Array.isArray(cheonan.hours) ? cheonan.hours : null;
-      if (!hours || !hours.length) {
+      const timed = hours ? hours.filter((hour) => typeof hour.iso === "string") : [];
+      if (!timed.length) {
         hourlyEl.hidden = true;
         return;
       }
-      const now = seoulHour();
-      const start = hours.findIndex((hour) => hour.h === now);
-      const visible = start > 0 ? hours.slice(start) : hours;
-      stripEl.replaceChildren(...visible.map((hour) => hourChip(hour, hour.h === now)));
+      const now = seoulNow();
+      const start = timed.findIndex((hour) => hour.iso >= now.key);
+      const visible = start >= 0 ? timed.slice(start, start + 24) : timed.slice(-24);
+      stripEl.replaceChildren(...visible.map((hour) => hourChip(hour, hour.iso === now.key, now.date)));
       hourlyEl.hidden = false;
     }
 
@@ -254,7 +251,7 @@
           + "&current=temperature_2m,weather_code"
           + "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max"
           + "&hourly=temperature_2m,precipitation_probability"
-          + "&timezone=Asia%2FSeoul&forecast_days=1";
+          + "&timezone=Asia%2FSeoul&forecast_days=2";
         const response = await fetch(url, { cache: "no-store" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
@@ -272,6 +269,7 @@
           afternoon: roundValue(hourValue(entry, 15, "temperature_2m")),
           hours: CITIES[index]?.name === "천안" && Array.isArray(entry.hourly?.time)
             ? entry.hourly.time.map((iso, i) => ({
+                iso,
                 h: Number(iso.slice(11, 13)),
                 t: roundValue(entry.hourly.temperature_2m?.[i]),
                 p: roundValue(entry.hourly.precipitation_probability?.[i]),
@@ -280,7 +278,9 @@
         }));
         show(items);
         writeCache(items);
-        const stamp = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+        const stamp = new Date().toLocaleTimeString("ko-KR", {
+          timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit",
+        });
         statusEl.textContent = `실시간 · ${stamp} 기준`;
       } catch (error) {
         statusEl.textContent = readCache()
@@ -293,6 +293,6 @@
     setInterval(load, 10 * 60 * 1000);
   })();
 </script>
-<script src="assets/theme.js?v=labels-25"></script>
+<script src="assets/theme.js?v=labels-26"></script>
 </body>
 </html>
