@@ -5,13 +5,13 @@
     { href: "index.html", label: "홈" },
     { href: "search.html", label: "검색" },
     { label: "소식", items: [
-      { href: "news.html", label: "이슈사항" },
-      { href: "stocks.html", label: "투자정보" }
+      { href: "news.html", label: "이슈" },
+      { href: "stocks.html", label: "투자" }
     ] },
     { label: "학습", items: [
       {
         href: "manual.html",
-        label: "웹제작절차",
+        label: "웹",
         pages: [
           "manual-plan.html",
           "manual-vscode.html",
@@ -32,13 +32,13 @@
       { href: "game.html", label: "게임" }
     ] },
     { label: "소통", items: [
-      { href: "board.html", label: "자유 게시판" },
-      { href: "notice.html", label: "공지사항" },
-      { href: "chat.html", label: "실시간 대화" }
+      { href: "board.html", label: "게시판" },
+      { href: "notice.html", label: "공지" },
+      { href: "chat.html", label: "대화" }
     ] },
     { label: "자료", items: [
-      { href: "files.html", label: "개인자료" },
-      { href: "apps.html", label: "공용자료" }
+      { href: "files.html", label: "개인" },
+      { href: "apps.html", label: "공용" }
     ] },
     { label: "계정", items: [
       { href: "calendar.html", label: "일정" },
