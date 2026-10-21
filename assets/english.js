@@ -59,7 +59,7 @@
       keywords: ["shop", "shopping", "buy", "online", "store", "price", "clothes", "sneakers", "product"],
       script: {
         full: "I usually shop online because it is fast and easy. I compare prices and read reviews before I buy something. For clothes, I sometimes go to a store because I want to try them on. I don't shop very often, but I buy what I need.",
-        ko: "저는 보통 온라인에서 쇼핑해요. 빠르고 쉽기 때문이에요. 물건을 사기 전에 가격을 비교하고 후기를 읽어요. 옷은 입어 보고 싶어서 가끔 매장에 가요. 자주 쇼핑하지는 않지만 필요한 것은 사요."
+        ko: "저는 빠르고 쉽기 때문에 보통 온라인에서 쇼핑해요. 물건을 사기 전에 가격을 비교하고 후기를 읽어요. 옷은 입어 보고 싶어서 가끔 매장에 가요. 자주 쇼핑하지는 않지만 필요한 것은 사요."
       }
     },
     media: {
@@ -545,7 +545,7 @@
           question: "How do you usually shop?",
           questionKo: "보통 어떻게 쇼핑해요?",
           answer: "I usually shop online because it is fast and easy. I compare prices and read reviews before I buy something. For clothes, I sometimes go to a store because I want to try them on. I don't shop very often, but I buy what I need.",
-          answerKo: "저는 보통 온라인에서 쇼핑해요. 빠르고 쉽기 때문이에요. 물건을 사기 전에 가격을 비교하고 후기를 읽어요. 옷은 입어 보고 싶어서 가끔 매장에 가요. 자주 쇼핑하지는 않지만 필요한 것은 사요.",
+          answerKo: "저는 빠르고 쉽기 때문에 보통 온라인에서 쇼핑해요. 물건을 사기 전에 가격을 비교하고 후기를 읽어요. 옷은 입어 보고 싶어서 가끔 매장에 가요. 자주 쇼핑하지는 않지만 필요한 것은 사요.",
           expressions: [
             ["I usually shop online.", "저는 보통 온라인으로 쇼핑해요."],
             ["compare prices", "가격을 비교하다"],
@@ -668,6 +668,11 @@
   let recognitionFinal = "";
   let recognitionInterim = "";
   let recognitionError = "";
+  let sentenceCards = [];
+  let sentenceIndex = 0;
+  let sentenceScope = "selected";
+  let sentenceAutoTimer = null;
+  const SENTENCE_AUTO_MS = 8000;
 
   function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>"']/g, (char) => (
@@ -1333,6 +1338,114 @@
     section.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function buildSentenceCards() {
+    const ids = sentenceScope === "all"
+      ? TOPICS.map((topic) => topic.id)
+      : ["self", ...settings.topics.filter((id) => id !== "self")];
+    const ordered = [...new Set(ids)].map((id) => topicById.get(id)).filter(Boolean);
+    return ordered.flatMap((topic) => {
+      const meta = TOPIC_META[topic.id];
+      if (!meta) return [];
+      const english = meta.script.full.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+      const korean = meta.script.ko.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+      return english.map((text, index) => ({
+        topicId: topic.id,
+        topicTitle: topic.title,
+        english: text.trim(),
+        korean: (korean[index] || "").trim()
+      })).filter((card) => card.english);
+    });
+  }
+
+  function syncSentenceAutoButton() {
+    const button = document.querySelector("[data-sentence-auto]");
+    if (!button) return;
+    const active = Boolean(sentenceAutoTimer);
+    button.setAttribute("aria-pressed", String(active));
+    button.textContent = active ? "자동 넘김 중지" : "자동 넘김 · 8초";
+  }
+
+  function renderSentenceCard() {
+    const card = sentenceCards[sentenceIndex];
+    const topic = document.getElementById("sentence-topic");
+    const english = document.getElementById("sentence-en");
+    const korean = document.getElementById("sentence-ko");
+    const progress = document.getElementById("sentence-progress");
+    const count = document.getElementById("sentence-count");
+    const hasCard = Boolean(card);
+    if (topic) topic.textContent = card?.topicTitle || "";
+    if (english) english.textContent = card?.english || "표시할 문장이 없습니다.";
+    if (korean) korean.textContent = card?.korean || "";
+    if (progress) progress.textContent = hasCard ? `${sentenceIndex + 1} / ${sentenceCards.length}` : "0 / 0";
+    if (count) count.textContent = `${sentenceCards.length}문장`;
+    document.querySelectorAll("[data-sentence-scope]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.sentenceScope === sentenceScope));
+    });
+    document.querySelectorAll("[data-sentence-nav]").forEach((button) => {
+      button.disabled = !hasCard;
+    });
+    const speakButton = document.querySelector("[data-sentence-speak]");
+    if (speakButton) speakButton.disabled = !hasCard || !ttsSupported;
+    const shuffleButton = document.querySelector("[data-sentence-shuffle]");
+    if (shuffleButton) shuffleButton.disabled = !hasCard;
+    syncSentenceAutoButton();
+  }
+
+  function rebuildSentenceCards(reset = true) {
+    sentenceCards = buildSentenceCards();
+    if (reset) sentenceIndex = 0;
+    if (sentenceCards.length) {
+      sentenceIndex = ((sentenceIndex % sentenceCards.length) + sentenceCards.length) % sentenceCards.length;
+    } else {
+      sentenceIndex = 0;
+    }
+    renderSentenceCard();
+  }
+
+  function stepSentence(delta) {
+    if (!sentenceCards.length) return;
+    stopSpeech();
+    sentenceIndex = ((sentenceIndex + delta) % sentenceCards.length + sentenceCards.length) % sentenceCards.length;
+    renderSentenceCard();
+  }
+
+  function stopSentenceAuto() {
+    if (sentenceAutoTimer) clearInterval(sentenceAutoTimer);
+    sentenceAutoTimer = null;
+    syncSentenceAutoButton();
+  }
+
+  function startSentenceAuto() {
+    stopSentenceAuto();
+    if (!sentenceCards.length) return;
+    sentenceAutoTimer = setInterval(() => stepSentence(1), SENTENCE_AUTO_MS);
+    syncSentenceAutoButton();
+  }
+
+  function toggleSentenceAuto() {
+    if (sentenceAutoTimer) stopSentenceAuto();
+    else startSentenceAuto();
+  }
+
+  function setSentenceScope(scope) {
+    const next = scope === "all" ? "all" : "selected";
+    if (next === sentenceScope) return;
+    sentenceScope = next;
+    stopSentenceAuto();
+    rebuildSentenceCards(true);
+  }
+
+  function shuffleSentenceCards() {
+    if (!sentenceCards.length) return;
+    stopSpeech();
+    for (let index = sentenceCards.length - 1; index > 0; index -= 1) {
+      const swap = Math.floor(Math.random() * (index + 1));
+      [sentenceCards[index], sentenceCards[swap]] = [sentenceCards[swap], sentenceCards[index]];
+    }
+    sentenceIndex = 0;
+    renderSentenceCard();
+  }
+
   function setSpeakStatus(message, state) {
     const status = document.getElementById("speak-status");
     if (!status) return;
@@ -1484,12 +1597,13 @@
     if (button.id === "speak-question") return currentQuestion()?.question || "";
     if (button.hasAttribute("data-speak-tailored")) return exam?.results[exam.index]?.tailoredAnswer || "";
     if (button.hasAttribute("data-speak-model")) return currentQuestion()?.answer || "";
+    if (button.hasAttribute("data-sentence-speak")) return sentenceCards[sentenceIndex]?.english || "";
     if (button.dataset.scriptSpeak) return TOPIC_META[button.dataset.scriptSpeak]?.script.full || "";
     return "";
   }
 
   function activateTab(name, updateHash = true) {
-    const target = name === "scripts" ? "scripts" : "exam";
+    const target = name === "scripts" || name === "sentences" ? name : "exam";
     document.querySelectorAll("[data-tab]").forEach((tab) => {
       const selected = tab.dataset.tab === target;
       tab.setAttribute("aria-selected", String(selected));
@@ -1498,9 +1612,13 @@
     document.querySelectorAll(".english-panel").forEach((panel) => {
       panel.hidden = panel.id !== target;
     });
+    if (target !== "sentences") stopSentenceAuto();
     if (target !== "exam") {
       stopRecognition(true);
       stopSpeech();
+    }
+    if (target === "sentences") {
+      document.getElementById("sentences")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     if (updateHash) window.history.replaceState(null, "", `#${target}`);
   }
@@ -1508,6 +1626,7 @@
   function applyHash() {
     const hash = decodeURIComponent(location.hash.slice(1));
     if (hash === "scripts" || hash === "survey") activateTab("scripts", false);
+    else if (hash === "sentences" || hash === "memorize") activateTab("sentences", false);
     else if (hash.startsWith("topic-")) openScript(hash.slice(6), false);
     else activateTab("exam", false);
   }
@@ -1560,6 +1679,24 @@
         activateTab(tab.dataset.tab);
         return;
       }
+      const sentenceScopeButton = event.target.closest("[data-sentence-scope]");
+      if (sentenceScopeButton) {
+        setSentenceScope(sentenceScopeButton.dataset.sentenceScope);
+        return;
+      }
+      const sentenceNav = event.target.closest("[data-sentence-nav]");
+      if (sentenceNav) {
+        stepSentence(sentenceNav.dataset.sentenceNav === "prev" ? -1 : 1);
+        return;
+      }
+      if (event.target.closest("[data-sentence-auto]")) {
+        toggleSentenceAuto();
+        return;
+      }
+      if (event.target.closest("[data-sentence-shuffle]")) {
+        shuffleSentenceCards();
+        return;
+      }
       const topicChoice = event.target.closest("[data-topic-choice]");
       if (topicChoice) {
         const id = topicChoice.dataset.topicChoice;
@@ -1577,6 +1714,7 @@
         renderTopicChoices();
         updateSetupSummary();
         renderScripts();
+        if (sentenceScope === "selected") rebuildSentenceCards(true);
         return;
       }
       const examMode = event.target.closest("[data-exam-mode]");
@@ -1624,7 +1762,7 @@
         speak(event.target.closest("#speak-question"), currentQuestion()?.question || "");
         return;
       }
-      const speakButton = event.target.closest("[data-speak-model], [data-speak-tailored], [data-script-speak]");
+      const speakButton = event.target.closest("[data-speak-model], [data-speak-tailored], [data-sentence-speak], [data-script-speak]");
       if (speakButton) {
         speak(speakButton, speakTextFor(speakButton));
         return;
@@ -1666,10 +1804,41 @@
       activateTab(tabs[nextIndex].dataset.tab);
     });
 
+    document.addEventListener("keydown", (event) => {
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+      const panel = document.getElementById("sentences");
+      if (!panel || panel.hidden) return;
+      if (event.target.closest?.("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      stepSentence(event.key === "ArrowLeft" ? -1 : 1);
+    });
+
+    const sentenceCard = document.getElementById("sentence-card");
+    let touchX = 0;
+    let touchY = 0;
+    sentenceCard?.addEventListener("touchstart", (event) => {
+      const touch = event.changedTouches[0];
+      touchX = touch.clientX;
+      touchY = touch.clientY;
+    }, { passive: true });
+    sentenceCard?.addEventListener("touchend", (event) => {
+      const touch = event.changedTouches[0];
+      const deltaX = touch.clientX - touchX;
+      const deltaY = touch.clientY - touchY;
+      if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY) * 1.3) return;
+      stepSentence(deltaX < 0 ? 1 : -1);
+    }, { passive: true });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stopSentenceAuto();
+    });
+
     window.addEventListener("hashchange", applyHash);
     window.addEventListener("pagehide", () => {
       stopRecognition(true);
       stopSpeech();
+      stopSentenceAuto();
     });
   }
 
@@ -1679,6 +1848,7 @@
       saveSettings();
     }
     renderSetup();
+    rebuildSentenceCards(true);
     renderScripts();
     updateOverview();
     bindEvents();

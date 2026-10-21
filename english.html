@@ -21,7 +21,7 @@
   .english-tip-list { margin: 10px 0 0; padding-left: 18px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.8; }
   .english-tip-list strong { color: var(--ink); }
   .english-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 20px 0 16px; border-bottom: 1px solid var(--border); }
-  .english-tab { padding: 9px 14px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--ink-soft); font-weight: 600; }
+  .english-tab { padding: 9px 14px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--ink-soft); font-weight: 600; white-space: nowrap; }
   .english-tab:hover { background: var(--accent-soft); opacity: 1; }
   .english-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
   .english-panel[hidden] { display: none; }
@@ -136,6 +136,15 @@
   .summary-row strong { font-size: 13px; }
   .summary-row em { color: var(--ink-soft); font-family: var(--mono); font-size: 11.5px; font-style: normal; }
   .summary-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .sentence-scope { max-width: 340px; margin: 0 0 12px; }
+  .sentence-card { display: flex; flex-direction: column; justify-content: center; min-height: clamp(240px, 42vh, 380px); padding: clamp(22px, 4vw, 42px); border: 1px solid var(--border); border-radius: 14px; background: var(--bg); }
+  .sentence-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; color: var(--ink-soft); font-family: var(--mono); font-size: 12px; }
+  .sentence-en { margin: 20px 0 0; color: var(--ink); font-size: clamp(22px, 3.3vw, 36px); font-weight: 650; line-height: 1.45; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+  .sentence-ko { margin: 14px 0 0; color: var(--ink-soft); font-size: clamp(13px, 1.4vw, 16px); line-height: 1.7; overflow-wrap: anywhere; }
+  .sentence-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .sentence-nav .english-button { min-height: 48px; font-size: 14px; }
+  .sentence-tools { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+  .sentence-tools .english-button { min-height: 42px; }
   .script-list { display: grid; gap: 10px; }
   .script-card { margin: 0; padding: 0; overflow: hidden; }
   .script-card > summary { display: flex; align-items: center; gap: 12px; padding: 15px 18px; cursor: pointer; list-style: none; }
@@ -162,9 +171,12 @@
   :root[data-theme="dark"] .speak-status[data-state="recording"] { color: #ff9b91; }
   :root[data-theme="dark"] .english-page #tab-exam,
   :root[data-theme="dark"] .english-page #tab-scripts,
+  :root[data-theme="dark"] .english-page #tab-sentences,
   :root[data-theme="dark"] .english-page #exam .choice-chip,
   :root[data-theme="dark"] .english-page #exam .segmented button:not([aria-pressed="true"]),
+  :root[data-theme="dark"] .english-page #sentences .segmented button:not([aria-pressed="true"]),
   :root[data-theme="dark"] .english-page #exam .english-ghost:not([aria-pressed="true"]),
+  :root[data-theme="dark"] .english-page #sentences .english-ghost:not([aria-pressed="true"]),
   :root[data-theme="dark"] .english-page #scripts .english-ghost:not([aria-pressed="true"]) { color: var(--ink) !important; }
   :root[data-theme="dark"] .english-page #exam .choice-chip.is-active .choice-code,
   :root[data-theme="dark"] .english-page .script-badge.is-selected { color: #17181a; }
@@ -178,6 +190,9 @@
     .answer-card, .exam-question { padding: 14px 13px; }
     .grade-hero { padding: 15px 14px; }
     .score-bar { grid-template-columns: 70px minmax(0, 1fr) 42px; }
+    .sentence-card { min-height: 230px; padding: 22px 18px; }
+    .sentence-en { font-size: clamp(22px, 6vw, 30px); }
+    .sentence-tools .english-button { flex: 1 1 auto; }
     .script-card > summary { padding: 13px 14px; }
     .script-body { padding: 0 13px 14px; }
   }
@@ -227,6 +242,7 @@
     <div class="english-tabs" role="tablist" aria-label="영어 학습 구역">
       <button id="tab-exam" class="english-tab" type="button" role="tab" aria-selected="true" aria-controls="exam" tabindex="0" data-tab="exam">모의고사</button>
       <button id="tab-scripts" class="english-tab" type="button" role="tab" aria-selected="false" aria-controls="scripts" tabindex="-1" data-tab="scripts">주제별 스크립트</button>
+      <button id="tab-sentences" class="english-tab" type="button" role="tab" aria-selected="false" aria-controls="sentences" tabindex="-1" data-tab="sentences">암기 문장</button>
     </div>
 
     <section id="exam" class="english-panel" role="tabpanel" aria-labelledby="tab-exam">
@@ -335,13 +351,45 @@
       <div id="script-list" class="script-list"></div>
     </section>
 
+    <section id="sentences" class="english-panel" role="tabpanel" aria-labelledby="tab-sentences" hidden>
+      <div class="english-section-head">
+        <div>
+          <h2>이동 중 암기 문장</h2>
+          <p>버스나 차 안에서 한 문장씩 가볍게 읽어 보세요. 큰 글씨로 영어와 뜻을 함께 보여줍니다.</p>
+        </div>
+        <span id="sentence-count" class="selection-count">0문장</span>
+      </div>
+      <div id="sentence-scope" class="segmented sentence-scope" role="group" aria-label="암기 문장 범위">
+        <button type="button" data-sentence-scope="selected" aria-pressed="true">내 선택</button>
+        <button type="button" data-sentence-scope="all" aria-pressed="false">전체 주제</button>
+      </div>
+      <article id="sentence-card" class="sentence-card" aria-live="polite">
+        <div class="sentence-meta">
+          <span id="sentence-topic" class="exam-badge"></span>
+          <span id="sentence-progress">0 / 0</span>
+        </div>
+        <p id="sentence-en" class="sentence-en" lang="en"></p>
+        <p id="sentence-ko" class="sentence-ko"></p>
+      </article>
+      <div class="sentence-nav">
+        <button type="button" class="english-button english-ghost" data-sentence-nav="prev">← 이전 문장</button>
+        <button type="button" class="english-button english-ghost" data-sentence-nav="next">다음 문장 →</button>
+      </div>
+      <div class="sentence-tools">
+        <button type="button" class="english-button english-ghost" data-sentence-auto aria-pressed="false">자동 넘김 · 8초</button>
+        <button type="button" class="english-button english-ghost" data-sentence-speak data-speak-label="문장 듣기">문장 듣기</button>
+        <button type="button" class="english-button english-ghost" data-sentence-shuffle>순서 섞기</button>
+      </div>
+      <p class="english-note">문장 카드를 좌우로 밀거나 방향키로도 넘길 수 있습니다. 자동 넘김은 8초마다 다음 문장으로 이동합니다.</p>
+    </section>
+
     <p id="english-status" class="english-status" role="status" aria-live="polite"></p>
     <noscript><p class="english-status">모의고사와 스크립트를 보려면 JavaScript를 켜 주세요.</p></noscript>
   </main>
 </div>
 <script src="assets/common.js?v=labels-23"></script>
 <script src="assets/auth.js?v=labels-23"></script>
-<script src="assets/english.js?v=labels-23"></script>
+<script src="assets/english.js?v=labels-24"></script>
 <script src="assets/theme.js?v=labels-23"></script>
 </body>
 </html>
