@@ -71,6 +71,77 @@
     }
   };
 
+  const TOPIC_SUPPORT = {
+    self: {
+      reason: "I'm a positive person, and I enjoy spending time with people, so I get along well with others.",
+      example: "In my free time, I usually watch movies or meet my friends.",
+      closing: "Nice to meet you."
+    },
+    home: {
+      reason: "I like my home because it is comfortable and convenient.",
+      example: "For example, I usually relax in my favorite room on weekends.",
+      closing: "Overall, it is a comfortable place to live."
+    },
+    work: {
+      reason: "I like my work because it is interesting and challenging.",
+      example: "For example, I usually work on projects with my team during the week.",
+      closing: "Overall, I enjoy learning new things at work."
+    },
+    hobby: {
+      reason: "I enjoy it because it helps me relax after a busy day.",
+      example: "For example, I usually do it on weekends when I have free time.",
+      closing: "Overall, it is an important part of my life."
+    },
+    travel: {
+      reason: "I enjoyed the trip because I could experience something new.",
+      example: "For example, I visited local places and tried local food.",
+      closing: "I would like to go back someday."
+    },
+    food: {
+      reason: "I like it because it is delicious and comforting.",
+      example: "For example, I usually eat it with my friends on weekends.",
+      closing: "Overall, it is one of my favorite things."
+    },
+    shopping: {
+      reason: "I like shopping because it is convenient and fun.",
+      example: "For example, I usually compare prices before I buy something.",
+      closing: "Overall, I try to buy what I need at a good price."
+    },
+    media: {
+      reason: "I like it because it helps me relax and feel happy.",
+      example: "For example, I usually enjoy it at home on weekends.",
+      closing: "Overall, it is a big part of my free time."
+    }
+  };
+
+  const TYPE_SUPPORT = {
+    습관: {
+      reason: "I do it regularly because it is part of my daily routine.",
+      example: "For example, I usually do it after work or on weekends.",
+      closing: "Overall, it is a simple habit that makes my day better."
+    },
+    경험: {
+      reason: "It was memorable because I experienced something new.",
+      example: "For example, I still remember the details from that day.",
+      closing: "It was a great experience overall."
+    },
+    비교: {
+      reason: "I prefer it because it fits my lifestyle better.",
+      example: "For example, it is more convenient for me on busy days.",
+      closing: "For these reasons, I would choose it again."
+    },
+    계획: {
+      reason: "I'm planning it carefully because I want a new experience.",
+      example: "For example, I will prepare for it step by step next month.",
+      closing: "I hope everything goes well."
+    },
+    선호: {
+      reason: "I prefer it because it suits my taste.",
+      example: "For example, I usually choose it when I have a choice.",
+      closing: "Overall, it is my favorite option."
+    }
+  };
+
   const LEVELS = [
     { min: 95, grade: "AL", desc: "복잡한 주제도 논리적으로 길게 설명할 수 있는 수준" },
     { min: 88, grade: "IH", desc: "다양한 주제를 유창하게 설명하고 근거를 제시하는 수준" },
@@ -103,6 +174,10 @@
   const COMPLEX_MARKERS = [
     "because", "although", "when", "if", "after", "before", "that", "which", "who", "while", "since"
   ];
+
+  const REASON_MARKERS = /\b(because|since|that's why|so i|help(?:s|ed)? me|make(?:s|d)? me|allow(?:s|ed)? me)\b/;
+  const EXAMPLE_MARKERS = /\b(for example|usually|often|sometimes|on weekends|every (?:day|week|month|year|summer)|on a typical day|last (?:summer|year|week)|when i)\b/;
+  const CLOSING_MARKERS = /\b(overall|in short|in conclusion|all in all|that's why i|i would|i want to|i hope|nice to meet you)\b/;
 
     const TOPICS = [
     {
@@ -899,6 +974,91 @@
     return { keys, hits };
   }
 
+  function sanitizeUserSentence(value) {
+    let text = String(value || "").replace(/\s+/g, " ").trim();
+    if (!text) return "";
+    text = text
+      .replace(/\bi'm\b/gi, "I'm")
+      .replace(/\bi've\b/gi, "I've")
+      .replace(/\bi'll\b/gi, "I'll")
+      .replace(/\bi'd\b/gi, "I'd")
+      .replace(/\bi\b/g, "I");
+    text = text.charAt(0).toUpperCase() + text.slice(1);
+    if (!/[.!?]$/.test(text)) text += ".";
+    return text;
+  }
+
+  function answerSentences(value) {
+    const text = String(value || "").replace(/\s+/g, " ").trim();
+    if (!text) return [];
+    const parts = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+    return parts.map(sanitizeUserSentence).filter(Boolean);
+  }
+
+  function supportFor(question) {
+    return TYPE_SUPPORT[question.type] || TOPIC_SUPPORT[question.topicId] || TOPIC_SUPPORT.self;
+  }
+
+  function supportSentence(key, question, text) {
+    const support = supportFor(question);
+    const candidate = support[key];
+    const candidateWords = englishWords(candidate);
+    const userWords = new Set(englishWords(text));
+    const overlap = candidateWords.filter((word) => userWords.has(word)).length;
+    return {
+      text: candidate,
+      ratio: candidateWords.length ? overlap / candidateWords.length : 0
+    };
+  }
+
+  function buildTailoredAnswer(text, question) {
+    const userSentences = answerSentences(text);
+    const normalized = userSentences.join(" ");
+    const fallbackSupport = supportFor(question);
+    const notes = [];
+    if (!userSentences.length) {
+      notes.push("작성한 답변이 없어 주제에 맞는 기본 모범답안으로 구성했어요.");
+    }
+
+    const coverage = {
+      reason: REASON_MARKERS.test(normalized),
+      example: EXAMPLE_MARKERS.test(normalized),
+      closing: CLOSING_MARKERS.test(normalized)
+    };
+    const labels = {
+      reason: "이유를 설명하는 문장이 없어 이유를 덧붙였어요.",
+      example: "구체적인 예시가 부족해 일상 예시 문장을 추가했어요.",
+      closing: "답변을 마무리하는 문장이 없어 짧은 마무리 문장을 추가했어요."
+    };
+
+    const kept = userSentences.slice(0, 3);
+    if (userSentences.length > 3) {
+      notes.push("답변이 " + userSentences.length + "문장으로 길어 핵심 " + kept.length + "문장만 남기고 정리했어요.");
+    }
+
+    const additions = [];
+    ["reason", "example", "closing"].forEach((key) => {
+      if (coverage[key]) return;
+      const candidate = supportSentence(key, question, normalized);
+      if (candidate.ratio < 0.55) {
+        additions.push(candidate.text);
+        notes.push(labels[key]);
+      }
+    });
+
+    const all = [...kept, ...additions];
+    if (!all.length) all.push(fallbackSupport.reason);
+    const answer = sanitizeUserSentence(all.join(" "));
+    if (!notes.length) {
+      if (coverage.reason && coverage.example && coverage.closing) {
+        notes.push("이유·예시·마무리가 모두 들어 있어 사용자 문장을 중심으로 구성했어요.");
+      } else {
+        notes.push("이미 비슷한 표현이 있어 중복되는 보완 문장은 추가하지 않았어요.");
+      }
+    }
+    return { answer, notes };
+  }
+
   function evaluateAnswer(text, question) {
     const words = englishWords(text);
     const content = contentWords(text);
@@ -973,6 +1133,9 @@
     const result = exam?.results[exam.index];
     if (!container || !result) return;
     const last = exam.index === exam.questions.length - 1;
+    const tailored = result.tailoredAnswer
+      ? { answer: result.tailoredAnswer, notes: result.tailoredNotes || [] }
+      : buildTailoredAnswer(result.answer || "", question);
     const bars = result.breakdown.map((item) => `<div class="score-bar">
       <span>${item.label}</span>
       <span class="score-bar-track"><span class="score-bar-fill" style="width:${Math.round((item.score / item.max) * 100)}%"></span></span>
@@ -984,10 +1147,22 @@
       <div class="grade-score"><strong>${result.score}</strong><small>/100</small></div>
     </section>
     <p class="grade-disclaimer">문장 길이·구조·연결어·주제 적합도를 바탕으로 한 학습용 추정입니다.</p>
+    <section class="tailored-answer">
+      <div class="tailored-head">
+        <span class="tailored-badge">PERSONALIZED</span>
+        <h3>내 답변 맞춤 보완</h3>
+      </div>
+      <p class="tailored-intro">내가 쓴 핵심 문장은 살리고, 빠진 이유·예시·마무리를 보완했어요. 문법 교정이 아니라 내용 보완용 답안입니다.</p>
+      <p class="tailored-en" lang="en">${escapeHtml(tailored.answer)}</p>
+      <ul class="tailored-notes">${tailored.notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>
+      <div class="model-tools">
+        <button type="button" class="english-button english-ghost" data-speak-tailored data-speak-label="맞춤답안 듣기"${ttsSupported ? "" : " disabled"}>맞춤답안 듣기</button>
+      </div>
+    </section>
     <div class="score-bars">${bars}</div>
     <ul class="feedback-list">${result.feedback.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-    <section class="model-answer">
-      <h3>모범 답안</h3>
+    <details class="model-answer">
+      <summary>기본 모범답안 보기</summary>
       <p class="model-en" lang="en">${escapeHtml(question.answer)}</p>
       <p class="model-ko">${escapeHtml(question.answerKo)}</p>
       <div class="model-tools">
@@ -1001,7 +1176,7 @@
         <p>${escapeHtml(question.followUp.q)}</p>
         <p class="answer-ko">${escapeHtml(question.followUp.a)}</p>
       </details>
-    </section>
+    </details>
     <div class="summary-actions">
       <button type="button" class="english-button" data-next-question>${last ? "결과 보기" : "다음 질문"}</button>
     </div>`;
@@ -1026,9 +1201,12 @@
     stopRecognition(true);
     stopSpeech();
     const result = evaluateAnswer(answer, question);
+    const tailored = buildTailoredAnswer(answer, question);
     exam.results[exam.index] = {
       ...result,
       answer,
+      tailoredAnswer: tailored.answer,
+      tailoredNotes: tailored.notes,
       question: question.question,
       topicId: question.topicId,
       topicTitle: question.topicTitle,
@@ -1039,7 +1217,7 @@
     if (submit) submit.disabled = true;
     const toggle = document.getElementById("speak-toggle");
     if (toggle) toggle.disabled = true;
-    if (status) status.textContent = "채점이 완료되었습니다. 모범답안과 비교해 보세요.";
+    if (status) status.textContent = "채점이 완료되었습니다. 맞춤 모범답안과 비교해 보세요.";
     renderEvaluation(question);
   }
 
@@ -1304,6 +1482,7 @@
 
   function speakTextFor(button) {
     if (button.id === "speak-question") return currentQuestion()?.question || "";
+    if (button.hasAttribute("data-speak-tailored")) return exam?.results[exam.index]?.tailoredAnswer || "";
     if (button.hasAttribute("data-speak-model")) return currentQuestion()?.answer || "";
     if (button.dataset.scriptSpeak) return TOPIC_META[button.dataset.scriptSpeak]?.script.full || "";
     return "";
@@ -1445,7 +1624,7 @@
         speak(event.target.closest("#speak-question"), currentQuestion()?.question || "");
         return;
       }
-      const speakButton = event.target.closest("[data-speak-model], [data-script-speak]");
+      const speakButton = event.target.closest("[data-speak-model], [data-speak-tailored], [data-script-speak]");
       if (speakButton) {
         speak(speakButton, speakTextFor(speakButton));
         return;
