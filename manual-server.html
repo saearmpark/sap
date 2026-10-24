@@ -164,7 +164,7 @@ git commit -m "Fix calendar date contrast in dark mode"</code></pre>
           <thead><tr><th>워크플로</th><th>확인하는 것</th></tr></thead>
           <tbody>
             <tr><td>Java tests</td><td><code>mvn test</code> — 게임방 복구, 학습 진도 저장 등</td></tr>
-            <tr><td>Static site checks</td><td>인라인 스크립트 문법, 페이지 목록 검사</td></tr>
+            <tr><td>Static site checks</td><td>공용 스크립트·인라인 스크립트 문법, 페이지 목록과 링크, 공용 자산 버전, <code>sw.js</code>·<code>manifest.webmanifest</code> 형식</td></tr>
             <tr><td>pages build and deployment</td><td>main 브랜치의 정적 파일을 GitHub Pages에 배포</td></tr>
             <tr><td>Build desktop tools</td><td>PyInstaller로 Windows 실행파일 패키징</td></tr>
           </tbody>
@@ -174,9 +174,13 @@ git commit -m "Fix calendar date contrast in dark mode"</code></pre>
       <div class="manual-code">
         <span class="manual-code-label">PowerShell</span>
         <pre><code>node .github/scripts/check-inline-scripts.mjs
+node .github/scripts/check-links.mjs
+node .github/scripts/check-assets.mjs
+node --check sw.js
 cd backend-java
 mvn test</code></pre>
       </div>
+      <p>세 가지 정적 검사는 서로 역할이 다릅니다. 인라인 스크립트 문법, 페이지 목록·링크, 공용 자산 버전을 각각 확인하므로 하나라도 건너뛰면 놓치는 오류가 생깁니다.</p>
     </section>
 
     <section class="manual-section">
@@ -198,6 +202,7 @@ mvn test</code></pre>
         <li><strong>콘솔을 봅니다.</strong> <kbd>F12</kbd> → Console에서 빨간 오류가 없는지 확인합니다.</li>
         <li><strong>API를 확인합니다.</strong> 뉴스·시세·로그인 등 실제 데이터가 필요한 기능을 한 번씩 실행합니다.</li>
         <li><strong>모바일 폭을 확인합니다.</strong> 개발자도구의 반응형 모드에서 메뉴와 표가 넘치지 않는지 봅니다.</li>
+        <li><strong>PWA를 확인합니다.</strong> DevTools <strong>Application</strong>에서 서비스 워커가 <em>activated</em>인지, <em>Offline</em> 체크 후 새로고침해도 <code>offline.html</code>이 뜨는지 봅니다.</li>
         <li><strong>없는 주소를 확인합니다.</strong> <code>404.html</code>을 두었다면 일부러 없는 주소로 접속해 안내 페이지가 나오는지 봅니다.</li>
       </ol>
       <div class="manual-code">
@@ -242,6 +247,8 @@ git push origin main</code></pre>
         <li><code>main</code>에 푸시하고 Actions가 성공한 것을 확인했다.</li>
         <li>GitHub 저장소를 만들고 Pages를 <code>main</code> / <code>/ (root)</code>로 설정했다.</li>
         <li>Pages와 Render 배포 완료 후 라이브 화면을 직접 확인했다.</li>
+        <li>정적 검사 세 가지와 <code>sw.js</code> 문법 검사를 통과했다.</li>
+        <li>서비스 워커 활성화와 오프라인 새로고침을 확인했다.</li>
         <li>문제가 생겼을 때 <code>git revert</code>로 되돌리는 방법을 알고 있다.</li>
       </ul>
     </section>

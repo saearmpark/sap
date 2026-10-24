@@ -186,6 +186,10 @@
 &lt;head&gt;
 &lt;meta charset="UTF-8"&gt;
 &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+&lt;meta name="theme-color" content="#202124"&gt;
+&lt;link rel="icon" href="assets/icons/icon-192.png" type="image/png"&gt;
+&lt;link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png"&gt;
+&lt;link rel="manifest" href="manifest.webmanifest"&gt;
 &lt;title&gt;사피엔스 — 새 페이지&lt;/title&gt;
 &lt;script&gt;try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}&lt;/script&gt;
 &lt;link rel="stylesheet" href="assets/style.css?v=labels-30"&gt;
@@ -207,7 +211,11 @@
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
       </div>
-      <p>그다음 <code>assets/common.js</code>의 메뉴 목록에 링크를 추가하고, <code>.github/scripts/pages.txt</code>와 <code>search.html</code>에도 등록해야 합니다. 자세한 절차는 <a href="manual-connect.html">07 · 제작항목 연결</a>에서 다룹니다.</p>
+      <p>그다음 <code>assets/common.js</code>의 메뉴 목록에 링크를 추가하고, <code>.github/scripts/pages.txt</code>와 <code>search.html</code>, <code>sw.js</code>의 <code>CORE</code>에도 등록해야 합니다. 자세한 절차는 <a href="manual-connect.html">07 · 제작항목 연결</a>에서 다룹니다.</p>
+      <aside class="manual-callout is-tip">
+        <strong>TIP</strong>
+        <p><code>theme-color</code>, 아이콘, <code>manifest.webmanifest</code>는 홈 화면 설치와 오프라인 동작에 필요합니다. 이 네 줄을 빼면 페이지는 열리지만 PWA로 인식되지 않습니다.</p>
+      </aside>
     </section>
 
     <section class="manual-section">

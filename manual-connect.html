@@ -29,7 +29,7 @@
     <p class="manual-intro">
       페이지를 따로 만들었다면 이제 하나의 사이트로 묶을 차례입니다. 이 단계에서는
       <strong>상대 경로</strong>, <strong>공용 메뉴·스크립트</strong>, <strong>캐시 버전</strong>,
-      <strong>검색·CI 등록</strong>까지 이 저장소의 실제 연결 방식을 따라 합니다.
+      <strong>PWA 셸·검색·CI 등록</strong>까지 이 저장소의 실제 연결 방식을 따라 합니다.
     </p>
     <div class="manual-meta">
       <span>난이도 · 중급</span>
@@ -69,15 +69,16 @@
     </section>
 
     <section class="manual-section">
-      <h2>3. 새 페이지 연결 7단계</h2>
+      <h2>3. 새 페이지 연결 8단계</h2>
       <ol class="manual-steps">
         <li><strong>파일을 만든다.</strong> 저장소 루트에 소문자·하이픈 이름으로 HTML을 만듭니다. 예: <code>manual-server.html</code>.</li>
-        <li><strong>공용 골격을 넣는다.</strong> 테마 초기화 스크립트, <code>assets/style.css</code>, 사이드바, <code>common.js</code>·<code>auth.js</code>·<code>theme.js</code>를 포함합니다.</li>
+        <li><strong>공용 골격을 넣는다.</strong> 테마 초기화 스크립트, PWA 메타 태그·<code>manifest.webmanifest</code>, <code>assets/style.css</code>, 사이드바, <code>common.js</code>·<code>auth.js</code>·<code>theme.js</code>를 포함합니다.</li>
         <li><strong>메뉴에 등록한다.</strong> <code>assets/common.js</code>의 <code>NAV</code> 배열에 항목을 추가합니다.</li>
         <li><strong>검색에 등록한다.</strong> <code>search.html</code>의 <code>GROUPS</code>와 <code>staticIndex</code>에 항목을 넣습니다.</li>
+        <li><strong>PWA 셸에 등록한다.</strong> <code>sw.js</code>의 <code>CORE</code> 배열에 페이지와 새로 추가한 공용 자산을 넣습니다.</li>
         <li><strong>CI 목록에 추가한다.</strong> <code>.github/scripts/pages.txt</code>에 파일명을 한 줄 추가합니다.</li>
-        <li><strong>캐시 버전을 올린다.</strong> 공용 CSS/JS를 바꿨다면 현재 <code>labels-30</code>을 다음 값인 <code>labels-31</code>로 올려 모든 페이지에 함께 적용합니다.</li>
-        <li><strong>검증한다.</strong> Live Server에서 메뉴·링크·다크 모드를 확인하고, 인라인 스크립트 검사와 실제 배포를 확인합니다.</li>
+        <li><strong>캐시 버전을 올린다.</strong> 공용 CSS/JS를 바꿨다면 현재 <code>labels-30</code>을 다음 값인 <code>labels-31</code>로 올리고, <code>sw.js</code>의 캐시 이름도 <code>sap-shell-labels-31</code>로 함께 바꿉니다.</li>
+        <li><strong>검증한다.</strong> Live Server에서 메뉴·링크·다크 모드를 확인하고, 아래 세 가지 검사와 실제 배포를 확인합니다.</li>
       </ol>
     </section>
 
@@ -118,11 +119,13 @@
         <table>
           <thead><tr><th>파일</th><th>역할</th></tr></thead>
           <tbody>
-            <tr><td><code>assets/common.js</code></td><td>사이드바 메뉴, 테마 토글 버튼 생성, 공통 유틸</td></tr>
+            <tr><td><code>assets/common.js</code></td><td>사이드바 메뉴, 테마 토글 버튼 생성, 알림 배지, 공통 유틸</td></tr>
             <tr><td><code>assets/theme.js</code></td><td>테마 적용·저장, 모든 토글 버튼 동기화</td></tr>
             <tr><td><code>assets/auth.js</code></td><td>로그인 상태·API 요청 공통 처리</td></tr>
             <tr><td><code>assets/feed.js</code></td><td>뉴스·시세 등 피드 렌더링</td></tr>
+            <tr><td><code>assets/notifications.js</code></td><td>알림 목록·읽음 상태 처리</td></tr>
             <tr><td><code>assets/manual.js</code></td><td>매뉴얼 코드 블록 복사 버튼</td></tr>
+            <tr><td><code>sw.js</code></td><td>서비스 워커 — 핵심 페이지 캐시, 오프라인 대체, 버전 정리</td></tr>
           </tbody>
         </table>
       </div>
@@ -138,6 +141,11 @@
 &lt;script src="assets/common.js?v=labels-30"&gt;&lt;/script&gt;</code></pre>
       </div>
       <p>버전 값은 모든 페이지에서 <strong>같은 값</strong>을 사용합니다. 한 페이지에만 다른 값을 쓰면 페이지를 이동할 때 CSS가 다시 받아져 깜빡이거나, 반대로 이전 파일이 남을 수 있습니다. 이 사이트는 <code>labels-30</code>을 쓰고 있으므로, 다음에 공용 파일을 고칠 때 <code>labels-31</code>로 함께 올립니다.</p>
+      <p>서비스 워커의 캐시 이름도 같은 번호를 사용합니다. <code>sw.js</code>의 <code>CACHE</code> 값을 <code>sap-shell-labels-31</code>로 바꾸면, 활성화 단계에서 이전 <code>sap-shell-*</code> 캐시가 자동으로 삭제됩니다. 페이지 버전만 올리고 캐시 이름을 그대로 두면 예전 파일이 계속 남습니다.</p>
+      <aside class="manual-callout is-tip">
+        <strong>TIP</strong>
+        <p>검사 스크립트 <code>check-assets.mjs</code>가 페이지의 <code>?v=</code> 값과 <code>sw.js</code>의 캐시 이름이 같은지 확인합니다. 둘 중 하나만 고치면 CI에서 바로 실패합니다.</p>
+      </aside>
     </section>
 
     <section class="manual-section">
@@ -156,8 +164,40 @@
     </section>
 
     <section class="manual-section">
-      <h2>8. CI 페이지 목록에 추가</h2>
-      <p><code>.github/scripts/check-inline-scripts.mjs</code>는 <code>pages.txt</code>에 적힌 HTML의 인라인 스크립트를 검사합니다. 새 페이지를 목록에 넣지 않으면 검사 없이 배포되므로 반드시 추가합니다.</p>
+      <h2>8. PWA 셸에 새 페이지 추가</h2>
+      <p>이 사이트는 홈 화면 설치와 오프라인 열기를 지원합니다. 새 페이지도 같은 동작을 하려면 <code>&lt;head&gt;</code>에 PWA 메타 태그를 넣고, 서비스 워커 캐시 목록에 등록해야 합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">my-page.html</span>
+        <pre><code>&lt;meta name="theme-color" content="#202124"&gt;
+&lt;link rel="icon" href="assets/icons/icon-192.png" type="image/png"&gt;
+&lt;link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png"&gt;
+&lt;link rel="manifest" href="manifest.webmanifest"&gt;</code></pre>
+      </div>
+      <p><code>manifest.webmanifest</code>는 사이트 전체가 하나를 공유합니다. 앱 이름·아이콘·시작 주소·바로가기는 이 파일에서 관리하므로, 새 페이지를 추가할 때 수정할 일은 거의 없습니다. 시작 화면 바로가기를 추가하고 싶을 때만 <code>shortcuts</code> 배열에 항목을 넣습니다.</p>
+      <p>오프라인에서도 열리게 하려면 <code>sw.js</code>의 <code>CORE</code> 배열에 파일을 추가합니다.</p>
+      <div class="manual-code">
+        <span class="manual-code-label">sw.js</span>
+        <pre><code>const CORE = [
+  "./",
+  "index.html",
+  "offline.html",
+  "my-page.html",
+  "manifest.webmanifest",
+  "assets/style.css?v=labels-30",
+  "assets/common.js?v=labels-30"
+];</code></pre>
+      </div>
+      <ul>
+        <li>페이지 이동 요청은 <strong>네트워크 우선</strong>이라, 온라인일 때는 항상 새 HTML을 받고 실패하면 캐시나 <code>offline.html</code>을 보여 줍니다.</li>
+        <li>CSS·JS·이미지는 <strong>캐시 우선</strong>입니다. 공용 파일을 고쳤다면 반드시 <code>?v=</code>를 올려야 새 파일이 내려갑니다.</li>
+        <li><code>CORE</code>에 적은 파일이 없으면 설치가 조용히 넘어갑니다. DevTools <strong>Application → Cache Storage</strong>에서 실제로 저장됐는지 확인하세요.</li>
+      </ul>
+      <p><strong>확인 방법:</strong> DevTools <strong>Application → Service Workers</strong>에서 <em>Offline</em>을 체크하고 새로고침해 오프라인 페이지가 뜨는지 봅니다. 설치 동작은 주소창의 설치 아이콘(Chrome·Edge) 또는 iOS Safari의 <strong>공유 → 홈 화면에 추가</strong>로 확인합니다.</p>
+    </section>
+
+    <section class="manual-section">
+      <h2>9. CI 페이지 목록에 추가</h2>
+      <p><code>.github/scripts/pages.txt</code>는 모든 검사 스크립트의 기준 목록입니다. 새 페이지를 넣지 않으면 검사 없이 배포되므로 반드시 추가합니다.</p>
       <div class="manual-code">
         <span class="manual-code-label">.github/scripts/pages.txt</span>
         <pre><code>index.html
@@ -168,12 +208,28 @@ manual-html.html</code></pre>
       <p>로컬에서 미리 검사하려면 저장소 루트에서 아래 명령을 실행합니다.</p>
       <div class="manual-code">
         <span class="manual-code-label">PowerShell</span>
-        <pre><code>node .github/scripts/check-inline-scripts.mjs</code></pre>
+        <pre><code>node .github/scripts/check-inline-scripts.mjs
+node .github/scripts/check-links.mjs
+node .github/scripts/check-assets.mjs</code></pre>
       </div>
+      <div class="manual-table">
+        <table>
+          <thead><tr><th>검사</th><th>확인하는 것</th></tr></thead>
+          <tbody>
+            <tr><td><code>check-inline-scripts</code></td><td>각 페이지 인라인 스크립트의 문법</td></tr>
+            <tr><td><code>check-links</code></td><td>루트 HTML이 <code>pages.txt</code>에 모두 있는지, 내부 링크·앵커가 유효한지</td></tr>
+            <tr><td><code>check-assets</code></td><td>공용 CSS/JS의 <code>?v=</code> 값이 모두 같은지, <code>sw.js</code> 캐시 이름과 일치하는지</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="manual-callout is-warn">
+        <strong>주의</strong>
+        <p><code>check-links</code>는 루트의 모든 HTML 파일을 검사합니다. 잠깐 만든 테스트 페이지도 <code>pages.txt</code>에 없으면 CI가 실패하므로, 임시 파일은 커밋 전에 지웁니다.</p>
+      </aside>
     </section>
 
     <section class="manual-section">
-      <h2>9. 링크·리소스 점검</h2>
+      <h2>10. 링크·리소스 점검</h2>
       <ul>
         <li>브라우저 <kbd>F12</kbd> → <strong>Network</strong>에서 빨간 404가 없는지 확인합니다.</li>
         <li>이미지·CSS·JS 경로는 파일명과 대소문자까지 일치해야 합니다.</li>
@@ -186,12 +242,14 @@ manual-html.html</code></pre>
     <section class="manual-section">
       <h2>완료 체크리스트</h2>
       <ul class="manual-checklist">
-        <li>새 페이지를 루트에 만들고 공용 골격을 넣었다.</li>
+        <li>새 페이지를 루트에 만들고 공용 골격과 PWA 메타 태그를 넣었다.</li>
         <li><code>common.js</code>의 NAV에 메뉴를 등록했다.</li>
         <li>하위 페이지를 <code>pages</code> 배열에 넣어 메뉴가 활성화되게 했다.</li>
         <li>검색의 <code>GROUPS</code>와 <code>staticIndex</code>에 등록했다.</li>
-        <li><code>pages.txt</code>에 추가하고 인라인 검사를 통과했다.</li>
-        <li>모든 페이지의 캐시 버전을 같은 값으로 맞췄다.</li>
+        <li><code>sw.js</code>의 <code>CORE</code>에 페이지와 새 자산을 추가했다.</li>
+        <li><code>pages.txt</code>에 추가하고 세 가지 검사를 통과했다.</li>
+        <li>모든 페이지의 캐시 버전과 <code>sw.js</code> 캐시 이름을 같은 값으로 맞췄다.</li>
+        <li>오프라인 새로고침과 홈 화면 설치를 확인했다.</li>
       </ul>
     </section>
 
