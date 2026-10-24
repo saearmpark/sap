@@ -30,7 +30,8 @@
     ] },
     { label: "제작", items: [
       { href: "learn.html", label: "앱" },
-      { href: "game.html", label: "게임" }
+      { href: "game.html", label: "게임" },
+      { href: "strategy.html", label: "전략" }
     ] },
     { label: "소통", items: [
       { href: "board.html", label: "게시판" },

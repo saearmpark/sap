@@ -10,6 +10,7 @@ const CORE = [
   "stocks.html",
   "english.html",
   "learn.html",
+  "strategy.html",
   "calendar.html",
   "login.html",
   "manifest.webmanifest",

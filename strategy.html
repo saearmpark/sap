@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202124">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>사피엔스 — 전략 시뮬레이션</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-30">
+<style>
+  .strategy-intro { max-width: 760px; }
+  .strategy-shell {
+    max-width: 980px;
+    margin: 16px 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .strategy-topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .strategy-stat { display: inline-flex; align-items: baseline; gap: 5px; }
+  .strategy-stat b { color: var(--ink); font-size: 14px; font-variant-numeric: tabular-nums; }
+  .strategy-topbar .spacer { flex: 1 1 auto; }
+  .strategy-topbar button { min-height: 32px; padding: 4px 10px; font-size: 13px; }
+  .strategy-stage { position: relative; background: #0a1118; }
+  .strategy-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    touch-action: none;
+    cursor: default;
+  }
+  .strategy-canvas.is-targeting { cursor: crosshair; }
+  .strategy-overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgb(5 10 16 / 78%);
+  }
+  .strategy-overlay[hidden] { display: none; }
+  .strategy-overlay-card { max-width: 440px; text-align: center; color: #eef5ff; }
+  .strategy-overlay-card h2 { margin: 0 0 8px; font-size: 26px; color: #fff; font-family: var(--sans); }
+  .strategy-overlay-card p { margin: 0 0 16px; line-height: 1.6; color: #c8d6e5; font-size: 14px; }
+  .strategy-overlay-card button { min-height: 42px; padding: 8px 22px; font-size: 15px; }
+  .strategy-bottom {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 200px;
+    gap: 10px;
+    padding: 10px 12px 4px;
+  }
+  .strategy-info {
+    min-height: 66px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .strategy-info strong { display: block; margin-bottom: 4px; color: var(--ink); font-size: 14px; }
+  .strategy-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .strategy-actions button { min-height: 34px; padding: 5px 9px; font-size: 13px; }
+  .strategy-actions button[hidden] { display: none; }
+  .strategy-actions button.is-active { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .strategy-minimap-wrap { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+  .strategy-minimap {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #0a1118;
+    cursor: pointer;
+  }
+  .strategy-minimap-note { font-size: 11px; color: var(--ink-soft); text-align: right; }
+  .strategy-status { margin: 8px 12px 12px; min-height: 20px; font-size: 13px; color: var(--ink-soft); }
+  .strategy-status.is-warn { color: #b45309; }
+  :root[data-theme="dark"] .strategy-status.is-warn { color: #fdba74; }
+  .strategy-help { max-width: 900px; margin-top: 22px; }
+  .strategy-help table { width: 100%; }
+  @media (max-width: 720px) {
+    .strategy-bottom { grid-template-columns: 1fr; }
+    .strategy-minimap-wrap { align-items: flex-start; }
+    .strategy-minimap { max-width: 240px; }
+    .strategy-minimap-note { text-align: left; }
+  }
+</style>
+</head>
+<body class="learning-page">
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">STRATEGY</div>
+    <h1>전략 시뮬레이션</h1>
+    <p class="strategy-intro">
+      일꾼으로 미네랄을 모으고, 병영과 공장을 지어 군대를 만든 뒤 적 사령부를 파괴하는 미니 RTS입니다.
+      한 판은 5~10분 정도이며, 모든 전투는 이 페이지 안에서 실시간으로 진행됩니다.
+    </p>
+
+    <div class="strategy-shell">
+      <div class="strategy-topbar">
+        <span class="strategy-stat">미네랄 <b id="hud-minerals">0</b></span>
+        <span class="strategy-stat">인구 <b id="hud-supply">0/20</b></span>
+        <span class="strategy-stat">시간 <b id="hud-clock">00:00</b></span>
+        <span class="strategy-stat">적 사령부 <b id="hud-enemy">-</b></span>
+        <span class="spacer"></span>
+        <button id="pause-button" type="button">일시정지</button>
+        <button id="restart-button" type="button">다시 시작</button>
+      </div>
+
+      <div class="strategy-stage">
+        <canvas id="strategy-canvas" class="strategy-canvas" width="720" height="480" aria-label="전략 시뮬레이션 게임 화면"></canvas>
+        <div id="strategy-overlay" class="strategy-overlay">
+          <div class="strategy-overlay-card">
+            <h2 id="overlay-title">미니 전략 시뮬레이션</h2>
+            <p id="overlay-text">
+              일꾼이 자동으로 미네랄을 채취합니다. 병영을 지어 해병을 뽑고, 적 사령부를 파괴하세요.
+              시작 후 왼쪽 클릭으로 선택하고 오른쪽 클릭으로 이동·공격을 지시할 수 있습니다.
+            </p>
+            <button id="overlay-button" type="button">전투 시작</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="strategy-bottom">
+        <div>
+          <div class="strategy-info" id="selection-info">유닛이나 건물을 선택하세요.</div>
+          <div class="strategy-actions" id="strategy-actions">
+            <button type="button" data-act="worker" hidden>일꾼 50</button>
+            <button type="button" data-act="marine" hidden>해병 50</button>
+            <button type="button" data-act="tank" hidden>탱크 100</button>
+            <button type="button" data-act="barracks" hidden>병영 100</button>
+            <button type="button" data-act="factory" hidden>공장 150</button>
+            <button type="button" data-act="amove" hidden>공격 이동 (A)</button>
+            <button type="button" data-act="stop" hidden>정지 (S)</button>
+            <button type="button" data-act="clear">선택 해제</button>
+          </div>
+        </div>
+        <div class="strategy-minimap-wrap">
+          <canvas id="minimap" class="strategy-minimap" width="180" height="120" aria-label="미니맵"></canvas>
+          <span class="strategy-minimap-note">미니맵 클릭 → 선택 유닛 이동</span>
+        </div>
+      </div>
+
+      <p id="strategy-status" class="strategy-status" aria-live="polite">전투 시작 버튼을 눌러주세요.</p>
+    </div>
+
+    <section class="manual-section strategy-help">
+      <h2>조작과 규칙</h2>
+      <div class="manual-table">
+        <table>
+          <thead><tr><th>조작</th><th>동작</th></tr></thead>
+          <tbody>
+            <tr><td>왼쪽 클릭</td><td>유닛·건물 선택, 빈 곳 클릭 시 선택 해제</td></tr>
+            <tr><td>왼쪽 드래그</td><td>여러 유닛 상자 선택</td></tr>
+            <tr><td>오른쪽 클릭</td><td>이동, 적 공격, 미네랄 채취</td></tr>
+            <tr><td><kbd>A</kbd> → 클릭</td><td>공격 이동 — 이동 중 만나는 적과 싸웁니다.</td></tr>
+            <tr><td><kbd>S</kbd> / <kbd>Esc</kbd></td><td>정지 / 건설·공격 이동 취소 및 선택 해제</td></tr>
+            <tr><td><kbd>P</kbd></td><td>일시정지</td></tr>
+            <tr><td>모바일 탭</td><td>유닛 선택 후 빈 곳을 탭하면 이동, 적을 탭하면 공격</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li><strong>승리</strong> — 적 사령부를 파괴합니다. <strong>패배</strong> — 내 사령부가 파괴됩니다.</li>
+        <li>일꾼은 명령하지 않아도 가장 가까운 미네랄에서 자동으로 채취합니다.</li>
+        <li>병영은 해병, 공장은 탱크를 생산합니다. 탱크는 느리지만 사거리가 깁니다.</li>
+        <li>인구 한도는 20입니다. 유닛을 너무 많이 뽑으면 더 이상 생산할 수 없습니다.</li>
+        <li>초반에는 일꾼을 6~8기까지 늘리고, 병영을 먼저 지어 방어할 군대를 확보하세요.</li>
+        <li>휴대폰에서는 화면을 가로로 돌리면 전장이 더 넓게 보입니다.</li>
+      </ul>
+      <p>다른 실습 게임은 <a href="game.html">게임 제작</a> 페이지에서 볼 수 있습니다.</p>
+    </section>
+
+    <nav class="manual-pager" aria-label="다른 페이지 안내">
+      <a class="manual-pager-prev" href="game.html">← 게임 제작</a>
+      <a class="manual-pager-next" href="learn.html">앱 제작 →</a>
+    </nav>
+  </main>
+</div>
+<script>
+(() => {
+  "use strict";
+  const canvas = document.getElementById("strategy-canvas");
+  const ctx = canvas.getContext("2d");
+  const minimap = document.getElementById("minimap");
+  const mctx = minimap.getContext("2d");
+  const overlay = document.getElementById("strategy-overlay");
+  const overlayTitle = document.getElementById("overlay-title");
+  const overlayText = document.getElementById("overlay-text");
+  const overlayButton = document.getElementById("overlay-button");
+  const statusEl = document.getElementById("strategy-status");
+  const mineralsEl = document.getElementById("hud-minerals");
+  const supplyEl = document.getElementById("hud-supply");
+  const clockEl = document.getElementById("hud-clock");
+  const enemyHpEl = document.getElementById("hud-enemy");
+  const selectionEl = document.getElementById("selection-info");
+  const actionsEl = document.getElementById("strategy-actions");
+  const pauseBtn = document.getElementById("pause-button");
+  const restartBtn = document.getElementById("restart-button");
+
+  const W = 720, H = 480, TILE = 24, COLS = 30, ROWS = 20;
+  const PLAYER = "player", ENEMY = "enemy";
+  const SUPPLY_CAP = 20;
+  const BUILD_RADIUS = 260;
+  const MAX_QUEUE = 5;
+  const MAX_SELECTION = 30;
+
+  const UNIT_DEFS = {
+    worker: { name: "일꾼", hp: 45, speed: 62, radius: 7, damage: 4, range: 16, cooldown: 1.1, cost: 50, supply: 1, build: 3 },
+    marine: { name: "해병", hp: 70, speed: 58, radius: 8, damage: 8, range: 100, cooldown: 0.85, cost: 50, supply: 1, build: 4 },
+    tank: { name: "탱크", hp: 140, speed: 42, radius: 10, damage: 20, range: 155, cooldown: 1.6, cost: 100, supply: 2, build: 7 }
+  };
+  const BUILDING_DEFS = {
+    base: { name: "사령부", hp: 900, w: 72, h: 72, cost: 0 },
+    barracks: { name: "병영", hp: 520, w: 72, h: 48, cost: 100 },
+    factory: { name: "공장", hp: 620, w: 72, h: 48, cost: 150 }
+  };
+  const ROCKS = [[10, 9], [10, 10], [9, 10], [19, 10], [19, 9], [20, 9], [15, 7], [14, 12]];
+  const MINERAL_SPOTS = [
+    [6, 14], [6, 16], [5, 17], [7, 15],
+    [23, 5], [23, 3], [24, 2], [22, 4]
+  ];
+  const PLAYER_START = [[1, 17], [2, 18], [3, 18], [4, 18], [5, 18]];
+  const ENEMY_START = [[28, 2], [27, 1], [26, 1], [25, 1], [24, 1]];
+
+  const ui = {
+    selected: new Set(),
+    buildMode: null,
+    attackMove: false,
+    paused: false,
+    started: false,
+    hover: null,
+    drag: null,
+    hudSig: "",
+    buttonSig: ""
+  };
+
+  let state = createState();
+  let lastTime = 0;
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function inBounds(c, r) {
+    return c >= 0 && c < COLS && r >= 0 && r < ROWS;
+  }
+
+  function walkable(s, c, r) {
+    return inBounds(c, r) && !s.grid[r][c];
+  }
+
+  function cellOf(x, y) {
+    return {
+      c: clamp(Math.floor(x / TILE), 0, COLS - 1),
+      r: clamp(Math.floor(y / TILE), 0, ROWS - 1)
+    };
+  }
+
+  function rebuildGrid(s) {
+    const grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
+    for (const [c, r] of ROCKS) {
+      if (inBounds(c, r)) grid[r][c] = true;
+    }
+    for (const m of s.mineralNodes) {
+      const c = Math.floor(m.x / TILE), r = Math.floor(m.y / TILE);
+      if (inBounds(c, r)) grid[r][c] = true;
+    }
+    for (const b of s.buildings) {
+      const c0 = Math.round((b.x - b.w / 2) / TILE);
+      const r0 = Math.round((b.y - b.h / 2) / TILE);
+      const cw = Math.round(b.w / TILE), ch = Math.round(b.h / TILE);
+      for (let r = r0; r < r0 + ch; r++) {
+        for (let c = c0; c < c0 + cw; c++) {
+          if (inBounds(c, r)) grid[r][c] = true;
+        }
+      }
+    }
+    s.grid = grid;
+  }
+
+  function nearestWalkable(s, c, r) {
+    if (walkable(s, c, r)) return { c, r };
+    for (let radius = 1; radius <= 10; radius++) {
+      for (let dr = -radius; dr <= radius; dr++) {
+        for (let dc = -radius; dc <= radius; dc++) {
+          if (Math.max(Math.abs(dr), Math.abs(dc)) !== radius) continue;
+          if (walkable(s, c + dc, r + dr)) return { c: c + dc, r: r + dr };
+        }
+      }
+    }
+    return null;
+  }
+
+  function findPath(s, x1, y1, x2, y2) {
+    const start0 = cellOf(x1, y1), goal0 = cellOf(x2, y2);
+    const start = nearestWalkable(s, start0.c, start0.r);
+    const goal = nearestWalkable(s, goal0.c, goal0.r);
+    if (!start || !goal) return [];
+    const key = (c, r) => r * COLS + c;
+    const sk = key(start.c, start.r), gk = key(goal.c, goal.r);
+    if (sk === gk) return [];
+    const open = [{ c: start.c, r: start.r, f: 0 }];
+    const gScore = new Map([[sk, 0]]);
+    const from = new Map();
+    const closed = new Set();
+    const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+    while (open.length) {
+      let bestIndex = 0;
+      for (let i = 1; i < open.length; i++) {
+        if (open[i].f < open[bestIndex].f) bestIndex = i;
+      }
+      const cur = open.splice(bestIndex, 1)[0];
+      const ck = key(cur.c, cur.r);
+      if (ck === gk) {
+        const points = [];
+        let node = ck;
+        while (node !== sk) {
+          const c = node % COLS, r = Math.floor(node / COLS);
+          points.push({ x: c * TILE + TILE / 2, y: r * TILE + TILE / 2 });
+          node = from.get(node);
+          if (node === undefined) return [];
+        }
+        points.reverse();
+        return points;
+      }
+      if (closed.has(ck)) continue;
+      closed.add(ck);
+      if (closed.size > 720) break;
+      for (const [dc, dr] of dirs) {
+        const nc = cur.c + dc, nr = cur.r + dr;
+        if (!walkable(s, nc, nr)) continue;
+        if (dc && dr && (!walkable(s, cur.c + dc, cur.r) || !walkable(s, cur.c, cur.r + dr))) continue;
+        const nk = key(nc, nr);
+        if (closed.has(nk)) continue;
+        const nextScore = gScore.get(ck) + ((dc && dr) ? 1.414 : 1);
+        if (nextScore < (gScore.get(nk) ?? Infinity)) {
+          gScore.set(nk, nextScore);
+          from.set(nk, ck);
+          open.push({ c: nc, r: nr, f: nextScore + Math.hypot(nc - goal.c, nr - goal.r) });
+        }
+      }
+    }
+    return [];
+  }
+
+  function footprint(type) {
+    const def = BUILDING_DEFS[type];
+    return { cw: Math.round(def.w / TILE), ch: Math.round(def.h / TILE) };
+  }
+
+  function canPlace(s, type, c, r, side) {
+    const { cw, ch } = footprint(type);
+    if (c < 0 || r < 0 || c + cw > COLS || r + ch > ROWS) return false;
+    for (let rr = r; rr < r + ch; rr++) {
+      for (let cc = c; cc < c + cw; cc++) {
+        if (s.grid[rr][cc]) return false;
+      }
+    }
+    if (side === PLAYER) {
+      const def = BUILDING_DEFS[type];
+      const cx = c * TILE + def.w / 2, cy = r * TILE + def.h / 2;
+      const near = s.buildings.some((b) => b.side === PLAYER && !b.dead
+        && Math.hypot(b.x - cx, b.y - cy) <= BUILD_RADIUS);
+      if (!near) return false;
+    }
+    const def = BUILDING_DEFS[type];
+    const left = c * TILE, top = r * TILE;
+    for (const unit of s.units) {
+      if (unit.dead) continue;
+      if (unit.x > left - 4 && unit.x < left + def.w + 4
+        && unit.y > top - 4 && unit.y < top + def.h + 4) return false;
+    }
+    return true;
+  }
+
+  function addBuilding(s, side, type, c, r) {
+    const def = BUILDING_DEFS[type];
+    const building = {
+      kind: "building", id: "b" + s.nextId++, side, type,
+      x: c * TILE + def.w / 2, y: r * TILE + def.h / 2,
+      w: def.w, h: def.h, hp: def.hp, maxHp: def.hp,
+      queue: [], timer: 0, flash: 0, dead: false
+    };
+    s.buildings.push(building);
+    return building;
+  }
+
+  function addUnit(s, side, type, x, y) {
+    const def = UNIT_DEFS[type];
+    const unit = {
+      kind: "unit", id: "u" + s.nextId++, side, type,
+      x: clamp(x, 10, W - 10), y: clamp(y, 10, H - 10),
+      radius: def.radius, hp: def.hp, maxHp: def.hp,
+      speed: def.speed, damage: def.damage, range: def.range,
+      cooldown: def.cooldown, cd: 0, path: [], repath: 0,
+      order: null, targetId: null, gatherId: null,
+      cargo: 0, mineTimer: 0, flash: 0, dead: false,
+      facing: side === PLAYER ? -Math.PI / 2 : Math.PI / 2,
+      anchor: { x: clamp(x, 10, W - 10), y: clamp(y, 10, H - 10) }
+    };
+    s.units.push(unit);
+    return unit;
+  }
+
+  function assignGather(s, unit) {
+    let best = null, bestDistance = Infinity;
+    for (const node of s.mineralNodes) {
+      if (node.amount <= 0) continue;
+      const distance = Math.hypot(node.x - unit.x, node.y - unit.y);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = node;
+      }
+    }
+    if (!best) {
+      unit.order = null;
+      unit.gatherId = null;
+      return;
+    }
+    unit.gatherId = best.id;
+    unit.order = { type: "gather", nodeId: best.id };
+    unit.targetId = null;
+    unit.path = [];
+  }
+
+  function entityById(s, id) {
+    if (!id) return null;
+    for (const unit of s.units) if (unit.id === id) return unit;
+    for (const building of s.buildings) if (building.id === id) return building;
+    for (const node of s.mineralNodes) if (node.id === id) return node;
+    return null;
+  }
+
+  function credits(s, side) {
+    return s.minerals[side];
+  }
+
+  function supplyUsed(s, side) {
+    let used = 0;
+    for (const unit of s.units) {
+      if (!unit.dead && unit.side === side) used += UNIT_DEFS[unit.type].supply;
+    }
+    return used;
+  }
+
+  function queuedSupply(s, side) {
+    let reserved = 0;
+    for (const building of s.buildings) {
+      if (building.dead || building.side !== side) continue;
+      for (const type of building.queue) reserved += UNIT_DEFS[type].supply;
+    }
+    return reserved;
+  }
+
+  function distanceToEntity(a, b) {
+    if (b.kind === "building") {
+      const dx = Math.max(Math.abs(a.x - b.x) - b.w / 2, 0);
+      const dy = Math.max(Math.abs(a.y - b.y) - b.h / 2, 0);
+      return Math.hypot(dx, dy) - (a.radius || 0);
+    }
+    return Math.hypot(a.x - b.x, a.y - b.y) - (a.radius || 0) - (b.radius || 0);
+  }
+
+  function freeSpotNear(s, x, y, startRadius) {
+    for (let radius = startRadius; radius <= startRadius + 90; radius += 14) {
+      for (let i = 0; i < 14; i++) {
+        const angle = (i / 14) * Math.PI * 2 + radius * 0.11;
+        const px = clamp(x + Math.cos(angle) * radius, 12, W - 12);
+        const py = clamp(y + Math.sin(angle) * radius, 12, H - 12);
+        if (walkable(s, Math.floor(px / TILE), Math.floor(py / TILE))) return { x: px, y: py };
+      }
+    }
+    return null;
+  }
+
+  function createState() {
+    const fresh = {
+      time: 0, over: false, result: "", speed: 1,
+      minerals: { player: 250, enemy: 200 },
+      nextId: 1,
+      units: [], buildings: [], mineralNodes: [], effects: [],
+      grid: [], ai: { timer: 5, nextAttack: 52, trainCd: 0 }
+    };
+    for (const [c, r] of MINERAL_SPOTS) {
+      fresh.mineralNodes.push({
+        kind: "mineral", id: "m" + fresh.nextId++,
+        x: c * TILE + TILE / 2, y: r * TILE + TILE / 2,
+        radius: 11, amount: 700, max: 700, flash: 0
+      });
+    }
+    addBuilding(fresh, PLAYER, "base", 2, 14);
+    addBuilding(fresh, ENEMY, "base", 25, 3);
+    for (const [c, r] of PLAYER_START) {
+      addUnit(fresh, PLAYER, "worker", c * TILE + TILE / 2, r * TILE + TILE / 2);
+    }
+    for (const [c, r] of ENEMY_START) {
+      addUnit(fresh, ENEMY, "worker", c * TILE + TILE / 2, r * TILE + TILE / 2);
+    }
+    rebuildGrid(fresh);
+    for (const unit of fresh.units) {
+      if (unit.type === "worker") assignGather(fresh, unit);
+    }
+    return fresh;
+  }
+
+  function addBurst(s, x, y, color, count = 8) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 20 + Math.random() * 70;
+      s.effects.push({
+        kind: "spark", x, y,
+        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+        life: 0.3 + Math.random() * 0.3, max: 0.6, color
+      });
+    }
+  }
+
+  function updateEffects(s, dt) {
+    for (const effect of s.effects) {
+      effect.life -= dt;
+      if (effect.kind === "spark") {
+        effect.x += effect.vx * dt;
+        effect.y += effect.vy * dt;
+        effect.vy += 80 * dt;
+      }
+    }
+    s.effects = s.effects.filter((effect) => effect.life > 0);
+  }
+
+  function endGame(s, result) {
+    if (s.over) return;
+    s.over = true;
+    s.result = result;
+    ui.buildMode = null;
+    ui.attackMove = false;
+    const won = result === "win";
+    overlayTitle.textContent = won ? "승리" : "패배";
+    overlayText.textContent = won
+      ? `적 사령부를 파괴했습니다. 소요 시간 ${formatTime(s.time)} · 남은 미네랄 ${s.minerals.player}.`
+      : `내 사령부가 파괴되었습니다. ${formatTime(s.time)} 동안 버텼습니다. 다시 도전해 보세요.`;
+    overlayButton.textContent = "다시 시작";
+    overlay.hidden = false;
+    addStatus(won ? "승리했습니다!" : "패배했습니다. 다시 시작해 보세요.", !won);
+    updateButtons(s);
+  }
+
+  function damageEntity(s, target, amount) {
+    if (!target || target.dead || target.kind === "mineral") return;
+    target.hp -= amount;
+    target.flash = 0.18;
+    if (target.hp > 0) return;
+    target.hp = 0;
+    target.dead = true;
+    if (target.kind === "unit") {
+      addBurst(s, target.x, target.y, target.side === PLAYER ? "#79b8ff" : "#ff8a8a", 10);
+    } else {
+      addBurst(s, target.x, target.y, "#ffd479", 20);
+      if (target.type === "base") endGame(s, target.side === ENEMY ? "win" : "lose");
+    }
+  }
+
+  function attack(s, unit, target) {
+    unit.cd = unit.cooldown;
+    unit.flash = 0.12;
+    const color = unit.side === PLAYER
+      ? (unit.type === "tank" ? "#ffd166" : "#8ed0ff")
+      : (unit.type === "tank" ? "#ffb4a2" : "#ff9a9a");
+    s.effects.push({
+      kind: "tracer", x1: unit.x, y1: unit.y - 4, x2: target.x, y2: target.y,
+      life: 0.13, max: 0.13, color, width: unit.type === "tank" ? 3 : 1.4
+    });
+    damageEntity(s, target, unit.damage);
+  }
+
+  function stepToward(s, unit, tx, ty, dt, stopDistance) {
+    const distance = Math.hypot(tx - unit.x, ty - unit.y);
+    if (distance <= stopDistance) {
+      unit.path = [];
+      return true;
+    }
+    if (!unit.path.length) {
+      unit.repath -= dt;
+      if (unit.repath > 0) return false;
+      unit.path = findPath(s, unit.x, unit.y, tx, ty);
+      unit.repath = 0.5;
+      if (!unit.path.length) return true;
+    }
+    const waypoint = unit.path[0];
+    if (!walkable(s, Math.floor(waypoint.x / TILE), Math.floor(waypoint.y / TILE))) {
+      unit.path = [];
+      unit.repath = 0;
+      return false;
+    }
+    const dx = waypoint.x - unit.x, dy = waypoint.y - unit.y;
+    const segment = Math.hypot(dx, dy);
+    if (segment < 2) {
+      unit.path.shift();
+      return false;
+    }
+    const step = Math.min(unit.speed * dt, segment);
+    unit.x = clamp(unit.x + (dx / segment) * step, 8, W - 8);
+    unit.y = clamp(unit.y + (dy / segment) * step, 8, H - 8);
+    unit.facing = Math.atan2(dy, dx);
+    return false;
+  }
+
+  function nearestOwnBase(s, unit) {
+    let best = null, bestDistance = Infinity;
+    for (const building of s.buildings) {
+      if (building.dead || building.side !== unit.side || building.type !== "base") continue;
+      const distance = Math.hypot(building.x - unit.x, building.y - unit.y);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = building;
+      }
+    }
+    return best;
+  }
+
+  function updateGather(s, unit, dt) {
+    const base = nearestOwnBase(s, unit);
+    if (unit.cargo > 0) {
+      if (!base) {
+        unit.order = null;
+        return;
+      }
+      if (distanceToEntity(unit, base) <= 8) {
+        s.minerals[unit.side] += unit.cargo;
+        unit.cargo = 0;
+        unit.mineTimer = 0;
+      } else {
+        stepToward(s, unit, base.x, base.y, dt, base.w / 2 + unit.radius + 8);
+      }
+      return;
+    }
+    const node = s.mineralNodes.find((item) => item.id === unit.gatherId);
+    if (!node || node.amount <= 0) {
+      assignGather(s, unit);
+      return;
+    }
+    if (Math.hypot(node.x - unit.x, node.y - unit.y) <= node.radius + unit.radius + 6) {
+      unit.path = [];
+      unit.facing = Math.atan2(node.y - unit.y, node.x - unit.x);
+      unit.mineTimer -= dt;
+      if (unit.mineTimer <= 0) {
+        const take = Math.min(5, node.amount);
+        node.amount -= take;
+        unit.cargo = take;
+        unit.mineTimer = 1.3;
+        if (take > 0) addBurst(s, node.x, node.y, "#7ee7ff", 3);
+      }
+    } else {
+      stepToward(s, unit, node.x, node.y, dt, node.radius + unit.radius + 6);
+    }
+  }
+
+  function findNearestEnemy(s, unit, range) {
+    let best = null, bestDistance = Infinity;
+    const consider = (target) => {
+      if (target.dead || target.side === unit.side) return;
+      const distance = distanceToEntity(unit, target);
+      if (distance <= range && distance < bestDistance) {
+        bestDistance = distance;
+        best = target;
+      }
+    };
+    for (const other of s.units) consider(other);
+    for (const building of s.buildings) consider(building);
+    return best;
+  }
+
+  function updateUnit(s, unit, dt) {
+    unit.flash = Math.max(0, unit.flash - dt);
+    unit.cd = Math.max(0, unit.cd - dt);
+
+    if (unit.type === "worker" && unit.order && unit.order.type === "gather") {
+      updateGather(s, unit, dt);
+      return;
+    }
+
+    if (unit.targetId) {
+      const current = entityById(s, unit.targetId);
+      if (!current || current.dead) {
+        unit.targetId = null;
+        if (unit.order && unit.order.type === "attack") unit.order = null;
+      }
+    }
+
+    if (!unit.targetId && (!unit.order || unit.order.type === "amove")) {
+      const enemy = findNearestEnemy(s, unit, unit.order ? 150 : 105);
+      if (enemy) unit.targetId = enemy.id;
+    }
+
+    if (unit.targetId) {
+      const target = entityById(s, unit.targetId);
+      if (target && !target.dead) {
+        if (distanceToEntity(unit, target) <= unit.range) {
+          unit.path = [];
+          unit.facing = Math.atan2(target.y - unit.y, target.x - unit.x);
+          if (unit.cd <= 0) attack(s, unit, target);
+        } else {
+          const half = target.kind === "building" ? Math.min(target.w, target.h) / 2 : target.radius;
+          stepToward(s, unit, target.x, target.y, dt, Math.max(12, unit.range + unit.radius + half - 3));
+        }
+        return;
+      }
+    }
+
+    if (unit.order && unit.order.type === "amove") {
+      if (stepToward(s, unit, unit.order.x, unit.order.y, dt, 10)) {
+        unit.order = null;
+        unit.anchor = { x: unit.x, y: unit.y };
+      }
+      return;
+    }
+    if (unit.order && unit.order.type === "move") {
+      if (stepToward(s, unit, unit.order.x, unit.order.y, dt, 10)) {
+        unit.order = null;
+        unit.anchor = { x: unit.x, y: unit.y };
+      }
+      return;
+    }
+    if (unit.order && unit.order.type === "attack") unit.order = null;
+  }
+
+  function spawnUnitAtBuilding(s, building, type) {
+    const spot = freeSpotNear(s, building.x, building.y, Math.max(building.w, building.h) / 2 + 12);
+    if (!spot) return null;
+    const unit = addUnit(s, building.side, type, spot.x, spot.y);
+    if (type === "worker") assignGather(s, unit);
+    if (building.side === PLAYER) addStatus(`${UNIT_DEFS[type].name} 생산 완료`);
+    return unit;
+  }
+
+  function queueUnit(s, building, type, announce = true) {
+    if (!building || building.dead || s.over) return false;
+    const def = UNIT_DEFS[type];
+    if (building.queue.length >= MAX_QUEUE) {
+      if (announce && building.side === PLAYER) addStatus("생산 대기열이 가득 찼습니다.", true);
+      return false;
+    }
+    if (credits(s, building.side) < def.cost) {
+      if (announce && building.side === PLAYER) addStatus("미네랄이 부족합니다.", true);
+      return false;
+    }
+    if (supplyUsed(s, building.side) + queuedSupply(s, building.side) + def.supply > SUPPLY_CAP) {
+      if (announce && building.side === PLAYER) addStatus("인구가 가득 찼습니다.", true);
+      return false;
+    }
+    s.minerals[building.side] -= def.cost;
+    building.queue.push(type);
+    if (building.queue.length === 1) building.timer = def.build;
+    if (announce && building.side === PLAYER) {
+      addStatus(`${BUILDING_DEFS[building.type].name}에서 ${def.name} 생산을 시작합니다.`);
+    }
+    return true;
+  }
+
+  function updateBuilding(s, building, dt) {
+    building.flash = Math.max(0, building.flash - dt);
+    if (!building.queue.length) {
+      building.timer = 0;
+      return;
+    }
+    building.timer -= dt;
+    if (building.timer > 0) return;
+    if (spawnUnitAtBuilding(s, building, building.queue[0])) {
+      building.queue.shift();
+      building.timer = building.queue.length ? UNIT_DEFS[building.queue[0]].build : 0;
+    } else {
+      building.timer = 1;
+    }
+  }
+
+  function separateUnits(s) {
+    const units = s.units;
+    for (let i = 0; i < units.length; i++) {
+      for (let j = i + 1; j < units.length; j++) {
+        const a = units[i], b = units[j];
+        if (a.dead || b.dead) continue;
+        let dx = b.x - a.x, dy = b.y - a.y;
+        let distance = Math.hypot(dx, dy) || 0.01;
+        const minimum = a.radius + b.radius + 1;
+        if (distance >= minimum) continue;
+        const push = (minimum - distance) / 2;
+        dx /= distance;
+        dy /= distance;
+        nudge(s, a, -dx * push, -dy * push);
+        nudge(s, b, dx * push, dy * push);
+      }
+    }
+  }
+
+  function nudge(s, unit, dx, dy) {
+    const nx = clamp(unit.x + dx, 8, W - 8);
+    const ny = clamp(unit.y + dy, 8, H - 8);
+    if (walkable(s, Math.floor(nx / TILE), Math.floor(ny / TILE))) {
+      unit.x = nx;
+      unit.y = ny;
+    }
+  }
+
+  function placeBuilding(s, side, type, c, r) {
+    const def = BUILDING_DEFS[type];
+    if (!canPlace(s, type, c, r, side)) return null;
+    if (side === PLAYER && credits(s, PLAYER) < def.cost) return null;
+    s.minerals[side] -= def.cost;
+    const building = addBuilding(s, side, type, c, r);
+    rebuildGrid(s);
+    addBurst(s, building.x, building.y, side === PLAYER ? "#7cc4ff" : "#ff8e8e", 12);
+    return building;
+  }
+
+  function tryAIBuild(s, type) {
+    const spots = type === "barracks"
+      ? [[22, 7], [22, 2], [18, 5], [26, 7], [18, 2], [22, 11]]
+      : [[22, 10], [18, 8], [26, 10], [18, 11], [21, 7], [22, 2]];
+    for (const [c, r] of spots) {
+      if (placeBuilding(s, ENEMY, type, c, r)) return true;
+    }
+    return false;
+  }
+
+  function updateAI(s, dt) {
+    const ai = s.ai;
+    ai.timer -= dt;
+    ai.trainCd -= dt;
+    if (ai.timer > 0) return;
+    ai.timer = 1;
+    const base = s.buildings.find((b) => !b.dead && b.side === ENEMY && b.type === "base");
+    if (!base) return;
+    const units = s.units.filter((u) => !u.dead && u.side === ENEMY);
+    const workers = units.filter((u) => u.type === "worker");
+    const army = units.filter((u) => u.type !== "worker");
+    const barracks = s.buildings.find((b) => !b.dead && b.side === ENEMY && b.type === "barracks");
+    const factory = s.buildings.find((b) => !b.dead && b.side === ENEMY && b.type === "factory");
+
+    if (!barracks && credits(s, ENEMY) >= BUILDING_DEFS.barracks.cost) tryAIBuild(s, "barracks");
+    else if (barracks && !factory && credits(s, ENEMY) >= BUILDING_DEFS.factory.cost) tryAIBuild(s, "factory");
+
+    const reserved = supplyUsed(s, ENEMY) + queuedSupply(s, ENEMY);
+    if (workers.length < 8 && base.queue.length < 2 && credits(s, ENEMY) >= UNIT_DEFS.worker.cost && reserved < SUPPLY_CAP) {
+      queueUnit(s, base, "worker", false);
+    }
+
+    if (ai.trainCd <= 0) {
+      if (barracks && credits(s, ENEMY) >= UNIT_DEFS.marine.cost && reserved + 1 <= SUPPLY_CAP) {
+        queueUnit(s, barracks, "marine", false);
+        ai.trainCd = 2.2;
+      } else if (factory && credits(s, ENEMY) >= UNIT_DEFS.tank.cost && reserved + 2 <= SUPPLY_CAP) {
+        queueUnit(s, factory, "tank", false);
+        ai.trainCd = 4;
+      }
+    }
+
+    if (s.time >= ai.nextAttack && army.length >= 3) {
+      const target = s.buildings.find((b) => !b.dead && b.side === PLAYER && b.type === "base")
+        || s.units.find((u) => !u.dead && u.side === PLAYER);
+      if (target) {
+        for (const unit of army) {
+          unit.order = { type: "amove", x: target.x, y: target.y };
+          unit.targetId = null;
+        }
+        ai.nextAttack = s.time + 45;
+        addStatus("적군이 공격해 옵니다!", true);
+      }
+    }
+  }
+
+  function moveGroup(s, units, x, y, attackMove) {
+    if (!units.length) return;
+    const count = units.length;
+    units.forEach((unit, index) => {
+      let tx = x, ty = y;
+      if (count > 1) {
+        const ring = Math.min(60, 12 + Math.sqrt(count) * 8);
+        const angle = (index / count) * Math.PI * 2;
+        tx = clamp(x + Math.cos(angle) * ring, 16, W - 16);
+        ty = clamp(y + Math.sin(angle) * ring * 0.7, 16, H - 16);
+      }
+      unit.gatherId = null;
+      unit.targetId = null;
+      unit.path = [];
+      unit.repath = 0;
+      unit.order = attackMove ? { type: "amove", x: tx, y: ty } : { type: "move", x: tx, y: ty };
+      unit.anchor = { x: unit.x, y: unit.y };
+    });
+    addStatus(`${count}기 ${attackMove ? "공격 이동" : "이동"}`);
+  }
+
+  function selectedEntities(s) {
+    const found = [];
+    for (const id of ui.selected) {
+      const entity = entityById(s, id);
+      if (entity && !entity.dead) found.push(entity);
+    }
+    return found;
+  }
+
+  function selectedUnits(s) {
+    return selectedEntities(s).filter((entity) => entity.kind === "unit" && entity.side === PLAYER);
+  }
+
+  function selectedBuildings(s) {
+    return selectedEntities(s).filter((entity) => entity.kind === "building" && entity.side === PLAYER);
+  }
+
+  function entityName(entity) {
+    if (entity.kind === "unit") return UNIT_DEFS[entity.type].name;
+    if (entity.kind === "building") return BUILDING_DEFS[entity.type].name;
+    return "미네랄";
+  }
+
+  function issueCommand(s, x, y, attackMove) {
+    const units = selectedUnits(s);
+    if (!units.length) {
+      addStatus("먼저 유닛을 선택하세요.", true);
+      return;
+    }
+    const target = entityAt(s, x, y);
+    if (target && target.kind === "mineral") {
+      const workers = units.filter((unit) => unit.type === "worker");
+      for (const worker of workers) {
+        worker.order = { type: "gather", nodeId: target.id };
+        worker.gatherId = target.id;
+        worker.targetId = null;
+        worker.path = [];
+      }
+      const fighters = units.filter((unit) => unit.type !== "worker");
+      if (fighters.length) moveGroup(s, fighters, x, y, false);
+      addStatus(workers.length
+        ? `일꾼 ${workers.length}기가 미네랄을 채취합니다.`
+        : "일꾼만 미네랄을 채취할 수 있습니다.", !workers.length);
+      return;
+    }
+    if (target && target.side && target.side !== PLAYER) {
+      const fighters = units.filter((unit) => unit.type !== "worker");
+      const workers = units.filter((unit) => unit.type === "worker");
+      for (const fighter of fighters) {
+        fighter.order = { type: "attack", targetId: target.id };
+        fighter.targetId = target.id;
+        fighter.path = [];
+      }
+      if (workers.length) moveGroup(s, workers, x, y, false);
+      if (fighters.length) addStatus(`${fighters.length}기가 ${entityName(target)}을(를) 공격합니다.`);
+      return;
+    }
+    moveGroup(s, units, x, y, attackMove);
+  }
+
+  function updateGame(s, dt) {
+    s.time += dt;
+    for (const unit of s.units) {
+      if (!unit.dead) updateUnit(s, unit, dt);
+    }
+    for (const building of s.buildings) {
+      if (!building.dead) updateBuilding(s, building, dt);
+    }
+    updateAI(s, dt);
+    separateUnits(s);
+    s.units = s.units.filter((unit) => !unit.dead);
+    if (s.buildings.some((building) => building.dead)) {
+      s.buildings = s.buildings.filter((building) => !building.dead);
+      rebuildGrid(s);
+    }
+    updateEffects(s, dt);
+    if (ui.selected.size) {
+      for (const id of [...ui.selected]) {
+        const entity = entityById(s, id);
+        if (!entity || entity.dead) ui.selected.delete(id);
+      }
+    }
+  }
+
+  const PLAYER_COLOR = "#4da3ff";
+  const ENEMY_COLOR = "#ff6161";
+  const terrainCanvas = document.createElement("canvas");
+  terrainCanvas.width = W;
+  terrainCanvas.height = H;
+  const tctx = terrainCanvas.getContext("2d");
+
+  function roundRect(context, x, y, w, h, radius) {
+    const r = Math.min(radius, w / 2, h / 2);
+    context.beginPath();
+    context.moveTo(x + r, y);
+    context.lineTo(x + w - r, y);
+    context.quadraticCurveTo(x + w, y, x + w, y + r);
+    context.lineTo(x + w, y + h - r);
+    context.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    context.lineTo(x + r, y + h);
+    context.quadraticCurveTo(x, y + h, x, y + h - r);
+    context.lineTo(x, y + r);
+    context.quadraticCurveTo(x, y, x + r, y);
+    context.closePath();
+  }
+
+  function paintTerrain() {
+    tctx.clearRect(0, 0, W, H);
+    tctx.fillStyle = "#0e1a24";
+    tctx.fillRect(0, 0, W, H);
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        tctx.fillStyle = (c + r) % 2 === 0 ? "#101f2b" : "#0e1c27";
+        tctx.fillRect(c * TILE, r * TILE, TILE, TILE);
+      }
+    }
+    tctx.strokeStyle = "rgba(120, 170, 210, 0.06)";
+    tctx.lineWidth = 1;
+    for (let c = 0; c <= COLS; c++) {
+      tctx.beginPath();
+      tctx.moveTo(c * TILE + 0.5, 0);
+      tctx.lineTo(c * TILE + 0.5, H);
+      tctx.stroke();
+    }
+    for (let r = 0; r <= ROWS; r++) {
+      tctx.beginPath();
+      tctx.moveTo(0, r * TILE + 0.5);
+      tctx.lineTo(W, r * TILE + 0.5);
+      tctx.stroke();
+    }
+    for (const [c, r] of ROCKS) {
+      const x = c * TILE + TILE / 2, y = r * TILE + TILE / 2;
+      tctx.fillStyle = "rgba(0, 0, 0, 0.28)";
+      roundRect(tctx, x - 10, y - 5, 22, 17, 6);
+      tctx.fill();
+      tctx.fillStyle = "#3b4b58";
+      roundRect(tctx, x - 11, y - 8, 22, 16, 6);
+      tctx.fill();
+      tctx.fillStyle = "#56697a";
+      roundRect(tctx, x - 8, y - 6, 13, 7, 4);
+      tctx.fill();
+      tctx.fillStyle = "#2a3742";
+      tctx.beginPath();
+      tctx.arc(x + 6, y + 2, 3, 0, Math.PI * 2);
+      tctx.fill();
+    }
+    tctx.strokeStyle = "rgba(140, 190, 230, 0.18)";
+    tctx.lineWidth = 2;
+    tctx.strokeRect(1, 1, W - 2, H - 2);
+  }
+
+  function drawMinimap(s) {
+    const scaleX = minimap.width / W, scaleY = minimap.height / H;
+    mctx.clearRect(0, 0, minimap.width, minimap.height);
+    mctx.fillStyle = "#0a1118";
+    mctx.fillRect(0, 0, minimap.width, minimap.height);
+    mctx.fillStyle = "#173241";
+    for (const [c, r] of ROCKS) {
+      mctx.fillRect(c * TILE * scaleX, r * TILE * scaleY, TILE * scaleX, TILE * scaleY);
+    }
+    mctx.fillStyle = "#53d7ef";
+    for (const node of s.mineralNodes) {
+      mctx.fillRect(node.x * scaleX - 1, node.y * scaleY - 1, 2.5, 2.5);
+    }
+    for (const building of s.buildings) {
+      if (building.dead) continue;
+      mctx.fillStyle = building.side === PLAYER ? PLAYER_COLOR : ENEMY_COLOR;
+      mctx.fillRect((building.x - building.w / 2) * scaleX, (building.y - building.h / 2) * scaleY,
+        building.w * scaleX, building.h * scaleY);
+    }
+    for (const unit of s.units) {
+      if (unit.dead) continue;
+      mctx.fillStyle = unit.side === PLAYER ? "#9fd0ff" : "#ffb3b3";
+      mctx.fillRect(unit.x * scaleX - 0.8, unit.y * scaleY - 0.8, 1.8, 1.8);
+    }
+    mctx.strokeStyle = "rgba(150, 200, 240, 0.28)";
+    mctx.lineWidth = 1;
+    mctx.strokeRect(0.5, 0.5, minimap.width - 1, minimap.height - 1);
+  }
+
+  function drawHealthBar(context, x, y, width, ratio, color) {
+    context.fillStyle = "rgba(4, 10, 16, 0.72)";
+    context.fillRect(x, y, width, 4);
+    context.fillStyle = color;
+    context.fillRect(x + 0.5, y + 0.5, Math.max(0, width - 1) * ratio, 3);
+  }
+
+  function drawMinerals(s) {
+    for (const node of s.mineralNodes) {
+      const ratio = Math.max(0, node.amount / node.max);
+      const lift = 2 + ratio * 4;
+      ctx.save();
+      ctx.translate(node.x, node.y);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.beginPath();
+      ctx.ellipse(0, 7, 13, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      const shards = [
+        { x: -6, y: 2, w: 5, h: 12, color: "#2f6f82" },
+        { x: 0, y: -2, w: 6, h: 17 + lift, color: "#53cfe8" },
+        { x: 6, y: 3, w: 5, h: 11, color: "#2f8ea6" }
+      ];
+      for (const shard of shards) {
+        ctx.fillStyle = shard.color;
+        ctx.beginPath();
+        ctx.moveTo(shard.x, shard.y - shard.h);
+        ctx.lineTo(shard.x + shard.w, shard.y - shard.h * 0.45);
+        ctx.lineTo(shard.x + shard.w - 1, shard.y + 4);
+        ctx.lineTo(shard.x - 1, shard.y + 4);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.fillStyle = "rgba(210, 250, 255, 0.55)";
+      ctx.fillRect(-1, -12 - lift * 0.3, 1.5, 7);
+      ctx.restore();
+    }
+  }
+
+  function drawBuilding(s, building) {
+    const color = building.side === PLAYER ? PLAYER_COLOR : ENEMY_COLOR;
+    const dark = building.side === PLAYER ? "#173a5e" : "#5a1f1f";
+    const x = building.x - building.w / 2, y = building.y - building.h / 2;
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
+    roundRect(ctx, x + 3, y + 6, building.w, building.h, 8);
+    ctx.fill();
+    ctx.fillStyle = dark;
+    roundRect(ctx, x, y, building.w, building.h, 8);
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    roundRect(ctx, x + 1, y + 1, building.w - 2, building.h - 2, 7);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+    roundRect(ctx, x + 6, y + 6, building.w - 12, building.h * 0.34, 5);
+    ctx.fill();
+
+    if (building.type === "base") {
+      ctx.fillStyle = color;
+      roundRect(ctx, x + 18, y + 18, building.w - 36, building.h - 36, 8);
+      ctx.fill();
+      ctx.fillStyle = "rgba(8, 20, 32, 0.55)";
+      ctx.beginPath();
+      ctx.arc(building.x, building.y, 13, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(building.x, building.y, 16, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = "#dff4ff";
+      ctx.beginPath();
+      ctx.arc(building.x, building.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (building.type === "barracks") {
+      ctx.fillStyle = color;
+      ctx.fillRect(x + 10, y + 12, building.w - 20, 7);
+      ctx.fillStyle = "rgba(6, 16, 26, 0.6)";
+      for (let i = 0; i < 3; i++) {
+        roundRect(ctx, x + 13 + i * 17, y + 25, 11, 14, 3);
+        ctx.fill();
+      }
+      ctx.fillStyle = color;
+      ctx.fillRect(building.x - 1, y - 13, 2, 15);
+      ctx.beginPath();
+      ctx.moveTo(building.x + 1, y - 13);
+      ctx.lineTo(building.x + 14, y - 9);
+      ctx.lineTo(building.x + 1, y - 5);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillStyle = color;
+      ctx.fillRect(x + 8, y + 8, 8, building.h - 16);
+      ctx.fillRect(x + building.w - 16, y + 8, 8, building.h - 16);
+      ctx.fillStyle = "rgba(6, 16, 26, 0.62)";
+      roundRect(ctx, x + 20, y + 16, building.w - 40, building.h - 24, 6);
+      ctx.fill();
+      ctx.fillStyle = "#ffd479";
+      ctx.fillRect(building.x - 5, y - 11, 10, 12);
+      ctx.fillStyle = "rgba(255, 212, 121, 0.35)";
+      ctx.fillRect(building.x - 9, y - 15, 18, 4);
+    }
+
+    const hpRatio = building.hp / building.maxHp;
+    drawHealthBar(ctx, building.x - building.w / 2, y - 8, building.w, hpRatio,
+      building.side === PLAYER ? "#63d68b" : "#ff8b8b");
+    if (ui.selected.has(building.id)) {
+      ctx.strokeStyle = "#ffe08a";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 4]);
+      ctx.strokeRect(x - 4, y - 4, building.w + 8, building.h + 8);
+      ctx.setLineDash([]);
+    }
+    if (building.queue.length) {
+      ctx.fillStyle = "rgba(8, 18, 28, 0.8)";
+      ctx.fillRect(building.x - 20, y + building.h + 5, 40, 6);
+      const progress = 1 - Math.max(0, building.timer) / UNIT_DEFS[building.queue[0]].build;
+      ctx.fillStyle = "#ffd479";
+      ctx.fillRect(building.x - 19, y + building.h + 6, 38 * clamp(progress, 0, 1), 4);
+    }
+    ctx.restore();
+  }
+
+  function drawUnit(s, unit) {
+    const color = unit.side === PLAYER ? PLAYER_COLOR : ENEMY_COLOR;
+    ctx.save();
+    ctx.translate(unit.x, unit.y);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
+    ctx.beginPath();
+    ctx.ellipse(0, unit.radius * 0.7, unit.radius * 0.9, unit.radius * 0.45, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.rotate(unit.facing);
+    if (unit.type === "tank") {
+      ctx.fillStyle = unit.side === PLAYER ? "#2b5d8c" : "#7a3030";
+      roundRect(ctx, -unit.radius, -unit.radius * 0.8, unit.radius * 2, unit.radius * 1.6, 3);
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.fillRect(0, -3, unit.radius + 9, 6);
+      ctx.beginPath();
+      ctx.arc(0, 0, 5.5, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = unit.side === PLAYER ? "#2b5d8c" : "#7a3030";
+      ctx.beginPath();
+      ctx.arc(0, 0, unit.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = color;
+      if (unit.type === "worker") {
+        ctx.fillRect(unit.radius - 2, -1.5, 7, 3);
+      } else {
+        ctx.fillRect(unit.radius - 3, -1.5, 10, 3);
+        ctx.fillRect(unit.radius + 4, -3, 2, 6);
+      }
+    }
+    if (unit.flash > 0) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.75, unit.flash * 4)})`;
+      ctx.beginPath();
+      ctx.arc(0, 0, unit.radius + 1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    if (unit.hp < unit.maxHp) {
+      drawHealthBar(ctx, unit.x - 11, unit.y - unit.radius - 9, 22, unit.hp / unit.maxHp,
+        unit.side === PLAYER ? "#63d68b" : "#ff8b8b");
+    }
+    if (ui.selected.has(unit.id)) {
+      ctx.strokeStyle = "#ffe08a";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(unit.x, unit.y, unit.radius + 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  function drawEffects(s) {
+    for (const effect of s.effects) {
+      const alpha = Math.max(0, effect.life / effect.max);
+      if (effect.kind === "tracer") {
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = effect.color;
+        ctx.lineWidth = effect.width;
+        ctx.beginPath();
+        ctx.moveTo(effect.x1, effect.y1);
+        ctx.lineTo(effect.x2, effect.y2);
+        ctx.stroke();
+      } else {
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = effect.color;
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function buildCellFor(type, x, y) {
+    const def = BUILDING_DEFS[type];
+    return {
+      c: Math.round((x - def.w / 2) / TILE),
+      r: Math.round((y - def.h / 2) / TILE)
+    };
+  }
+
+  function drawBuildGhost(s) {
+    if (!ui.buildMode || !ui.hover) return;
+    const { c, r } = buildCellFor(ui.buildMode, ui.hover.x, ui.hover.y);
+    const def = BUILDING_DEFS[ui.buildMode];
+    const ok = canPlace(s, ui.buildMode, c, r, PLAYER) && credits(s, PLAYER) >= def.cost;
+    ctx.save();
+    ctx.fillStyle = ok ? "rgba(96, 214, 139, 0.25)" : "rgba(255, 96, 96, 0.28)";
+    ctx.strokeStyle = ok ? "#63d68b" : "#ff7272";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.fillRect(c * TILE, r * TILE, def.w, def.h);
+    ctx.strokeRect(c * TILE + 1, r * TILE + 1, def.w - 2, def.h - 2);
+    ctx.setLineDash([]);
+    ctx.fillStyle = ok ? "#c9f7d9" : "#ffd0d0";
+    ctx.font = "600 12px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(BUILDING_DEFS[ui.buildMode].name, c * TILE + def.w / 2, r * TILE + def.h / 2 + 4);
+    ctx.restore();
+  }
+
+  function render(s) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(terrainCanvas, 0, 0);
+    drawMinerals(s);
+    for (const building of s.buildings) {
+      if (!building.dead) drawBuilding(s, building);
+    }
+    for (const unit of s.units) {
+      if (!unit.dead) drawUnit(s, unit);
+    }
+    drawEffects(s);
+    drawBuildGhost(s);
+
+    if (ui.drag && ui.drag.moved) {
+      const x = Math.min(ui.drag.x0, ui.drag.x1);
+      const y = Math.min(ui.drag.y0, ui.drag.y1);
+      const w = Math.abs(ui.drag.x1 - ui.drag.x0);
+      const h = Math.abs(ui.drag.y1 - ui.drag.y0);
+      ctx.fillStyle = "rgba(96, 190, 255, 0.16)";
+      ctx.strokeStyle = "rgba(150, 220, 255, 0.9)";
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+    }
+
+    if (ui.started && ui.paused && !s.over) {
+      ctx.fillStyle = "rgba(4, 10, 16, 0.55)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#eaf6ff";
+      ctx.font = "700 30px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("일시정지", W / 2, H / 2 + 8);
+      ctx.font = "500 14px system-ui, sans-serif";
+      ctx.fillStyle = "#a9c2d8";
+      ctx.fillText("P 키 또는 일시정지 버튼으로 계속합니다.", W / 2, H / 2 + 38);
+    }
+    drawMinimap(s);
+  }
+
+  function formatTime(seconds) {
+    const total = Math.max(0, Math.floor(seconds));
+    const minutes = String(Math.floor(total / 60)).padStart(2, "0");
+    return `${minutes}:${String(total % 60).padStart(2, "0")}`;
+  }
+
+  function setText(element, text) {
+    if (element.textContent !== text) element.textContent = text;
+  }
+
+  function addStatus(message, warn = false) {
+    statusEl.textContent = message;
+    statusEl.classList.toggle("is-warn", warn);
+  }
+
+  function refreshHud(s) {
+    setText(mineralsEl, String(Math.floor(s.minerals.player)));
+    setText(supplyEl, `${supplyUsed(s, PLAYER)}/${SUPPLY_CAP}`);
+    setText(clockEl, formatTime(s.time));
+    const enemyBase = s.buildings.find((b) => !b.dead && b.side === ENEMY && b.type === "base");
+    setText(enemyHpEl, enemyBase ? `${Math.ceil(enemyBase.hp)}/${enemyBase.maxHp}` : "파괴됨");
+    updateSelectionPanel(s);
+    updateButtons(s);
+  }
+
+  function unitStateLabel(unit) {
+    if (unit.type === "worker" && unit.order && unit.order.type === "gather") {
+      return unit.cargo > 0 ? "미네랄 운반 중" : "채취 중";
+    }
+    if (unit.targetId) return "전투 중";
+    if (unit.order && unit.order.type === "attack") return "공격 중";
+    if (unit.order && unit.order.type === "amove") return "공격 이동 중";
+    if (unit.order && unit.order.type === "move") return "이동 중";
+    return "대기 중";
+  }
+
+  function updateSelectionPanel(s) {
+    const selected = selectedEntities(s);
+    const signature = selected
+      .map((entity) => `${entity.id}:${Math.ceil(entity.hp)}:${entity.queue ? entity.queue.length : 0}:${entity.cargo || 0}`)
+      .join("|") + `|${ui.buildMode}|${ui.attackMove}`;
+    if (signature === ui.hudSig) return;
+    ui.hudSig = signature;
+
+    if (!selected.length) {
+      selectionEl.textContent = "유닛이나 건물을 선택하세요.";
+      return;
+    }
+    if (selected.length === 1) {
+      const entity = selected[0];
+      const owner = entity.side === PLAYER ? "" : "적 ";
+      if (entity.kind === "building") {
+        const queueText = entity.queue.length
+          ? ` · 생산 대기 ${entity.queue.length}기 (${entity.queue.map((type) => UNIT_DEFS[type].name).join(", ")})`
+          : "";
+        selectionEl.innerHTML = `<strong>${owner}${BUILDING_DEFS[entity.type].name}</strong>`
+          + `체력 ${Math.ceil(entity.hp)} / ${entity.maxHp}${queueText}`;
+      } else {
+        selectionEl.innerHTML = `<strong>${owner}${UNIT_DEFS[entity.type].name}</strong>`
+          + `체력 ${Math.ceil(entity.hp)} / ${entity.maxHp} · ${unitStateLabel(entity)}`
+          + (entity.cargo ? ` · 운반 ${entity.cargo}` : "");
+      }
+      return;
+    }
+    const counts = {};
+    let totalHp = 0;
+    let totalMax = 0;
+    for (const entity of selected) {
+      const name = entity.kind === "unit" ? UNIT_DEFS[entity.type].name : BUILDING_DEFS[entity.type].name;
+      counts[name] = (counts[name] || 0) + 1;
+      totalHp += entity.hp;
+      totalMax += entity.maxHp;
+    }
+    const summary = Object.entries(counts).map(([name, count]) => `${name} ${count}`).join(" · ");
+    selectionEl.innerHTML = `<strong>${selected.length}개 선택</strong>${summary}<br>합계 체력 ${Math.ceil(totalHp)} / ${totalMax}`;
+  }
+
+  function updateButtons(s) {
+    const units = selectedUnits(s);
+    const buildings = selectedBuildings(s);
+    const hasBase = buildings.some((building) => building.type === "base");
+    const hasBarracks = buildings.some((building) => building.type === "barracks");
+    const hasFactory = buildings.some((building) => building.type === "factory");
+    const hasWorker = units.some((unit) => unit.type === "worker");
+    const signature = [hasBase, hasBarracks, hasFactory, hasWorker, units.length, ui.buildMode, ui.attackMove].join("|");
+    if (signature === ui.buttonSig) return;
+    ui.buttonSig = signature;
+    for (const button of actionsEl.querySelectorAll("button[data-act]")) {
+      const action = button.dataset.act;
+      let visible = false;
+      if (action === "worker") visible = hasBase;
+      else if (action === "marine") visible = hasBarracks;
+      else if (action === "tank") visible = hasFactory;
+      else if (action === "barracks" || action === "factory") visible = hasWorker;
+      else if (action === "amove" || action === "stop") visible = units.length > 0;
+      else if (action === "clear") visible = true;
+      button.hidden = !visible;
+      button.classList.toggle("is-active",
+        (action === "amove" && ui.attackMove)
+        || (action === "barracks" && ui.buildMode === "barracks")
+        || (action === "factory" && ui.buildMode === "factory"));
+    }
+  }
+
+  function queueFromSelection(s, buildingType, unitType) {
+    const building = selectedBuildings(s).find((item) => item.type === buildingType);
+    if (!building) {
+      addStatus(`${BUILDING_DEFS[buildingType].name}을(를) 선택하세요.`, true);
+      return;
+    }
+    queueUnit(s, building, unitType);
+    updateSelectionPanel(s);
+  }
+
+  function stopSelected(s) {
+    const units = selectedUnits(s);
+    for (const unit of units) {
+      unit.order = null;
+      unit.targetId = null;
+      unit.gatherId = null;
+      unit.path = [];
+    }
+    if (units.length) addStatus(`${units.length}기 정지`);
+  }
+
+  function clearSelection() {
+    ui.selected.clear();
+    ui.hudSig = "";
+    addStatus("선택을 해제했습니다.");
+  }
+
+  function togglePause() {
+    if (!ui.started || state.over) return;
+    ui.paused = !ui.paused;
+    pauseBtn.textContent = ui.paused ? "계속" : "일시정지";
+    addStatus(ui.paused ? "일시정지되었습니다." : "계속합니다.");
+  }
+
+  function doAction(action, s) {
+    if (s.over) return;
+    if (action === "worker") return queueFromSelection(s, "base", "worker");
+    if (action === "marine") return queueFromSelection(s, "barracks", "marine");
+    if (action === "tank") return queueFromSelection(s, "factory", "tank");
+    if (action === "barracks" || action === "factory") {
+      if (!selectedUnits(s).some((unit) => unit.type === "worker")) {
+        addStatus("일꾼을 선택하세요.", true);
+        return;
+      }
+      ui.buildMode = action;
+      ui.attackMove = false;
+      updateCursor();
+      updateButtons(s);
+      addStatus(`${BUILDING_DEFS[action].name}을(를) 지을 위치를 클릭하세요.`);
+      return;
+    }
+    if (action === "amove") {
+      if (!selectedUnits(s).length) {
+        addStatus("먼저 유닛을 선택하세요.", true);
+        return;
+      }
+      ui.attackMove = !ui.attackMove;
+      ui.buildMode = null;
+      updateCursor();
+      updateButtons(s);
+      addStatus(ui.attackMove ? "공격 이동: 목표 지점을 클릭하세요." : "공격 이동을 취소했습니다.");
+      return;
+    }
+    if (action === "stop") return stopSelected(s);
+    if (action === "clear") return clearSelection();
+  }
+
+  function updateCursor() {
+    canvas.classList.toggle("is-targeting", Boolean(ui.buildMode || ui.attackMove));
+  }
+
+  function toWorld(event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: clamp((event.clientX - rect.left) * (W / rect.width), 0, W),
+      y: clamp((event.clientY - rect.top) * (H / rect.height), 0, H)
+    };
+  }
+
+  function entityAt(s, x, y) {
+    const rect = canvas.getBoundingClientRect();
+    const pad = Math.max(7, 14 / Math.max(0.3, rect.width / W));
+    let best = null;
+    let bestDistance = Infinity;
+    for (const unit of s.units) {
+      if (unit.dead) continue;
+      const distance = Math.hypot(unit.x - x, unit.y - y);
+      if (distance <= unit.radius + pad && distance < bestDistance) {
+        bestDistance = distance;
+        best = unit;
+      }
+    }
+    for (const building of s.buildings) {
+      if (building.dead) continue;
+      if (Math.abs(x - building.x) <= building.w / 2 + pad
+        && Math.abs(y - building.y) <= building.h / 2 + pad) {
+        const distance = Math.hypot(building.x - x, building.y - y);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = building;
+        }
+      }
+    }
+    if (best) return best;
+    for (const node of s.mineralNodes) {
+      const distance = Math.hypot(node.x - x, node.y - y);
+      if (distance <= node.radius + pad && distance < bestDistance) {
+        bestDistance = distance;
+        best = node;
+      }
+    }
+    return best;
+  }
+
+  function handleTap(s, x, y, touch) {
+    if (ui.buildMode) {
+      tryPlayerBuildAt(s, x, y);
+      return;
+    }
+    if (ui.attackMove) {
+      issueCommand(s, x, y, true);
+      ui.attackMove = false;
+      updateCursor();
+      updateButtons(s);
+      return;
+    }
+    const target = entityAt(s, x, y);
+    if (target && target.kind === "mineral") {
+      if (selectedUnits(s).some((unit) => unit.type === "worker")) {
+        issueCommand(s, x, y, false);
+      } else {
+        addStatus("미네랄 지대입니다. 일꾼을 선택한 뒤 우클릭하거나 탭하세요.");
+      }
+      return;
+    }
+    if (target && target.side && target.side !== PLAYER) {
+      if (selectedUnits(s).length) {
+        issueCommand(s, x, y, false);
+      } else {
+        ui.selected.clear();
+        ui.selected.add(target.id);
+        ui.hudSig = "";
+        addStatus(`적 ${entityName(target)} · 체력 ${Math.ceil(target.hp)}`);
+      }
+      return;
+    }
+    if (target && target.side === PLAYER) {
+      ui.selected.clear();
+      ui.selected.add(target.id);
+      ui.hudSig = "";
+      addStatus(`${entityName(target)} 선택`);
+      return;
+    }
+    if (touch && selectedUnits(s).length) {
+      issueCommand(s, x, y, false);
+      return;
+    }
+    clearSelection();
+  }
+
+  function boxSelect(s, x1, y1, x2, y2) {
+    const units = s.units
+      .filter((unit) => !unit.dead && unit.side === PLAYER
+        && unit.x >= x1 && unit.x <= x2 && unit.y >= y1 && unit.y <= y2)
+      .slice(0, MAX_SELECTION);
+    if (!units.length) {
+      clearSelection();
+      return;
+    }
+    ui.selected = new Set(units.map((unit) => unit.id));
+    ui.hudSig = "";
+    addStatus(`${units.length}기 선택`);
+  }
+
+  function tryPlayerBuildAt(s, x, y) {
+    if (!ui.buildMode) return;
+    const type = ui.buildMode;
+    const def = BUILDING_DEFS[type];
+    if (credits(s, PLAYER) < def.cost) {
+      addStatus("미네랄이 부족합니다.", true);
+      return;
+    }
+    const cell = buildCellFor(type, x, y);
+    const building = placeBuilding(s, PLAYER, type, cell.c, cell.r);
+    if (!building) {
+      addStatus("여기에는 지을 수 없습니다. 사령부 근처의 빈 땅을 선택하세요.", true);
+      return;
+    }
+    addStatus(`${def.name} 건설 완료`);
+    ui.hudSig = "";
+    ui.buildMode = null;
+    updateCursor();
+    updateButtons(s);
+  }
+
+  function attachInput() {
+    canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+
+    canvas.addEventListener("pointerdown", (event) => {
+      if (event.button === 2) {
+        event.preventDefault();
+        if (!ui.started || state.over) return;
+        const point = toWorld(event);
+        if (ui.buildMode) {
+          ui.buildMode = null;
+          updateCursor();
+          addStatus("건설을 취소했습니다.");
+          return;
+        }
+        issueCommand(state, point.x, point.y, ui.attackMove);
+        ui.attackMove = false;
+        updateCursor();
+        return;
+      }
+      if (event.button !== 0 || !ui.started || state.over) return;
+      const point = toWorld(event);
+      ui.drag = { x0: point.x, y0: point.y, x1: point.x, y1: point.y, moved: false, pointerId: event.pointerId };
+      try {
+        canvas.setPointerCapture(event.pointerId);
+      } catch {}
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      const point = toWorld(event);
+      ui.hover = point;
+      if (!ui.drag) return;
+      ui.drag.x1 = point.x;
+      ui.drag.y1 = point.y;
+      if (Math.hypot(point.x - ui.drag.x0, point.y - ui.drag.y0) > 8) ui.drag.moved = true;
+    });
+
+    canvas.addEventListener("pointerup", (event) => {
+      if (!ui.drag || event.button !== 0) return;
+      const drag = ui.drag;
+      ui.drag = null;
+      try {
+        canvas.releasePointerCapture(event.pointerId);
+      } catch {}
+      if (!ui.started || state.over) return;
+      const point = toWorld(event);
+      if (drag.moved) {
+        boxSelect(state,
+          Math.min(drag.x0, point.x), Math.min(drag.y0, point.y),
+          Math.max(drag.x0, point.x), Math.max(drag.y0, point.y));
+        return;
+      }
+      handleTap(state, point.x, point.y, event.pointerType !== "mouse");
+    });
+
+    canvas.addEventListener("pointerleave", () => {
+      if (!ui.drag) ui.hover = null;
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      ui.drag = null;
+    });
+
+    minimap.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      if (!ui.started || state.over) return;
+      const rect = minimap.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * W;
+      const y = ((event.clientY - rect.top) / rect.height) * H;
+      issueCommand(state, x, y, ui.attackMove);
+      ui.attackMove = false;
+      updateCursor();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.target instanceof HTMLElement
+        && (event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA" || event.target.isContentEditable)) {
+        return;
+      }
+      if (event.code === "KeyP" && ui.started) {
+        event.preventDefault();
+        togglePause();
+        return;
+      }
+      if (!ui.started || state.over) return;
+      if (event.code === "KeyA") {
+        if (!selectedUnits(state).length) return;
+        event.preventDefault();
+        ui.buildMode = null;
+        ui.attackMove = !ui.attackMove;
+        updateCursor();
+        updateButtons(state);
+        addStatus(ui.attackMove ? "공격 이동: 목표 지점을 클릭하세요." : "공격 이동을 취소했습니다.");
+        return;
+      }
+      if (event.code === "KeyS") {
+        event.preventDefault();
+        stopSelected(state);
+        return;
+      }
+      if (event.code === "Escape") {
+        event.preventDefault();
+        if (ui.buildMode || ui.attackMove) {
+          ui.buildMode = null;
+          ui.attackMove = false;
+          updateCursor();
+          addStatus("명령을 취소했습니다.");
+        } else {
+          clearSelection();
+        }
+      }
+    });
+
+    actionsEl.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-act]");
+      if (button) doAction(button.dataset.act, state);
+    });
+
+    overlayButton.addEventListener("click", startNewGame);
+    pauseBtn.addEventListener("click", togglePause);
+    restartBtn.addEventListener("click", startNewGame);
+  }
+
+  function startNewGame() {
+    state = createState();
+    ui.selected.clear();
+    ui.buildMode = null;
+    ui.attackMove = false;
+    ui.paused = false;
+    ui.started = true;
+    ui.hover = null;
+    ui.drag = null;
+    ui.hudSig = "";
+    ui.buttonSig = "";
+    overlay.hidden = true;
+    pauseBtn.textContent = "일시정지";
+    lastTime = 0;
+    updateCursor();
+    addStatus("전투 시작 · 일꾼이 자동으로 미네랄을 채취합니다.");
+    updateButtons(state);
+  }
+
+  function frame(time) {
+    requestAnimationFrame(frame);
+    if (!lastTime) lastTime = time;
+    const rawDt = Math.max(0, (time - lastTime) / 1000);
+    lastTime = time;
+    const dt = Math.min(0.05, rawDt) * state.speed;
+    if (ui.started && !ui.paused && !state.over) updateGame(state, dt);
+    render(state);
+    refreshHud(state);
+  }
+
+  if (new URLSearchParams(location.search).has("debug")) {
+    window.__strategy = {
+      snapshot() {
+        return {
+          started: ui.started, paused: ui.paused, over: state.over, result: state.result,
+          time: state.time, minerals: { ...state.minerals },
+          supply: { player: supplyUsed(state, PLAYER), enemy: supplyUsed(state, ENEMY) },
+          units: state.units.map((unit) => ({
+            id: unit.id, side: unit.side, type: unit.type,
+            x: Math.round(unit.x), y: Math.round(unit.y),
+            hp: Math.ceil(unit.hp), order: unit.order ? unit.order.type : null
+          })),
+          buildings: state.buildings.map((building) => ({
+            id: building.id, side: building.side, type: building.type,
+            hp: Math.ceil(building.hp), queue: building.queue.length
+          })),
+          selected: [...ui.selected]
+        };
+      },
+      setSpeed(value) {
+        state.speed = clamp(Number(value) || 1, 0.1, 20);
+      },
+      finish(side) {
+        const base = state.buildings.find((building) => !building.dead && building.side === side && building.type === "base");
+        if (base) damageEntity(state, base, 999999);
+        return Boolean(base);
+      },
+      place(side, type, c, r) {
+        return Boolean(placeBuilding(state, side, type, c, r));
+      },
+      spawn(side, type) {
+        const spot = freeSpotNear(state, side === PLAYER ? 120 : 600, side === PLAYER ? 400 : 80, 20);
+        if (!spot) return false;
+        const unit = addUnit(state, side, type, spot.x, spot.y);
+        if (type === "worker") assignGather(state, unit);
+        return true;
+      },
+      spawnAt(side, type, x, y) {
+        const unit = addUnit(state, side, type, x, y);
+        if (type === "worker") assignGather(state, unit);
+        return unit.id;
+      },
+      order(side, x, y) {
+        for (const unit of state.units) {
+          if (unit.dead || unit.side !== side || unit.type === "worker") continue;
+          unit.order = { type: "amove", x, y };
+          unit.targetId = null;
+          unit.path = [];
+        }
+      }
+    };
+  }
+
+  paintTerrain();
+  attachInput();
+  render(state);
+  refreshHud(state);
+  requestAnimationFrame(frame);
+})();
+</script>
+<script src="assets/common.js?v=labels-30"></script>
+<script src="assets/auth.js?v=labels-30"></script>
+<script src="assets/theme.js?v=labels-30"></script>
+</body>
+</html>
