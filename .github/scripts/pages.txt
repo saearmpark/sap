@@ -1,4 +1,5 @@
 index.html
+offline.html
 search.html
 news.html
 stocks.html

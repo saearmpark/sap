@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사피엔스 — 오프라인</title>
+<meta name="theme-color" content="#202124">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-30">
+<style>
+  .offline-main { max-width: 560px; }
+  .offline-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .offline-actions a, .offline-actions button {
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .offline-actions a:hover, .offline-actions button:hover { border-color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <main class="main offline-main">
+    <div class="eyebrow">OFFLINE</div>
+    <h1>인터넷 연결을 확인해 주세요</h1>
+    <p class="auth-note">저장된 페이지는 계속 열 수 있지만, 날씨·시세·게시판 같은 실시간 정보는 연결이 필요합니다.</p>
+    <div class="offline-actions">
+      <button type="button" id="retry">다시 시도</button>
+      <a href="index.html">홈으로</a>
+      <a href="news.html">날씨</a>
+      <a href="stocks.html">투자정보</a>
+    </div>
+  </main>
+</div>
+<script>
+  document.getElementById("retry").addEventListener("click", () => location.reload());
+</script>
+<script src="assets/theme.js?v=labels-30"></script>
+</body>
+</html>

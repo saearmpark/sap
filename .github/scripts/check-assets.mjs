@@ -40,6 +40,17 @@ if (versions.size === 0) {
   failures.push("no versioned shared CSS/JS references found");
 }
 
+const expectedVersion = [...versions.keys()][0];
+if (expectedVersion) {
+  const serviceWorker = readFileSync(join(root, "sw.js"), "utf8");
+  const serviceWorkerVersions = [...new Set(serviceWorker.match(/labels-\d+/g) || [])];
+  for (const version of serviceWorkerVersions) {
+    if (version !== expectedVersion) {
+      failures.push(`sw.js: uses ${version} but pages use ${expectedVersion}`);
+    }
+  }
+}
+
 console.log(`Checked ${checked} shared CSS/JS references across ${pages.length} pages using ${[...versions.keys()].join(", ") || "no version"}.`);
 if (failures.length) {
   for (const failure of failures) console.error(failure);

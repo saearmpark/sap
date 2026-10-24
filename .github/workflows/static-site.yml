@@ -37,3 +37,7 @@ jobs:
         run: node .github/scripts/check-links.mjs
       - name: Check shared asset versions
         run: node .github/scripts/check-assets.mjs
+      - name: Check PWA files
+        run: |
+          node --check sw.js
+          node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest', 'utf8'))"

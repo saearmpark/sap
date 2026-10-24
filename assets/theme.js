@@ -30,4 +30,42 @@
       applyTheme(nextTheme);
     });
   }
+
+  const nav = document.querySelector("nav.nav-group[data-nav]");
+  const themeButton = nav?.querySelector(".nav-theme-toggle");
+  let installPrompt = null;
+  const installButton = document.createElement("button");
+  installButton.type = "button";
+  installButton.className = "theme-toggle nav-install-toggle";
+  installButton.textContent = "앱으로 설치";
+  installButton.setAttribute("aria-label", "사피엔스 앱 설치");
+  installButton.hidden = true;
+  installButton.addEventListener("click", async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    try {
+      await installPrompt.userChoice;
+    } catch {
+      // The install prompt can be dismissed or expire before userChoice settles.
+    }
+    installPrompt = null;
+    installButton.hidden = true;
+  });
+  if (themeButton?.parentNode) themeButton.after(installButton);
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    installPrompt = event;
+    installButton.hidden = false;
+  });
+  window.addEventListener("appinstalled", () => {
+    installPrompt = null;
+    installButton.hidden = true;
+  });
+
+  if ("serviceWorker" in navigator
+      && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
 })();
