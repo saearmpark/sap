@@ -739,7 +739,7 @@
     try {
       const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
       if (!Array.isArray(saved)) return [];
-      return saved.filter((record) => record && typeof record.averageScore === "number").slice(0, 10);
+      return saved.filter((record) => record && typeof record.averageScore === "number").slice(0, 30);
     } catch {
       return [];
     }
@@ -747,7 +747,7 @@
 
   function saveHistory() {
     try {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(examHistory.slice(0, 10)));
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(examHistory.slice(0, 30)));
     } catch {
       setStatus("브라우저에 응시 기록을 저장하지 못했습니다.");
     }
@@ -785,6 +785,38 @@
         ? `${formatDate(latest.date)} · ${EXAM_MODES[latest.mode]?.short || "혼합"} · ${latest.answerMode === "speak" ? "Speak" : "Write"}`
         : "아직 응시 기록이 없습니다.";
     }
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const container = document.getElementById("history-list");
+    if (!container) return;
+    if (!examHistory.length) {
+      container.innerHTML = '<p class="history-empty">시험을 마치면 최근 기록과 문항별 점수가 여기에 쌓입니다.</p>';
+      return;
+    }
+    const rows = examHistory.slice(0, 5).map((record) => {
+      const results = Array.isArray(record.results) ? record.results : [];
+      const weak = results.reduce((min, item) => (!min || item.score < min.score ? item : min), null);
+      const mode = EXAM_MODES[record.mode]?.short || "혼합";
+      const answerMode = record.answerMode === "speak" ? "Speak" : "Write";
+      const details = results.length
+        ? results.map((item, index) => `<div class="history-detail-row"><span>Q${index + 1} · ${escapeHtml(item.topicTitle || "주제")}</span><em>${escapeHtml(item.score)}점 · ${escapeHtml(item.grade || "")}</em></div>`).join("")
+        : "<p>문항별 기록이 없습니다.</p>";
+      return `<details class="history-row">
+        <summary>
+          <span class="history-date">${escapeHtml(formatDate(record.date) || "날짜 없음")}</span>
+          <span class="history-result">${escapeHtml(record.averageGrade || "?")} · ${escapeHtml(record.averageScore)}점</span>
+          <span class="history-mode">${escapeHtml(mode)} · ${answerMode}</span>
+          ${weak ? `<span class="history-weak">복습 추천: ${escapeHtml(weak.topicTitle || "주제")} ${escapeHtml(weak.score)}점</span>` : ""}
+        </summary>
+        <div class="history-detail">${details}</div>
+      </details>`;
+    }).join("");
+    const more = examHistory.length > 5
+      ? `<p class="history-more">최근 5회만 표시합니다. 총 ${examHistory.length}회 기록이 저장되어 있습니다.</p>`
+      : "";
+    container.innerHTML = rows + more;
   }
 
   function renderTopicChoices() {
@@ -1262,7 +1294,7 @@
       }))
     };
     examHistory.unshift(record);
-    examHistory = examHistory.slice(0, 10);
+    examHistory = examHistory.slice(0, 30);
     saveHistory();
     updateOverview();
     const container = document.getElementById("exam-summary");

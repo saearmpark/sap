@@ -13,7 +13,7 @@
 <style>
   .english-page .main { max-width: 1120px; padding: 44px 48px; }
   .english-lead { max-width: 800px; margin: 0 0 20px; color: var(--ink-soft); font-size: 14.5px; line-height: 1.7; }
-  .english-overview { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 14px; margin-bottom: 18px; }
+  .english-overview { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: start; gap: 14px; margin-bottom: 18px; }
   .english-overview .card { margin: 0; }
   .english-card h2 { margin: 0 0 6px; font-size: 18px; }
   .english-card > p { margin: 0; color: var(--ink-soft); font-size: 13.5px; }
@@ -22,6 +22,20 @@
   .english-stat strong { display: block; font-size: 19px; line-height: 1.3; overflow-wrap: anywhere; }
   .english-stat span { display: block; color: var(--ink-soft); font-size: 11.5px; }
   .latest-date { min-height: 19px; margin: 0; color: var(--ink-soft); font-size: 12px; }
+  .history-list { display: grid; gap: 8px; margin-top: 12px; }
+  .history-empty { margin: 0; color: var(--ink-soft); font-size: 12px; }
+  .history-row { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+  .history-row summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 8px 10px; cursor: pointer; list-style: none; }
+  .history-row summary::-webkit-details-marker { display: none; }
+  .history-date, .history-mode { color: var(--ink-soft); font-size: 11.5px; }
+  .history-result { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-family: var(--mono); font-size: 13px; font-weight: 700; }
+  .history-weak { grid-column: 1 / -1; color: var(--ink-soft); font-size: 11.5px; }
+  .history-detail { display: grid; gap: 5px; padding: 8px 10px 10px; border-top: 1px solid var(--border); }
+  .history-detail p { margin: 0; color: var(--ink-soft); font-size: 12px; }
+  .history-detail-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 12px; }
+  .history-detail-row span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .history-detail-row em { flex: none; color: var(--accent); font-family: var(--mono); font-size: 11.5px; font-style: normal; }
+  .history-more { margin: 0; color: var(--ink-soft); font-size: 11.5px; }
   .english-tip-list { margin: 10px 0 0; padding-left: 18px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.8; }
   .english-tip-list strong { color: var(--ink); }
   .english-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 20px 0 16px; border-bottom: 1px solid var(--border); }
@@ -231,6 +245,7 @@
           <div class="english-stat"><strong id="history-count">0회</strong><span>누적 응시</span></div>
         </div>
         <p id="latest-date" class="latest-date">아직 응시 기록이 없습니다.</p>
+        <div id="history-list" class="history-list" aria-live="polite"></div>
       </section>
       <section class="card english-card" aria-labelledby="exam-flow-title">
         <h2 id="exam-flow-title">실전 진행</h2>
