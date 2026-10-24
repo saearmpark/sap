@@ -1,6 +1,7 @@
 index.html
 offline.html
 search.html
+notifications.html
 news.html
 stocks.html
 learn.html

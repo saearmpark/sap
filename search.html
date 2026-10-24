@@ -70,7 +70,8 @@
       { key: "apps", label: "공용자료" },
       { key: "news", label: "날씨·투자" },
       { key: "board", label: "게시판" },
-      { key: "file", label: "자료실" }
+      { key: "file", label: "자료실" },
+      { key: "account", label: "계정" }
     ];
 
     function withTimeout(promise, ms) {
@@ -136,6 +137,12 @@
           title: "투자정보",
           text: "국내외 주식 시세 · 코스피 나스닥 엔비디아 애플 · 비트코인 코인 · 원달러 환율 · 금리 · 금 ETF · WTI 유가",
           href: "stocks.html"
+        });
+        staticIndex.push({
+          key: "account",
+          title: "알림",
+          text: "다가오는 일정 새 공지 게시판 글 자료실 업로드 읽지 않은 알림 모두 읽음",
+          href: "notifications.html"
         });
 
         try {

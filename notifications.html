@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202124">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>사피엔스 — 알림</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-30">
+</head>
+<body class="notification-page">
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">NOTIFICATIONS</div>
+    <h1>알림</h1>
+    <p class="notification-lead">다가오는 일정, 새 공지와 게시글, 자료실 업로드를 한곳에서 확인합니다. 읽지 않은 알림은 사이드바 배지로도 표시됩니다.</p>
+
+    <div class="notification-toolbar">
+      <p id="notification-summary" class="notification-summary" role="status" aria-live="polite">알림을 불러오는 중입니다...</p>
+      <button type="button" id="notification-read-all" class="notification-read-all" disabled>모두 읽음</button>
+    </div>
+
+    <div id="notification-list" class="notification-list" aria-label="알림 목록"></div>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-30"></script>
+<script src="assets/auth.js?v=labels-30"></script>
+<script src="assets/notifications.js?v=labels-30"></script>
+<script src="assets/theme.js?v=labels-30"></script>
+</body>
+</html>

@@ -4,6 +4,7 @@
   const NAV = [
     { href: "index.html", label: "홈" },
     { href: "search.html", label: "검색" },
+    { href: "notifications.html", label: "알림" },
     { label: "소식", items: [
       { href: "news.html", label: "날씨" },
       { href: "stocks.html", label: "투자" }
@@ -47,6 +48,11 @@
   ];
 
   const ACCOUNT_PAGES = ["admin.html", "mypage.html"];
+  const NOTIFICATION_CACHE_KEY = "sap-notifications-cache";
+  const NOTIFICATION_SEEN_KEY = "sap-notifications-seen-v1";
+  const NOTIFICATION_SYNC_KEY = "sap-notifications-synced-at";
+  const NOTIFICATION_SYNC_INTERVAL = 5 * 60 * 1000;
+  let notificationRefreshPromise = null;
 
   function currentFile() {
     const name = location.pathname.split("/").pop();
@@ -58,6 +64,13 @@
     link.href = entry.href;
     link.textContent = entry.label;
     if (entry.authLink) link.dataset.authLink = "";
+    if (entry.href === "notifications.html") {
+      const badge = document.createElement("span");
+      badge.className = "nav-badge";
+      badge.dataset.notificationBadge = "";
+      badge.hidden = true;
+      link.appendChild(badge);
+    }
     const pages = entry.pages || [];
     if (entry.href.toLowerCase() === file) {
       link.classList.add("active");
@@ -139,6 +152,301 @@
     return `${Math.round(hours / 24)}일 전`;
   }
 
-  window.SAPCommon = { API_ROOT, escapeHtml, readCache, relTime, renderSidebar, writeCache };
+  function localDate(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  }
+
+  function addDays(dateKey, days) {
+    const date = new Date(`${dateKey}T00:00:00`);
+    date.setDate(date.getDate() + days);
+    return localDate(date);
+  }
+
+  function addMonths(dateKey, months) {
+    const date = new Date(`${dateKey}T00:00:00`);
+    const day = date.getDate();
+    date.setDate(1);
+    date.setMonth(date.getMonth() + months);
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    date.setDate(Math.min(day, lastDay));
+    return localDate(date);
+  }
+
+  function dayDiff(fromKey, toKey) {
+    return Math.round((new Date(`${toKey}T00:00:00`) - new Date(`${fromKey}T00:00:00`)) / 86400000);
+  }
+
+  function monthDiff(fromKey, toKey) {
+    const from = new Date(`${fromKey}T00:00:00`);
+    const to = new Date(`${toKey}T00:00:00`);
+    return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+  }
+
+  function advanceToRange(start, end, rule, rangeStart) {
+    let guard = 0;
+    while (start < rangeStart && guard < 120) {
+      const steps = rule === "daily"
+        ? Math.max(1, dayDiff(start, rangeStart))
+        : rule === "weekly"
+          ? Math.max(1, Math.floor(dayDiff(start, rangeStart) / 7))
+          : Math.max(1, monthDiff(start, rangeStart));
+      if (rule === "daily") {
+        start = addDays(start, steps);
+        end = addDays(end, steps);
+      } else if (rule === "weekly") {
+        start = addDays(start, steps * 7);
+        end = addDays(end, steps * 7);
+      } else {
+        start = addMonths(start, steps);
+        end = addMonths(end, steps);
+      }
+      guard++;
+    }
+    return { start, end };
+  }
+
+  function expandOccurrences(events, rangeStart, rangeEnd) {
+    const occurrences = [];
+    events.forEach(event => {
+      const rule = event.repeat_rule || "none";
+      if (rule === "none") {
+        if (event.end_date >= rangeStart && event.start_date <= rangeEnd) occurrences.push(event);
+        return;
+      }
+      const shifted = advanceToRange(event.start_date, event.end_date, rule, rangeStart);
+      let start = shifted.start;
+      let end = shifted.end;
+      let guard = 0;
+      while (start <= rangeEnd && guard < 60) {
+        if (end >= rangeStart) occurrences.push({ ...event, start_date: start, end_date: end });
+        if (rule === "daily") {
+          start = addDays(start, 1);
+          end = addDays(end, 1);
+        } else if (rule === "weekly") {
+          start = addDays(start, 7);
+          end = addDays(end, 7);
+        } else {
+          start = addMonths(start, 1);
+          end = addMonths(end, 1);
+        }
+        guard++;
+      }
+    });
+    return occurrences;
+  }
+
+  function kstTimestamp(value) {
+    if (!value) return 0;
+    const match = String(value).match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::(\d{2}))?$/);
+    if (match) {
+      return new Date(`${match[1]}T${match[2]}:${match[3] || "00"}+09:00`).getTime();
+    }
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+
+  function relativeTimestamp(timestamp) {
+    if (!timestamp) return "";
+    return relTime(new Date(timestamp).toISOString());
+  }
+
+  function eventWhen(dateKey) {
+    const today = localDate(new Date());
+    const days = Math.round((new Date(`${dateKey}T00:00:00`) - new Date(`${today}T00:00:00`)) / 86400000);
+    if (days <= 0) return "오늘";
+    if (days === 1) return "내일";
+    return `D-${days}`;
+  }
+
+  function eventItems(events) {
+    if (!Array.isArray(events)) return [];
+    const today = localDate(new Date());
+    const horizon = addDays(today, 7);
+    const nextOccurrences = new Map();
+    expandOccurrences(events, today, horizon)
+      .sort((a, b) => a.start_date.localeCompare(b.start_date) || a.id - b.id)
+      .forEach(event => {
+        if (!nextOccurrences.has(event.id)) nextOccurrences.set(event.id, event);
+      });
+    return [...nextOccurrences.values()]
+      .slice(0, 12)
+      .map(event => ({
+        id: `event-${event.id}-${event.start_date}`,
+        kind: "일정",
+        kindKey: "calendar",
+        title: event.title,
+        body: `${event.public_event ? "공개 일정" : "내 일정"}${event.owner_display_name && !event.mine ? ` · ${event.owner_display_name}` : ""}`,
+        link: "calendar.html",
+        timestamp: new Date(`${event.start_date}T00:00:00+09:00`).getTime(),
+        when: eventWhen(event.start_date)
+      }));
+  }
+
+  function postItems(posts) {
+    if (!Array.isArray(posts)) return [];
+    return [...posts]
+      .sort((a, b) => kstTimestamp(b.created_at) - kstTimestamp(a.created_at) || b.id - a.id)
+      .slice(0, 12)
+      .map(post => {
+        const isNotice = post.category === "공지";
+        return {
+          id: `post-${post.id}`,
+          kind: isNotice ? "공지" : "게시판",
+          kindKey: isNotice ? "notice" : "board",
+          title: post.title,
+          body: `${post.category || "게시판"} · ${post.author_name || "작성자"}`,
+          link: isNotice ? "notice.html" : "board.html",
+          timestamp: kstTimestamp(post.created_at),
+          when: relativeTimestamp(kstTimestamp(post.created_at))
+        };
+      });
+  }
+
+  function fileItems(files) {
+    if (!Array.isArray(files)) return [];
+    return [...files]
+      .sort((a, b) => kstTimestamp(b.uploaded_at) - kstTimestamp(a.uploaded_at) || b.id - a.id)
+      .slice(0, 8)
+      .map(file => ({
+        id: `file-${file.id}`,
+        kind: "자료",
+        kindKey: "file",
+        title: file.original_name,
+        body: `자료실 · ${file.author_name || "작성자"}`,
+        link: "files.html",
+        timestamp: kstTimestamp(file.uploaded_at),
+        when: relativeTimestamp(kstTimestamp(file.uploaded_at))
+      }));
+  }
+
+  function sortNotificationItems(list) {
+    return [...list].sort((a, b) => {
+      const aEvent = a.kindKey === "calendar";
+      const bEvent = b.kindKey === "calendar";
+      if (aEvent && bEvent) return a.timestamp - b.timestamp;
+      if (aEvent) return -1;
+      if (bEvent) return 1;
+      return b.timestamp - a.timestamp;
+    });
+  }
+
+  function buildNotificationItems(events, posts, files) {
+    const combined = [...eventItems(events), ...postItems(posts), ...fileItems(files)];
+    return sortNotificationItems(combined.filter(item => item.id && item.title)).slice(0, 30);
+  }
+
+  function notificationUnreadCount() {
+    try {
+      if (!localStorage.getItem("sap-access-token")) return 0;
+      const cache = JSON.parse(localStorage.getItem(NOTIFICATION_CACHE_KEY) || "null");
+      if (!cache || !Array.isArray(cache.items)) return 0;
+      const seen = new Set(JSON.parse(localStorage.getItem(NOTIFICATION_SEEN_KEY) || "[]"));
+      return cache.items.filter(item => item && item.id && !seen.has(item.id)).length;
+    } catch {
+      return 0;
+    }
+  }
+
+  function updateNotificationBadge() {
+    const count = notificationUnreadCount();
+    document.querySelectorAll("[data-notification-badge]").forEach(badge => {
+      badge.textContent = count > 99 ? "99+" : String(count);
+      badge.hidden = count === 0;
+    });
+  }
+
+  function markNotificationSynced() {
+    try { localStorage.setItem(NOTIFICATION_SYNC_KEY, String(Date.now())); } catch {}
+  }
+
+  function clearNotificationState() {
+    try {
+      localStorage.removeItem(NOTIFICATION_CACHE_KEY);
+      localStorage.removeItem(NOTIFICATION_SEEN_KEY);
+      localStorage.removeItem(NOTIFICATION_SYNC_KEY);
+    } catch {}
+    updateNotificationBadge();
+  }
+
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))
+    ]);
+  }
+
+  async function fetchNotificationSource(path) {
+    const response = await withTimeout(
+      window.SAPAuth.apiFetch(`${API_ROOT}${path}`, { cache: "no-store", suppressAuthRedirect: true }),
+      12000
+    );
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  }
+
+  async function refreshNotificationCache({ force = false } = {}) {
+    if (!window.SAPAuth || !localStorage.getItem("sap-access-token")) return null;
+    if (!force) {
+      const syncedAt = Number(localStorage.getItem(NOTIFICATION_SYNC_KEY) || 0);
+      if (Date.now() - syncedAt < NOTIFICATION_SYNC_INTERVAL) return null;
+    }
+    if (notificationRefreshPromise) return notificationRefreshPromise;
+
+    notificationRefreshPromise = (async () => {
+      const [events, posts, files] = await Promise.allSettled([
+        fetchNotificationSource("/events"),
+        fetchNotificationSource("/posts"),
+        fetchNotificationSource("/files")
+      ]);
+      if ([events, posts, files].some(result => result.status === "rejected")) return null;
+      const items = buildNotificationItems(events.value, posts.value, files.value);
+      if (items.length) {
+        writeCache(NOTIFICATION_CACHE_KEY, items);
+      } else {
+        try { localStorage.removeItem(NOTIFICATION_CACHE_KEY); } catch {}
+      }
+      markNotificationSynced();
+      updateNotificationBadge();
+      return items;
+    })();
+
+    try {
+      return await notificationRefreshPromise;
+    } finally {
+      notificationRefreshPromise = null;
+    }
+  }
+
+  function scheduleNotificationRefresh() {
+    if (currentFile() === "notifications.html") return;
+    if (!localStorage.getItem("sap-access-token")) return;
+    const syncedAt = Number(localStorage.getItem(NOTIFICATION_SYNC_KEY) || 0);
+    if (Date.now() - syncedAt < NOTIFICATION_SYNC_INTERVAL) return;
+    const run = () => { refreshNotificationCache().catch(() => {}); };
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(run, { timeout: 3000 });
+    } else {
+      setTimeout(run, 1500);
+    }
+  }
+
+  window.addEventListener("storage", event => {
+    if (event.key === NOTIFICATION_CACHE_KEY || event.key === NOTIFICATION_SEEN_KEY) {
+      updateNotificationBadge();
+    }
+  });
+  window.addEventListener("load", scheduleNotificationRefresh);
+  window.addEventListener("pageshow", event => {
+    if (!event.persisted) return;
+    updateNotificationBadge();
+    scheduleNotificationRefresh();
+  });
+
+  window.SAPCommon = {
+    API_ROOT, buildNotificationItems, clearNotificationState, escapeHtml,
+    markNotificationSynced, notificationUnreadCount, readCache, refreshNotificationCache,
+    relTime, renderSidebar, sortNotificationItems, updateNotificationBadge, writeCache
+  };
   renderSidebar();
+  updateNotificationBadge();
 })();

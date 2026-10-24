@@ -146,7 +146,7 @@
         return;
       }
       const requested = params.get("next") || "index.html";
-      const allowed = ["index.html", "board.html", "notice.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html"];
+      const allowed = ["index.html", "board.html", "notice.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html", "notifications.html"];
       location.replace(allowed.includes(requested) ? requested : "index.html");
     } catch (error) {
       status.textContent = error instanceof TypeError

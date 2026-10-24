@@ -27,12 +27,21 @@
       localStorage.removeItem(tokenKey);
       localStorage.removeItem(userKey);
     } catch {}
+    if (window.SAPCommon) {
+      window.SAPCommon.clearNotificationState();
+    } else {
+      try {
+        localStorage.removeItem("sap-notifications-cache");
+        localStorage.removeItem("sap-notifications-seen-v1");
+        localStorage.removeItem("sap-notifications-synced-at");
+      } catch {}
+    }
     updateAuthLink();
   }
 
   function loginUrl(sessionExpired = false) {
     const next = location.pathname.split("/").pop();
-    const allowed = ["index.html", "board.html", "notice.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html"];
+    const allowed = ["index.html", "board.html", "notice.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html", "notifications.html"];
     const params = new URLSearchParams();
     if (allowed.includes(next)) params.set("next", next);
     if (sessionExpired) params.set("expired", "1");
