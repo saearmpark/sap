@@ -19,7 +19,15 @@
   <main class="main">
     <div class="eyebrow">INVEST</div>
     <h1>투자정보</h1>
-    <p>국내·미국 시가총액 상위 종목과 대표 ETF, 원/달러 환율, 비트코인, 금 ETF, WTI 유가 시세를 10초마다 갱신합니다. 정규장 밖의 장전·시간외 값은 배지로 구분하고, 아래에는 경제 관련 소식을 함께 보여줍니다.</p>
+    <p>국내·미국 시가총액 상위 종목과 대표 ETF, 원/달러 환율, 비트코인, 금 ETF, WTI 유가 시세를 10초마다 갱신합니다. 카드의 별표로 관심종목을 저장하면 홈 오늘 브리핑에도 반영됩니다. 정규장 밖의 장전·시간외 값은 배지로 구분하고, 아래에는 경제 관련 소식을 함께 보여줍니다.</p>
+
+    <section class="stock-watchlist" aria-labelledby="stock-watchlist-title">
+      <div class="stock-watchlist-head">
+        <h2 id="stock-watchlist-title">관심종목</h2>
+        <span id="stock-watchlist-status" class="stock-watchlist-status">카드의 별표를 눌러 추가하거나 해제하세요.</span>
+      </div>
+      <div id="stock-watchlist-list" class="stock-watchlist-list"></div>
+    </section>
 
     <p id="stocks-status" class="stocks-status" role="status" aria-live="polite">시세를 불러오는 중입니다...</p>
     <div id="stocks-list" class="stocks-list"></div>
@@ -41,7 +49,13 @@
     const statusEl = document.getElementById("stocks-status");
     const GROUPS = ["국내", "미국", "환율", "코인", "기타"];
     const CACHE_KEY = "sap-stocks-cache";
+    const WATCHLIST_KEY = "sap-stock-watchlist";
+    const DEFAULT_WATCHLIST = ["005930", "000660", "069500"];
+    const watchlistListEl = document.getElementById("stock-watchlist-list");
+    const watchlistStatusEl = document.getElementById("stock-watchlist-status");
     let lastSignature = "";
+    let lastQuotes = [];
+    let watchlist = readWatchlist();
 
     function readCache() {
       try {
@@ -52,6 +66,78 @@
 
     function writeCache(quotes) {
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(quotes)); } catch {}
+    }
+
+    function readWatchlist() {
+      try {
+        const raw = localStorage.getItem(WATCHLIST_KEY);
+        if (raw === null) return DEFAULT_WATCHLIST.slice();
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return DEFAULT_WATCHLIST.slice();
+        return [...new Set(parsed.filter(symbol => typeof symbol === "string" && symbol))];
+      } catch {
+        return DEFAULT_WATCHLIST.slice();
+      }
+    }
+
+    function writeWatchlist() {
+      try { localStorage.setItem(WATCHLIST_KEY, JSON.stringify(watchlist)); } catch {}
+    }
+
+    function toggleWatch(symbol) {
+      watchlist = watchlist.includes(symbol)
+        ? watchlist.filter(item => item !== symbol)
+        : [...watchlist, symbol];
+      writeWatchlist();
+      updateWatchButtons();
+      renderWatchlist(lastQuotes);
+    }
+
+    function updateWatchButtons() {
+      document.querySelectorAll("[data-watch-symbol]").forEach(button => {
+        const watched = watchlist.includes(button.dataset.watchSymbol);
+        button.setAttribute("aria-pressed", String(watched));
+        button.textContent = watched ? "★ 관심" : "☆ 관심";
+        button.setAttribute("aria-label", `${button.dataset.watchName} 관심종목 ${watched ? "해제" : "추가"}`);
+      });
+    }
+
+    function renderWatchlist(quotes) {
+      if (!watchlistListEl || !watchlistStatusEl) return;
+      const bySymbol = new Map(quotes.map(quote => [quote.symbol, quote]));
+      const items = watchlist.map(symbol => bySymbol.get(symbol)).filter(Boolean);
+      if (!items.length) {
+        const empty = document.createElement("p");
+        empty.className = "stock-watchlist-empty";
+        empty.textContent = "아직 관심종목이 없습니다. 카드의 별표를 눌러 추가하세요.";
+        watchlistListEl.replaceChildren(empty);
+        watchlistStatusEl.textContent = "0개";
+        return;
+      }
+      const chips = items.map(quote => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "stock-watch-chip";
+        chip.title = `${quote.name} 카드로 이동`;
+        chip.addEventListener("click", () => {
+          const card = document.getElementById(`stock-${quote.symbol}`);
+          if (!card) return;
+          card.scrollIntoView({ behavior: "smooth", block: "center" });
+          card.classList.add("is-highlight");
+          setTimeout(() => card.classList.remove("is-highlight"), 1200);
+        });
+        const name = document.createElement("span");
+        name.className = "stock-watch-name";
+        name.textContent = quote.name;
+        const change = document.createElement("span");
+        change.className = `stock-watch-change ${quote.change >= 0 ? "is-up" : "is-down"}`;
+        const arrow = quote.change > 0 ? "▲" : quote.change < 0 ? "▼" : "–";
+        change.textContent = `${arrow} ${Math.abs(quote.changePercent).toFixed(2)}%`;
+        chip.append(name, change);
+        return chip;
+      });
+      watchlistListEl.replaceChildren(...chips);
+      watchlistStatusEl.textContent = `${items.length}개`;
     }
 
     function relTime(iso) {
@@ -81,6 +167,7 @@
       const isRate = quote.currency === "%";
       const article = document.createElement("article");
       article.className = "stock-card";
+      article.id = `stock-${quote.symbol}`;
 
       const top = document.createElement("div");
       top.className = "stock-top";
@@ -127,11 +214,24 @@
       numbers.append(price, change);
 
       top.append(names, numbers);
-      article.append(top);
+
+      const watched = watchlist.includes(quote.symbol);
+      const watch = document.createElement("button");
+      watch.type = "button";
+      watch.className = "stock-watch-toggle";
+      watch.dataset.watchSymbol = quote.symbol;
+      watch.dataset.watchName = quote.name;
+      watch.setAttribute("aria-pressed", String(watched));
+      watch.setAttribute("aria-label", `${quote.name} 관심종목 ${watched ? "해제" : "추가"}`);
+      watch.textContent = watched ? "★ 관심" : "☆ 관심";
+      watch.addEventListener("click", () => toggleWatch(quote.symbol));
+
+      article.append(top, watch);
       return article;
     }
 
     function render(quotes) {
+      lastQuotes = quotes;
       const nodes = [];
       GROUPS.forEach(group => {
         const items = quotes.filter(quote => quote.group === group);
@@ -146,6 +246,7 @@
         nodes.push(grid);
       });
       listEl.replaceChildren(...nodes);
+      renderWatchlist(quotes);
     }
 
     async function load() {
@@ -171,6 +272,13 @@
           : "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
       }
     }
+
+    window.addEventListener("storage", event => {
+      if (event.key !== WATCHLIST_KEY) return;
+      watchlist = readWatchlist();
+      updateWatchButtons();
+      renderWatchlist(lastQuotes);
+    });
 
     const cachedQuotes = readCache();
     if (cachedQuotes) {
