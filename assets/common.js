@@ -3,8 +3,6 @@
 
   const NAV = [
     { href: "index.html", label: "홈" },
-    { href: "search.html", label: "검색" },
-    { href: "notifications.html", label: "알림" },
     { label: "소식", items: [
       { href: "news.html", label: "날씨" },
       { href: "stocks.html", label: "투자" }
@@ -43,6 +41,7 @@
     ] },
     { label: "계정", items: [
       { href: "calendar.html", label: "일정" },
+      { href: "notifications.html", label: "알림" },
       { href: "login.html", label: "로그인 / 회원가입", authLink: true }
     ] }
   ];
@@ -57,6 +56,24 @@
   function currentFile() {
     const name = location.pathname.split("/").pop();
     return (name || "index.html").toLowerCase();
+  }
+
+  function navSearch() {
+    const form = document.createElement("form");
+    form.className = "nav-search";
+    form.action = "search.html";
+    form.method = "get";
+    form.setAttribute("role", "search");
+    const input = document.createElement("input");
+    input.type = "search";
+    input.name = "q";
+    input.placeholder = "검색";
+    input.setAttribute("aria-label", "사이트 검색");
+    const button = document.createElement("button");
+    button.type = "submit";
+    button.textContent = "검색";
+    form.append(input, button);
+    return form;
   }
 
   function navLink(entry, file) {
@@ -136,6 +153,7 @@
       details.append(summary, submenu);
       fragment.appendChild(details);
     }
+    fragment.appendChild(navSearch());
     nav.replaceChildren(fragment);
   }
 

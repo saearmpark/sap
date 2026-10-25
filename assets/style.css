@@ -1623,3 +1623,7 @@ textarea:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+.nav-search { display: flex; gap: 6px; margin: 14px 10px 4px; }
+.nav-search input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit; }
+.nav-search button { padding: 8px 10px; }
