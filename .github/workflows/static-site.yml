@@ -47,6 +47,8 @@ jobs:
         run: node .github/scripts/check-assets.mjs
       - name: Check metadata and sitemap
         run: node .github/scripts/check-seo.mjs
+      - name: Check content counts
+        run: node .github/scripts/check-counts.mjs
       - name: Check PWA files
         run: |
           node --check sw.js
