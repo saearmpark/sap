@@ -50,6 +50,11 @@
     fetch(`${window.SAPCommon.API_ROOT}/ai-usage`, { cache: "no-store" })
       .then(response => { if (!response.ok) throw new Error(String(response.status)); return response.json(); })
       .then(data => {
+        if (data.remainingPercent === null || data.remainingPercent === undefined) {
+          value.textContent = "--%";
+          status.textContent = "OpenAI API 사용량을 확인할 수 없습니다. Codex 플랜 잔여량은 이 API에서 제공되지 않습니다.";
+          return;
+        }
         const percent = Number(data.remainingPercent);
         if (!Number.isFinite(percent)) throw new Error("missing usage");
         const safe = Math.max(0, Math.min(100, Math.round(percent)));
