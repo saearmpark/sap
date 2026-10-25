@@ -1,5 +1,5 @@
 /* SAP PWA shell: cache core pages and assets, fall back to offline.html. */
-const CACHE = "sap-shell-labels-30";
+const CACHE = "sap-shell-labels-31";
 const CORE = [
   "./",
   "index.html",
@@ -10,17 +10,16 @@ const CORE = [
   "stocks.html",
   "english.html",
   "learn.html",
-  "strategy.html",
   "calendar.html",
   "login.html",
   "manifest.webmanifest",
-  "assets/style.css?v=labels-30",
-  "assets/common.js?v=labels-30",
-  "assets/auth.js?v=labels-30",
-  "assets/theme.js?v=labels-30",
-  "assets/english.js?v=labels-30",
-  "assets/feed.js?v=labels-30",
-  "assets/notifications.js?v=labels-30",
+  "assets/style.css?v=labels-31",
+  "assets/common.js?v=labels-31",
+  "assets/auth.js?v=labels-31",
+  "assets/theme.js?v=labels-31",
+  "assets/english.js?v=labels-31",
+  "assets/feed.js?v=labels-31",
+  "assets/notifications.js?v=labels-31",
   "assets/icons/icon-192.png",
   "assets/icons/icon-512.png",
   "assets/icons/icon-maskable-512.png",

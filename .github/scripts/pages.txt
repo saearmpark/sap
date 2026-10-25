@@ -7,7 +7,6 @@ stocks.html
 learn.html
 english.html
 game.html
-strategy.html
 board.html
 notice.html
 chat.html
