@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#202124">
-<meta name="description" content="44개의 실습 게임과 코드 보기. 브레이크아웃, 스네이크, 2048, 지뢰 찾기, 틱택토 등을 바로 플레이합니다.">
+<meta name="description" content="45개의 실습 게임과 코드 보기. 브레이크아웃, 스네이크, 2048, 지뢰 찾기, 틱택토 등을 바로 플레이합니다.">
 <link rel="canonical" href="https://saearmpark.github.io/sap/game.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="사피엔스">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:title" content="사피엔스 — 학습(게임)">
-<meta property="og:description" content="44개의 실습 게임과 코드 보기. 브레이크아웃, 스네이크, 2048, 지뢰 찾기, 틱택토 등을 바로 플레이합니다.">
+<meta property="og:description" content="45개의 실습 게임과 코드 보기. 브레이크아웃, 스네이크, 2048, 지뢰 찾기, 틱택토 등을 바로 플레이합니다.">
 <meta property="og:url" content="https://saearmpark.github.io/sap/game.html">
 <meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
 <meta name="twitter:card" content="summary">
@@ -409,6 +409,16 @@
   .solitaire-card.is-back { background: #3a5f8a; border-color: #31547a; color: transparent !important; }
   .solitaire-card.is-selected { outline: 3px solid var(--accent); outline-offset: -2px; z-index: 5; }
   .solitaire-card.is-empty { background: transparent; border-style: dashed; cursor: default; }
+  .rhythm-hud { display:flex; flex-wrap:wrap; gap:12px; color:var(--ink-soft); font-weight:600; }
+  .rhythm-canvas { display:block; width:min(100%, 380px); height:auto; margin:12px 0; border:1px solid var(--border); border-radius:10px; background:#0b1020; touch-action:none; }
+  .rhythm-lanes { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px; width:min(100%, 380px); margin:0 0 12px; }
+  .rhythm-key { min-height:56px; border:1px solid var(--border); border-top-width:4px; border-radius:8px; background:#dbe3ee; color:#17181a; font-weight:700; cursor:pointer; touch-action:manipulation; }
+  .rhythm-key:nth-child(1) { border-top-color:#48dbfb; }
+  .rhythm-key:nth-child(2) { border-top-color:#1dd1a1; }
+  .rhythm-key:nth-child(3) { border-top-color:#feca57; }
+  .rhythm-key:nth-child(4) { border-top-color:#ff9ff3; }
+  .rhythm-key.is-active { border-color:#2563eb; background:#93c5fd; }
+  .rhythm-key:disabled { opacity:.5; cursor:default; }
 </style>
 </head>
 <body class="learning-page">
@@ -452,6 +462,7 @@
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-solitaire">솔리테어</button><button class="game-code-button" type="button" data-game-code-view="panel-solitaire">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-tanks">탱크 대전</button><button class="game-code-button" type="button" data-game-code-view="panel-tanks">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-stack">스택</button><button class="game-code-button" type="button" data-game-code-view="panel-stack">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-rhythm">리듬 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-rhythm">코드 보기</button></div>
       </div>
 
       <h2 class="game-list-heading">대전 게임</h2>
@@ -1180,6 +1191,29 @@
         <button id="stack-start" type="button">시작</button>
       </div>
       <p id="stack-status" class="extra-game-status" aria-live="polite">시작 버튼을 눌러주세요.</p>
+    </div>
+
+    <div id="panel-rhythm" class="card game-panel" hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 60</span>
+      <h3>리듬 게임 (JavaScript)</h3>
+      <p>D·F·J·K 키나 아래 판정 버튼으로 네 줄의 노트를 판정선에 맞춰 누르세요. 45초 동안 점수와 콤보를 쌓고, 정확하게 누를수록 높은 점수를 얻습니다.</p>
+      <p class="mobile-hint">PC: D F J K 키 · 모바일: 아래 판정 버튼을 탭하세요.</p>
+      <div class="rhythm-hud" aria-label="리듬 게임 현황">
+        <span>점수 <span id="rhythm-score">0</span></span>
+        <span>콤보 <span id="rhythm-combo">0</span></span>
+        <span>정확도 <span id="rhythm-accuracy">100%</span></span>
+        <span>남은 시간 <span id="rhythm-time">45</span>초</span>
+      </div>
+      <canvas id="rhythm-canvas" class="rhythm-canvas" width="380" height="480" aria-label="리듬 게임 화면"></canvas>
+      <div class="rhythm-lanes" aria-label="리듬 게임 판정 버튼">
+        <button class="rhythm-key" type="button" data-lane="0" disabled>D</button>
+        <button class="rhythm-key" type="button" data-lane="1" disabled>F</button>
+        <button class="rhythm-key" type="button" data-lane="2" disabled>J</button>
+        <button class="rhythm-key" type="button" data-lane="3" disabled>K</button>
+      </div>
+      <div class="choice-controls"><button id="rhythm-start" type="button">시작</button></div>
+      <p id="rhythm-status" class="extra-game-status" aria-live="polite">시작 버튼을 눌러주세요.</p>
     </div>
 
     <dialog id="game-code-dialog" class="game-code-dialog">
@@ -10984,6 +11018,278 @@
   })();
 </script>
 
+<script data-game-code="panel-rhythm">
+  // ── STEP 60: 리듬 게임 ─────────────────────────
+  (function () {
+    const canvas = document.getElementById("rhythm-canvas");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("rhythm-score");
+    const comboEl = document.getElementById("rhythm-combo");
+    const accuracyEl = document.getElementById("rhythm-accuracy");
+    const timeEl = document.getElementById("rhythm-time");
+    const statusEl = document.getElementById("rhythm-status");
+    const startBtn = document.getElementById("rhythm-start");
+    const keyButtons = Array.from(document.querySelectorAll(".rhythm-key"));
+    const KEYS = ["d", "f", "j", "k"];
+    const LANE_COLORS = ["#48dbfb", "#1dd1a1", "#feca57", "#ff9ff3"];
+    const W = canvas.width, H = canvas.height;
+    const LANE_W = W / 4;
+    const HIT_Y = H - 64;
+    const TOP_Y = 34;
+    const TRAVEL = 1500;
+    const DURATION = 45000;
+    const NOTE_INTERVAL = 420;
+    const WINDOWS = [
+      { label: "PERFECT", ms: 45, score: 100 },
+      { label: "GREAT", ms: 90, score: 70 },
+      { label: "GOOD", ms: 140, score: 40 },
+    ];
+    const MAX_WINDOW = WINDOWS[WINDOWS.length - 1].ms;
+
+    let notes, running, finished, rafId, startedAt;
+    let score, combo, bestCombo, judged, quality, hitCount, totalNotes;
+    let judgeLabel, judgeUntil, flashUntil;
+
+    function buildChart() {
+      const chart = [];
+      for (let time = TRAVEL + 800; time < DURATION - 500; time += NOTE_INTERVAL) {
+        chart.push({ lane: Math.floor(Math.random() * 4), time, state: "pending" });
+        // 가끔 같은 시각에 다른 줄 노트를 하나 더 놓아 동시 입력을 연습합니다.
+        if (Math.random() < 0.16) {
+          const lane = (chart[chart.length - 1].lane + 1 + Math.floor(Math.random() * 3)) % 4;
+          chart.push({ lane, time, state: "pending" });
+        }
+      }
+      return chart;
+    }
+
+    function accuracy() {
+      return judged ? Math.round((quality / judged) * 100) : 100;
+    }
+
+    function updateHud() {
+      scoreEl.textContent = String(score);
+      comboEl.textContent = String(combo);
+      accuracyEl.textContent = `${accuracy()}%`;
+    }
+
+    function reset() {
+      notes = buildChart();
+      running = false;
+      finished = false;
+      score = 0;
+      combo = 0;
+      bestCombo = 0;
+      judged = 0;
+      quality = 0;
+      hitCount = 0;
+      totalNotes = notes.length;
+      judgeLabel = "";
+      judgeUntil = 0;
+      flashUntil = [0, 0, 0, 0];
+      keyButtons.forEach(button => { button.disabled = true; });
+      timeEl.textContent = String(DURATION / 1000);
+      updateHud();
+      draw(0);
+    }
+
+    function press(lane) {
+      if (!running) return;
+      const button = keyButtons[lane];
+      if (button) {
+        button.classList.add("is-active");
+        setTimeout(() => button.classList.remove("is-active"), 110);
+      }
+      flashUntil[lane] = performance.now() + 110;
+
+      const now = performance.now() - startedAt;
+      let best = null;
+      for (const note of notes) {
+        if (note.lane !== lane || note.state !== "pending") continue;
+        const delta = Math.abs(now - note.time);
+        if (delta > MAX_WINDOW) continue;
+        if (!best || delta < best.delta) best = { note, delta };
+      }
+      if (!best) return;
+
+      const judge = WINDOWS.find(entry => best.delta <= entry.ms);
+      best.note.state = "hit";
+      hitCount++;
+      judged++;
+      quality += judge.score / 100;
+      score += judge.score + Math.min(combo, 20) * 2;
+      combo++;
+      bestCombo = Math.max(bestCombo, combo);
+      judgeLabel = judge.label;
+      judgeUntil = now + 450;
+      updateHud();
+    }
+
+    function missCheck(now) {
+      for (const note of notes) {
+        if (note.state !== "pending" || now <= note.time + MAX_WINDOW) continue;
+        note.state = "miss";
+        judged++;
+        combo = 0;
+        updateHud();
+      }
+    }
+
+    function laneX(lane) {
+      return lane * LANE_W;
+    }
+
+    function drawNote(lane, y, state) {
+      const x = laneX(lane) + 10;
+      const width = LANE_W - 20;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y - 9, width, 18, 8);
+      else ctx.rect(x, y - 9, width, 18);
+      ctx.fillStyle = state === "miss" ? "#4b5563" : LANE_COLORS[lane];
+      ctx.fill();
+      if (state !== "miss") {
+        ctx.fillStyle = "rgba(255,255,255,.72)";
+        ctx.fillRect(x + 6, y - 2, width - 12, 3);
+      }
+    }
+
+    function draw(now) {
+      const time = performance.now();
+      const background = ctx.createLinearGradient(0, 0, 0, H);
+      background.addColorStop(0, "#111827");
+      background.addColorStop(1, "#0b1020");
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, W, H);
+
+      for (let lane = 0; lane < 4; lane++) {
+        ctx.fillStyle = lane % 2 ? "rgba(255,255,255,.045)" : "rgba(255,255,255,.025)";
+        ctx.fillRect(laneX(lane), 0, LANE_W, H);
+        ctx.strokeStyle = "rgba(255,255,255,.12)";
+        ctx.beginPath();
+        ctx.moveTo(laneX(lane), 0);
+        ctx.lineTo(laneX(lane), H);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "rgba(255,255,255,.22)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, HIT_Y);
+      ctx.lineTo(W, HIT_Y);
+      ctx.stroke();
+
+      ctx.textAlign = "center";
+      for (let lane = 0; lane < 4; lane++) {
+        const active = flashUntil[lane] > time;
+        ctx.fillStyle = active ? LANE_COLORS[lane] : "rgba(255,255,255,.16)";
+        ctx.fillRect(laneX(lane) + 8, HIT_Y + 4, LANE_W - 16, 6);
+        ctx.fillStyle = LANE_COLORS[lane];
+        ctx.font = "700 16px ui-monospace, monospace";
+        ctx.fillText(KEYS[lane].toUpperCase(), laneX(lane) + LANE_W / 2, HIT_Y + 32);
+      }
+
+      // 네 박자마다 옅은 마디선을 그려 노트의 흐름을 읽기 쉽게 합니다.
+      const barGap = NOTE_INTERVAL * 4;
+      ctx.strokeStyle = "rgba(255,255,255,.10)";
+      ctx.lineWidth = 1;
+      for (let bar = TRAVEL + 800; bar < DURATION; bar += barGap) {
+        const y = HIT_Y - ((bar - now) / TRAVEL) * (HIT_Y - TOP_Y);
+        if (y < TOP_Y || y > HIT_Y) continue;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+
+      for (const note of notes) {
+        if (note.state === "hit") continue;
+        const y = HIT_Y - ((note.time - now) / TRAVEL) * (HIT_Y - TOP_Y);
+        if (y < TOP_Y - 30 || y > HIT_Y + 34) continue;
+        drawNote(note.lane, y, note.state);
+      }
+
+      if (judgeUntil > time && judgeLabel) {
+        ctx.fillStyle = judgeLabel === "PERFECT" ? "#7dd3fc" : judgeLabel === "GREAT" ? "#86efac" : "#fde68a";
+        ctx.font = "800 26px ui-monospace, monospace";
+        ctx.fillText(judgeLabel, W / 2, HIT_Y - 52);
+      }
+
+      if (!running) {
+        ctx.fillStyle = "rgba(226,232,240,.86)";
+        ctx.font = "600 17px sans-serif";
+        ctx.fillText(finished ? "결과가 아래에 표시됩니다" : "시작 버튼을 눌러주세요", W / 2, H / 2);
+      }
+      ctx.textAlign = "left";
+    }
+
+    function finish() {
+      running = false;
+      cancelAnimationFrame(rafId);
+      keyButtons.forEach(button => { button.disabled = true; });
+      finished = true;
+      timeEl.textContent = "0";
+      draw(DURATION);
+      statusEl.textContent = `점수 ${score} · 최고 콤보 ${bestCombo} · 정확도 ${accuracy()}% · 맞힘 ${hitCount}/${totalNotes}`;
+      if (score > 0) window.reportScore?.("panel-rhythm", score);
+    }
+
+    function loop() {
+      if (!running) return;
+      const now = performance.now() - startedAt;
+      missCheck(now);
+      timeEl.textContent = String(Math.max(0, Math.ceil((DURATION - now) / 1000)));
+      updateHud();
+      draw(now);
+      if (now >= DURATION) {
+        finish();
+        return;
+      }
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+      keyButtons.forEach(button => { button.disabled = true; });
+      if (!finished) {
+        reset();
+        statusEl.textContent = "시작 버튼을 눌러주세요.";
+      }
+    }
+
+    function start() {
+      reset();
+      running = true;
+      startedAt = performance.now();
+      keyButtons.forEach(button => { button.disabled = false; });
+      statusEl.textContent = "D F J K 키로 노트를 맞추세요.";
+      rafId = requestAnimationFrame(loop);
+    }
+
+    startBtn.addEventListener("click", start);
+    document.addEventListener("keydown", event => {
+      if (!running || event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      const lane = KEYS.indexOf(event.key.toLowerCase());
+      if (lane < 0) return;
+      event.preventDefault();
+      press(lane);
+    });
+    keyButtons.forEach((button, lane) => {
+      button.addEventListener("pointerdown", event => {
+        event.preventDefault();
+        press(lane);
+      });
+      button.addEventListener("click", event => {
+        if (event.detail === 0) press(lane);
+      });
+    });
+
+    registerGame("panel-rhythm", { init: reset, stop });
+  })();
+</script>
+
 <script>
   // ── 게임 목록 ↔ 선택한 게임 화면 전환 ─────────────────
   (function () {
@@ -11021,6 +11327,7 @@
       "panel-solitaire": "솔리테어",
       "panel-tanks": "탱크 대전",
       "panel-stack": "스택",
+      "panel-rhythm": "리듬 게임",
     };
 
     const LOWER_IS_BETTER = new Set(["panel-memory", "panel-guess", "panel-reaction", "panel-mines", "panel-solitaire"]);
@@ -11034,6 +11341,7 @@
       "panel-solitaire": "수",
       "panel-tanks": "점",
       "panel-stack": "층",
+      "panel-rhythm": "점",
     };
 
     function formatScore(gameId, value) {

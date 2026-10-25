@@ -200,7 +200,7 @@ try {
     canvases: [...document.querySelectorAll("canvas")].filter((canvas) => !canvas.getAttribute("aria-label")).length
   })`);
   check(gameMenu.menuVisible, "게임 목록이 기본으로 보입니다");
-  check(gameMenu.games === 44, "게임 44개가 렌더링됩니다", String(gameMenu.games));
+  check(gameMenu.games === 45, "게임 45개가 렌더링됩니다", String(gameMenu.games));
   check(gameMenu.canvases === 0, "모든 캔버스에 aria-label이 있습니다", String(gameMenu.canvases));
   check(pageErrors.length === 0, "게임 목록에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 
@@ -213,6 +213,34 @@ try {
   check(deepLink.hash === "#panel-2048" && !deepLink.panelHidden && deepLink.menuHidden,
     "게임 해시 링크가 해당 게임을 바로 엽니다", JSON.stringify(deepLink));
   check(pageErrors.length === 0, "게임 딥링크에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
+
+  await navigate("game.html?smoke=2#panel-rhythm", 1200);
+  const rhythm = await evaluate(`({
+    visible: !document.getElementById("panel-rhythm").hidden,
+    keys: document.querySelectorAll(".rhythm-key").length,
+    labeled: Boolean(document.getElementById("rhythm-canvas").getAttribute("aria-label"))
+  })`);
+  check(rhythm.visible && rhythm.keys === 4 && rhythm.labeled,
+    "리듬 게임 화면과 판정 버튼이 준비됩니다", JSON.stringify(rhythm));
+  await evaluate(`document.getElementById("rhythm-start").click()`);
+  await sleep(350);
+  const rhythmRunning = await evaluate(`({
+    status: document.getElementById("rhythm-status").textContent,
+    enabled: [...document.querySelectorAll(".rhythm-key")].filter((key) => !key.disabled).length
+  })`);
+  check(rhythmRunning.status.includes("D F J K") && rhythmRunning.enabled === 4,
+    "리듬 게임을 시작하면 판정 버튼이 활성화됩니다", JSON.stringify(rhythmRunning));
+  await sleep(1100);
+  const rhythmPlay = await evaluate(`(() => {
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
+    return {
+      time: Number(document.getElementById("rhythm-time").textContent),
+      flash: document.querySelector('.rhythm-key[data-lane="0"]').classList.contains("is-active")
+    };
+  })()`);
+  check(rhythmPlay.time <= 44 && rhythmPlay.flash,
+    "리듬 게임 타이머와 키 입력이 동작합니다", JSON.stringify(rhythmPlay));
+  check(pageErrors.length === 0, "리듬 게임에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 
   await navigate("search.html", 1200);
   const search = await evaluate(`({
