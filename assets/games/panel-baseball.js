@@ -46,6 +46,7 @@
         finished = true;
         status.textContent = `${attempts}번 만에 정답을 맞혔습니다!`;
         input.disabled = true;
+        window.reportScore?.("panel-baseball", attempts);
       } else if (attempts >= 10) {
         finished = true;
         status.textContent = `도전 종료! 정답은 ${answer}였습니다.`;

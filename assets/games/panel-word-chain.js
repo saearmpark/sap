@@ -18,6 +18,7 @@
     let used = new Set();
     let current = "";
     let finished = false;
+    let myWords = 0;
 
     function normalizeWord(value) {
       return value.trim().replace(/\s+/g, "");
@@ -39,6 +40,7 @@
       used = new Set();
       current = "";
       finished = false;
+      myWords = 0;
       input.disabled = false;
       form.querySelector("button").disabled = false;
       input.value = "";
@@ -52,6 +54,7 @@
       statusEl.textContent = `${message} 내가 졌습니다. 다시 하려면 새 게임을 누르세요.`;
       input.disabled = true;
       form.querySelector("button").disabled = true;
+      if (myWords > 0) window.reportScore?.("panel-word-chain", myWords);
     }
     input.addEventListener("input", () => {
       const word = normalizeWord(input.value);
@@ -82,6 +85,7 @@
         return;
       }
       addWord(word, "나");
+      myWords++;
       const endingLetter = lastLetter(word);
       const replies = words.filter(candidate => !used.has(candidate) && firstLetter(candidate) === endingLetter);
       if (!replies.length) {

@@ -242,6 +242,23 @@ try {
     "리듬 게임 타이머와 키 입력이 동작합니다", JSON.stringify(rhythmPlay));
   check(pageErrors.length === 0, "리듬 게임에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 
+  await navigate("game.html?smoke=games", 900);
+  const gameIds = await evaluate(`[...document.querySelectorAll(".game-list-item")].map((button) => button.dataset.target)`);
+  const brokenGames = [];
+  for (const gameId of gameIds) {
+    const before = pageErrors.length;
+    await evaluate(`document.querySelector('.game-list-item[data-target="${gameId}"]').click()`);
+    await sleep(200);
+    const state = await evaluate(`({
+      visible: !document.getElementById("${gameId}").hidden,
+      registered: Boolean(window.gamePanels?.["${gameId}"])
+    })`);
+    if (!state.visible || !state.registered || pageErrors.length > before) brokenGames.push(gameId);
+    await evaluate(`document.querySelector(".game-panel:not([hidden]) .game-back")?.click()`);
+    await sleep(120);
+  }
+  check(brokenGames.length === 0, "45개 게임이 모두 열립니다", brokenGames.join(", "));
+
   await navigate("search.html", 1200);
   const search = await evaluate(`({
     form: Boolean(document.querySelector('input[type="search"], #search-input')),
