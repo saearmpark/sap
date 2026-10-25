@@ -46,7 +46,7 @@
     ] }
   ];
 
-  const ACCOUNT_PAGES = ["admin.html", "mypage.html"];
+  const ACCOUNT_PAGES = ["admin.html"];
   const NOTIFICATION_CACHE_KEY = "sap-notifications-cache";
   const NOTIFICATION_SEEN_KEY = "sap-notifications-seen-v1";
   const NOTIFICATION_SYNC_KEY = "sap-notifications-synced-at";

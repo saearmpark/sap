@@ -16,7 +16,6 @@ apps.html
 calendar.html
 login.html
 admin.html
-mypage.html
 manual.html
 manual-plan.html
 manual-vscode.html

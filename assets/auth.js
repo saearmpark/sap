@@ -41,7 +41,7 @@
 
   function loginUrl(sessionExpired = false) {
     const next = location.pathname.split("/").pop();
-    const allowed = ["index.html", "board.html", "notice.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "mypage.html", "search.html", "notifications.html"];
+    const allowed = ["index.html", "board.html", "notice.html", "files.html", "calendar.html", "learn.html", "game.html", "admin.html", "chat.html", "search.html", "notifications.html"];
     const params = new URLSearchParams();
     if (allowed.includes(next)) params.set("next", next);
     if (sessionExpired) params.set("expired", "1");
@@ -140,17 +140,6 @@
     }
 
     const accountMenu = link?.closest(".nav-submenu");
-
-    let mypageLink = accountMenu?.querySelector("[data-mypage-link]");
-    if (authed && accountMenu && !mypageLink) {
-      mypageLink = document.createElement("a");
-      mypageLink.href = "mypage.html";
-      mypageLink.dataset.mypageLink = "";
-      mypageLink.textContent = "나의정보";
-      accountMenu.appendChild(mypageLink);
-    } else if (mypageLink) {
-      mypageLink.hidden = !authed;
-    }
 
     let passwordLink = accountMenu?.querySelector("[data-password-link]");
     if (authed && accountMenu && !passwordLink) {
