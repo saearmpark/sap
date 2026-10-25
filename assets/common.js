@@ -33,7 +33,6 @@
     ] },
     { label: "소통", items: [
       { href: "board.html", label: "게시판" },
-      { href: "notice.html", label: "공지" },
       { href: "chat.html", label: "대화" }
     ] },
     { label: "자료", items: [
