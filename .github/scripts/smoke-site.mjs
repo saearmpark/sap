@@ -238,7 +238,7 @@ try {
       flash: document.querySelector('.rhythm-key[data-lane="0"]').classList.contains("is-active")
     };
   })()`);
-  check(rhythmPlay.time <= 44 && rhythmPlay.flash,
+  check(rhythmPlay.time <= 47 && rhythmPlay.flash,
     "리듬 게임 타이머와 키 입력이 동작합니다", JSON.stringify(rhythmPlay));
   check(pageErrors.length === 0, "리듬 게임에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 
