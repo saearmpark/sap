@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202124">
+<meta name="description" content="Codex CLI와 OpenAI API 사용량의 잔여 한도를 확인합니다.">
+<link rel="canonical" href="https://saearmpark.github.io/sap/ai-usage.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="사피엔스">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="사피엔스 — AI 사용량">
+<meta property="og:description" content="Codex CLI와 OpenAI API 사용량의 잔여 한도를 확인합니다.">
+<meta property="og:url" content="https://saearmpark.github.io/sap/ai-usage.html">
+<meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>사피엔스 — AI 사용량</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-41">
+<style>
+  .usage-card { max-width: 560px; margin-top: 24px; padding: 24px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .usage-value { margin: 12px 0; font: 700 clamp(42px, 10vw, 72px)/1 var(--sans); color: var(--accent); }
+  .usage-meta { color: var(--ink-soft); }
+  .usage-bar { height: 12px; overflow: hidden; border-radius: 99px; background: var(--border); }
+  .usage-bar span { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--accent); transition: width .3s ease; }
+</style>
+</head>
+<body>
+<div class="layout"><aside class="sidebar"><nav class="nav-group" data-nav></nav></aside>
+<main class="main">
+  <div class="eyebrow">AI USAGE</div>
+  <h1>AI 사용량</h1>
+  <p>Codex CLI 사용량 수집기가 제공하는 잔여 한도를 표시합니다.</p>
+  <section class="usage-card" aria-label="AI 사용량">
+    <div id="usage-value" class="usage-value">--%</div>
+    <div class="usage-bar" aria-hidden="true"><span id="usage-bar-fill"></span></div>
+    <p id="usage-status" class="usage-meta" role="status">사용량을 확인하는 중입니다...</p>
+  </section>
+</main></div>
+<script src="assets/common.js?v=labels-41"></script>
+<script src="assets/auth.js?v=labels-41"></script>
+<script>
+  (() => {
+    const value = document.getElementById("usage-value");
+    const fill = document.getElementById("usage-bar-fill");
+    const status = document.getElementById("usage-status");
+    fetch(`${window.SAPCommon.API_ROOT}/ai-usage`, { cache: "no-store" })
+      .then(response => { if (!response.ok) throw new Error(String(response.status)); return response.json(); })
+      .then(data => {
+        const percent = Number(data.remainingPercent);
+        if (!Number.isFinite(percent)) throw new Error("missing usage");
+        const safe = Math.max(0, Math.min(100, Math.round(percent)));
+        value.textContent = `${String(safe).padStart(2, "0")}%`;
+        fill.style.width = `${safe}%`;
+        status.textContent = data.updatedAt ? `마지막 업데이트: ${data.updatedAt}` : "마지막 업데이트 정보 없음";
+      })
+      .catch(() => { value.textContent = "--%"; status.textContent = "사용량 정보를 아직 연결하지 않았습니다."; });
+  })();
+</script>
+</body>
+</html>
