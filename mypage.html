@@ -84,8 +84,29 @@
         <ul class="mypage-list" id="mypage-drawings"><li>불러오는 중...</li></ul>
       </div>
     </section>
+
+    <section class="card mypage-panel" aria-labelledby="withdraw-title">
+      <div class="mypage-panel-head">
+        <h3 id="withdraw-title">회원 탈퇴</h3>
+      </div>
+      <p class="auth-note">탈퇴하면 계정과 게시글·자료·그림·일정·게임 기록·대화가 즉시 삭제되며 되돌릴 수 없습니다.</p>
+      <button id="withdraw-open" type="button" class="delete-btn">회원 탈퇴</button>
+    </section>
   </main>
 </div>
+
+<dialog id="withdraw-dialog">
+  <form id="withdraw-form" method="dialog">
+    <h3>회원 탈퇴</h3>
+    <p class="auth-note">계정과 모든 활동 기록이 삭제됩니다. 계속하려면 비밀번호를 입력하세요.</p>
+    <p><label>비밀번호 <input id="withdraw-password" type="password" autocomplete="current-password" required></label></p>
+    <p id="withdraw-status" class="form-status" role="status"></p>
+    <div class="choice-controls">
+      <button type="submit">탈퇴하기</button>
+      <button id="withdraw-cancel" type="button">취소</button>
+    </div>
+  </form>
+</dialog>
 <script src="assets/common.js?v=labels-37"></script>
 <script src="assets/auth.js?v=labels-37"></script>
 <script>
@@ -188,6 +209,42 @@
         ? "최신 정보를 불러왔습니다."
         : "일부 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
     }
+
+    const withdrawOpen = document.getElementById("withdraw-open");
+    const withdrawDialog = document.getElementById("withdraw-dialog");
+    const withdrawForm = document.getElementById("withdraw-form");
+    const withdrawPassword = document.getElementById("withdraw-password");
+    const withdrawStatus = document.getElementById("withdraw-status");
+    withdrawOpen.addEventListener("click", () => {
+      withdrawPassword.value = "";
+      withdrawStatus.textContent = "";
+      withdrawDialog.showModal();
+    });
+    document.getElementById("withdraw-cancel").addEventListener("click", () => withdrawDialog.close());
+    withdrawForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (!withdrawPassword.value) {
+        withdrawStatus.textContent = "비밀번호를 입력하세요.";
+        return;
+      }
+      withdrawStatus.textContent = "처리 중...";
+      try {
+        const response = await SAPAuth.apiFetch(`${API}/auth/me`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: withdrawPassword.value }),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          withdrawStatus.textContent = data.message || "탈퇴 처리에 실패했습니다.";
+          return;
+        }
+        SAPAuth.clearSession();
+        location.replace("index.html");
+      } catch {
+        withdrawStatus.textContent = "서버에 연결할 수 없습니다.";
+      }
+    });
 
     SAPAuth.requireSession().then(user => {
       if (user?.unavailable) {

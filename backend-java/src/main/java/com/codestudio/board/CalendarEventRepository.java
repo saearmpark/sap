@@ -8,4 +8,6 @@ public interface CalendarEventRepository extends JpaRepository<CalendarEvent, Lo
     List<CalendarEvent> findAllByOwnerIdOrderByStartDateAscIdAsc(Long ownerId);
     List<CalendarEvent> findAllByOwnerIdOrPublicEventTrueOrderByStartDateAscIdAsc(Long ownerId);
     Optional<CalendarEvent> findByIdAndOwnerId(Long id, Long ownerId);
+
+    void deleteAllByOwnerId(Long ownerId);
 }

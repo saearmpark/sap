@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.List;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
+    void deleteAllBySenderIdOrRecipientId(Long senderId, Long recipientId);
     List<ChatMessage> findTop100ByChatTypeAndCreatedAtAfterOrderByCreatedAtDesc(String chatType, Instant after);
 
     @Query("""

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GameScoreRepository extends JpaRepository<GameScore, Long> {
+    void deleteAllByUserId(Long userId);
 
     Optional<GameScore> findByGameIdAndUserId(String gameId, Long userId);
 

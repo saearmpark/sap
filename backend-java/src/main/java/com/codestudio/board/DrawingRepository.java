@@ -13,6 +13,8 @@ public interface DrawingRepository extends JpaRepository<Drawing, Long> {
 
     Optional<Drawing> findByIdAndOwnerId(Long id, Long ownerId);
 
+    void deleteAllByOwnerId(Long ownerId);
+
     @Query("select coalesce(sum(d.fileSize), 0) from Drawing d")
     long sumFileSize();
 }

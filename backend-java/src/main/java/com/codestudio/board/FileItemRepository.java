@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface FileItemRepository extends JpaRepository<FileItem, Long> {
     List<FileItemSummary> findAllByOrderByIdDesc();
+    void deleteAllByAuthorName(String authorName);
 }

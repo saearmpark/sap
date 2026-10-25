@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,10 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthService authService;
     private final UserAccountRepository users;
+    private final AccountDeletionService accountDeletion;
 
-    public AuthController(AuthService authService, UserAccountRepository users) {
+    public AuthController(AuthService authService, UserAccountRepository users, AccountDeletionService accountDeletion) {
         this.authService = authService;
         this.users = users;
+        this.accountDeletion = accountDeletion;
     }
 
     @PostMapping("/register")
@@ -40,6 +43,14 @@ public class AuthController {
         long userId = (Long) authentication.getPrincipal();
         authService.changePassword(userId, request.currentPassword(), request.newPassword());
         return ResponseEntity.ok(Map.of("message", "비밀번호가 변경되었습니다. 다시 로그인해주세요."));
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteMe(Authentication authentication, @RequestBody(required = false) Map<String, String> body) {
+        long userId = (Long) authentication.getPrincipal();
+        String password = body == null ? "" : body.getOrDefault("password", "");
+        accountDeletion.deleteAccount(userId, password);
+        return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다."));
     }
 
     @GetMapping("/me")
