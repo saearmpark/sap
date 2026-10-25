@@ -248,14 +248,14 @@ try {
   for (const gameId of gameIds) {
     const before = pageErrors.length;
     await evaluate(`document.querySelector('.game-list-item[data-target="${gameId}"]').click()`);
-    await sleep(200);
+    await sleep(300);
     const state = await evaluate(`({
       visible: !document.getElementById("${gameId}").hidden,
       registered: Boolean(window.gamePanels?.["${gameId}"])
     })`);
     if (!state.visible || !state.registered || pageErrors.length > before) brokenGames.push(gameId);
     await evaluate(`document.querySelector(".game-panel:not([hidden]) .game-back")?.click()`);
-    await sleep(120);
+    await sleep(150);
   }
   check(brokenGames.length === 0, "45개 게임이 모두 열립니다", brokenGames.join(", "));
 

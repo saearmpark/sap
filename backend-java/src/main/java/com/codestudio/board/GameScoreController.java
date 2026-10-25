@@ -68,6 +68,11 @@ public class GameScoreController {
             return ResponseEntity.badRequest().body(Map.of("error", "점수가 올바르지 않습니다."));
         }
 
+        boolean increment = Boolean.TRUE.equals(body.get("increment"));
+        if (increment && score > 5) {
+            return ResponseEntity.badRequest().body(Map.of("error", "한 번에 더할 수 있는 승수는 5회까지입니다."));
+        }
+
         boolean ascending = isAscending(String.valueOf(body.getOrDefault("order", "")));
         long userId = (Long) authentication.getPrincipal();
         String playerName = users.findById(userId)
@@ -78,6 +83,10 @@ public class GameScoreController {
         GameScore record = scores.findByGameIdAndUserId(id, userId).orElse(null);
         if (record == null) {
             record = new GameScore(id, userId, playerName, score);
+            improved = true;
+        } else if (increment) {
+            record.setScore(Math.min(MAX_SCORE, record.getScore() + score));
+            record.setPlayerName(playerName);
             improved = true;
         } else if (ascending ? score < record.getScore() : score > record.getScore()) {
             record.setScore(score);
