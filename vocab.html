@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202124">
+<meta name="description" content="사피엔스 영어 단어장. 모르는 단어와 뜻을 저장하고 간격 반복으로 복습합니다. 기록은 브라우저에 저장됩니다.">
+<link rel="canonical" href="https://saearmpark.github.io/sap/vocab.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="사피엔스">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="사피엔스 — 영어 단어장">
+<meta property="og:description" content="모르는 단어와 뜻을 저장하고 간격 반복으로 복습합니다.">
+<meta property="og:url" content="https://saearmpark.github.io/sap/vocab.html">
+<meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>사피엔스 — 영어 단어장</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-38">
+<style>
+  .vocab-form { display:grid; grid-template-columns:1fr 1.4fr auto; gap:8px; margin:12px 0; }
+  .vocab-form input { min-height:40px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); }
+  @media (max-width:620px) { .vocab-form { grid-template-columns:1fr; } }
+  .vocab-card { margin:12px 0; padding:18px; border:1px solid var(--border); border-radius:10px; background:var(--surface); text-align:center; }
+  .vocab-word { font-size:26px; font-weight:700; }
+  .vocab-meaning { margin-top:8px; color:var(--ink-soft); }
+  .vocab-list { display:grid; gap:8px; margin-top:10px; }
+  .vocab-item { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); }
+  .vocab-item small { color:var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar"><nav class="nav-group" data-nav></nav></aside>
+  <main class="main">
+    <div class="eyebrow">VOCABULARY</div>
+    <h1>영어 단어장</h1>
+    <p class="auth-note">단어와 뜻을 저장하면 오늘·내일·며칠 뒤 간격으로 다시 복습할 수 있습니다. 데이터는 이 브라우저에 저장됩니다.</p>
+
+    <form id="vocab-form" class="vocab-form">
+      <input id="vocab-word" type="text" maxlength="80" placeholder="단어 또는 표현" required>
+      <input id="vocab-meaning" type="text" maxlength="200" placeholder="뜻 / 예문" required>
+      <button type="submit">추가</button>
+    </form>
+    <p id="vocab-status" class="form-status" role="status"></p>
+
+    <section>
+      <h2>오늘 복습</h2>
+      <div id="vocab-review" class="vocab-card"></div>
+    </section>
+
+    <section>
+      <h2>저장한 단어 <span id="vocab-count" class="auth-note"></span></h2>
+      <input id="vocab-search" type="search" placeholder="검색" aria-label="단어 검색">
+      <div id="vocab-list" class="vocab-list"></div>
+    </section>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-38"></script>
+<script src="assets/auth.js?v=labels-38"></script>
+<script>
+  (() => {
+    const KEY = "sap-vocab-v1";
+    const form = document.getElementById("vocab-form");
+    const wordInput = document.getElementById("vocab-word");
+    const meaningInput = document.getElementById("vocab-meaning");
+    const statusEl = document.getElementById("vocab-status");
+    const reviewEl = document.getElementById("vocab-review");
+    const listEl = document.getElementById("vocab-list");
+    const countEl = document.getElementById("vocab-count");
+    const searchEl = document.getElementById("vocab-search");
+    let items = load();
+    let reviewItem = null;
+    let revealed = false;
+
+    function today() { return new Date().toISOString().slice(0, 10); }
+    function load() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(KEY) || "[]");
+        return Array.isArray(saved) ? saved.filter(item => item && item.word) : [];
+      } catch { return []; }
+    }
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(items)); } catch {}
+    }
+    function dueItems() {
+      const now = today();
+      return items.filter(item => !item.due || item.due <= now);
+    }
+    function nextDue(box) {
+      const days = Math.max(1, Math.pow(2, Math.min(box, 6)));
+      const date = new Date();
+      date.setDate(date.getDate() + days);
+      return date.toISOString().slice(0, 10);
+    }
+    function renderReview() {
+      const due = dueItems();
+      reviewEl.replaceChildren();
+      if (!due.length) {
+        reviewEl.textContent = items.length ? "오늘 복습할 단어가 없습니다." : "단어를 추가하면 복습이 시작됩니다.";
+        reviewItem = null;
+        return;
+      }
+      if (!reviewItem || !due.some(item => item.id === reviewItem.id)) {
+        reviewItem = due[Math.floor(Math.random() * due.length)];
+        revealed = false;
+      }
+      const word = document.createElement("div");
+      word.className = "vocab-word";
+      word.textContent = reviewItem.word;
+      reviewEl.appendChild(word);
+      if (revealed) {
+        const meaning = document.createElement("div");
+        meaning.className = "vocab-meaning";
+        meaning.textContent = reviewItem.meaning;
+        reviewEl.appendChild(meaning);
+        const actions = document.createElement("div");
+        actions.className = "choice-controls";
+        const known = document.createElement("button");
+        known.type = "button";
+        known.textContent = "알겠어요";
+        known.addEventListener("click", () => grade(1));
+        const again = document.createElement("button");
+        again.type = "button";
+        again.textContent = "다시";
+        again.addEventListener("click", () => grade(0));
+        actions.append(known, again);
+        reviewEl.appendChild(actions);
+      } else {
+        const show = document.createElement("button");
+        show.type = "button";
+        show.textContent = "뜻 보기";
+        show.addEventListener("click", () => { revealed = true; renderReview(); });
+        reviewEl.appendChild(show);
+      }
+    }
+    function grade(known) {
+      if (!reviewItem) return;
+      reviewItem.box = known ? (reviewItem.box || 0) + 1 : 1;
+      reviewItem.due = known ? nextDue(reviewItem.box) : today();
+      save();
+      reviewItem = null;
+      renderReview();
+      renderList();
+    }
+    function renderList() {
+      const query = searchEl.value.trim().toLowerCase();
+      const shown = items
+        .filter(item => !query || item.word.toLowerCase().includes(query) || String(item.meaning).toLowerCase().includes(query))
+        .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+      listEl.replaceChildren();
+      countEl.textContent = `· ${items.length}개`;
+      if (!shown.length) {
+        const empty = document.createElement("p");
+        empty.className = "auth-note";
+        empty.textContent = "저장한 단어가 없습니다.";
+        listEl.appendChild(empty);
+        return;
+      }
+      shown.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "vocab-item";
+        const text = document.createElement("div");
+        const word = document.createElement("strong");
+        word.textContent = item.word;
+        const meaning = document.createElement("div");
+        meaning.className = "vocab-meaning";
+        meaning.textContent = item.meaning;
+        text.append(word, meaning);
+        const meta = document.createElement("small");
+        meta.textContent = item.due ? `복습 ${item.due}` : "복습 전";
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "삭제";
+        remove.addEventListener("click", () => {
+          items = items.filter(entry => entry.id !== item.id);
+          save();
+          renderReview();
+          renderList();
+        });
+        row.append(text, meta, remove);
+        listEl.appendChild(row);
+      });
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const word = wordInput.value.trim();
+      const meaning = meaningInput.value.trim();
+      if (!word || !meaning) return;
+      items.push({
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        word,
+        meaning,
+        box: 0,
+        due: today(),
+        createdAt: new Date().toISOString(),
+      });
+      save();
+      wordInput.value = "";
+      meaningInput.value = "";
+      statusEl.textContent = "단어를 저장했습니다.";
+      renderReview();
+      renderList();
+      wordInput.focus();
+    });
+    searchEl.addEventListener("input", renderList);
+    renderReview();
+    renderList();
+  })();
+</script>
+<script src="assets/theme.js?v=labels-38"></script>
+</body>
+</html>

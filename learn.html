@@ -19,7 +19,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>사피엔스 — 학습(앱)</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-37">
+<link rel="stylesheet" href="assets/style.css?v=labels-38">
 <style>
   .app-list { display:flex; flex-direction:column; max-width:520px; margin:18px 0 24px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
   .app-entry { display:flex; align-items:stretch; border-bottom:1px solid var(--border); background:var(--surface); }
@@ -214,8 +214,8 @@
     </dialog>
   </main>
 </div>
-<script src="assets/common.js?v=labels-37"></script>
-<script src="assets/auth.js?v=labels-37"></script>
+<script src="assets/common.js?v=labels-38"></script>
+<script src="assets/auth.js?v=labels-38"></script>
 <script>
   (() => {
     const menu = document.getElementById("app-menu");
@@ -868,6 +868,18 @@
     // APP_CODE_END: contacts
   })();
 </script>
-<script src="assets/theme.js?v=labels-37"></script>
+<script>
+  (() => {
+    const openAppFromHash = () => {
+      const id = decodeURIComponent(location.hash.replace(/^#/, ""));
+      if (!id.startsWith("app-")) return;
+      const button = document.querySelector(`[data-app="${id.slice(4)}"]`);
+      if (button) button.click();
+    };
+    window.addEventListener("hashchange", openAppFromHash);
+    if (location.hash) openAppFromHash();
+  })();
+</script>
+<script src="assets/theme.js?v=labels-38"></script>
 </body>
 </html>

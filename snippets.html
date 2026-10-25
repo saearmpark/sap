@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202124">
+<meta name="description" content="사피엔스 코드 노트. Java·Python·HTML·JavaScript 코드 조각을 저장하고 검색·복사합니다. 데이터는 브라우저에 보관됩니다.">
+<link rel="canonical" href="https://saearmpark.github.io/sap/snippets.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="사피엔스">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="사피엔스 — 코드 노트">
+<meta property="og:description" content="Java·Python·HTML·JavaScript 코드 조각을 저장하고 검색·복사합니다.">
+<meta property="og:url" content="https://saearmpark.github.io/sap/snippets.html">
+<meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>사피엔스 — 코드 노트</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-38">
+<style>
+  .snippet-form { display:grid; gap:8px; margin:12px 0; }
+  .snippet-form .row { display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:8px; }
+  .snippet-form input, .snippet-form select, .snippet-form textarea { padding:9px 10px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:inherit; }
+  .snippet-form textarea { min-height:150px; resize:vertical; font-family:ui-monospace, monospace; }
+  @media (max-width:620px) { .snippet-form .row { grid-template-columns:1fr; } }
+  .snippet-card { margin:10px 0; padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); }
+  .snippet-head { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; }
+  .snippet-code { margin:10px 0 0; padding:12px; overflow:auto; border-radius:8px; background:var(--bg); font-size:13px; white-space:pre; }
+  .snippet-tags { color:var(--ink-soft); font-size:12px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar"><nav class="nav-group" data-nav></nav></aside>
+  <main class="main">
+    <div class="eyebrow">CODE NOTES</div>
+    <h1>코드 노트</h1>
+    <p class="auth-note">자주 쓰는 코드 조각을 저장해 두고 검색·복사할 수 있습니다. 데이터는 이 브라우저에 저장됩니다.</p>
+
+    <form id="snippet-form" class="snippet-form">
+      <div class="row">
+        <input id="snippet-title" type="text" maxlength="120" placeholder="제목" required>
+        <select id="snippet-lang" aria-label="언어">
+          <option value="java">Java</option>
+          <option value="python">Python</option>
+          <option value="javascript">JavaScript</option>
+          <option value="html">HTML/CSS</option>
+          <option value="sql">SQL</option>
+          <option value="etc">기타</option>
+        </select>
+        <input id="snippet-tags" type="text" maxlength="120" placeholder="태그 (쉼표 구분)">
+      </div>
+      <textarea id="snippet-code" placeholder="코드를 붙여넣으세요" required></textarea>
+      <div class="choice-controls"><button type="submit">저장</button></div>
+    </form>
+    <p id="snippet-status" class="form-status" role="status"></p>
+
+    <section>
+      <h2>저장한 코드 <span id="snippet-count" class="auth-note"></span></h2>
+      <input id="snippet-search" type="search" placeholder="제목·태그·코드 검색" aria-label="코드 검색">
+      <div id="snippet-list"></div>
+    </section>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-38"></script>
+<script src="assets/auth.js?v=labels-38"></script>
+<script>
+  (() => {
+    const KEY = "sap-snippets-v1";
+    const form = document.getElementById("snippet-form");
+    const titleInput = document.getElementById("snippet-title");
+    const langInput = document.getElementById("snippet-lang");
+    const tagsInput = document.getElementById("snippet-tags");
+    const codeInput = document.getElementById("snippet-code");
+    const statusEl = document.getElementById("snippet-status");
+    const listEl = document.getElementById("snippet-list");
+    const countEl = document.getElementById("snippet-count");
+    const searchEl = document.getElementById("snippet-search");
+    let items = load();
+    let copiedTimer = 0;
+
+    function load() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(KEY) || "[]");
+        return Array.isArray(saved) ? saved.filter(item => item && item.code) : [];
+      } catch { return []; }
+    }
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(items)); } catch {}
+    }
+    function render() {
+      const query = searchEl.value.trim().toLowerCase();
+      const shown = items
+        .filter(item => !query || [item.title, item.tags, item.code].some(value => String(value || "").toLowerCase().includes(query)))
+        .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+      listEl.replaceChildren();
+      countEl.textContent = `· ${items.length}개`;
+      if (!shown.length) {
+        const empty = document.createElement("p");
+        empty.className = "auth-note";
+        empty.textContent = "저장한 코드가 없습니다.";
+        listEl.appendChild(empty);
+        return;
+      }
+      shown.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "snippet-card";
+        const head = document.createElement("div");
+        head.className = "snippet-head";
+        const title = document.createElement("strong");
+        title.textContent = item.title;
+        const actions = document.createElement("div");
+        actions.className = "choice-controls";
+        const copy = document.createElement("button");
+        copy.type = "button";
+        copy.textContent = "복사";
+        copy.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(item.code);
+            copy.textContent = "복사됨!";
+            clearTimeout(copiedTimer);
+            copiedTimer = setTimeout(() => { copy.textContent = "복사"; }, 1500);
+          } catch {
+            copy.textContent = "복사 실패";
+          }
+        });
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "삭제";
+        remove.addEventListener("click", () => {
+          items = items.filter(entry => entry.id !== item.id);
+          save();
+          render();
+        });
+        actions.append(copy, remove);
+        head.append(title, actions);
+        const tags = document.createElement("div");
+        tags.className = "snippet-tags";
+        tags.textContent = `${item.lang || "기타"}${item.tags ? ` · ${item.tags}` : ""}`;
+        const code = document.createElement("pre");
+        code.className = "snippet-code";
+        code.textContent = item.code;
+        card.append(head, tags, code);
+        listEl.appendChild(card);
+      });
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const title = titleInput.value.trim();
+      const code = codeInput.value.trim();
+      if (!title || !code) return;
+      items.push({
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        title,
+        lang: langInput.value,
+        tags: tagsInput.value.trim(),
+        code,
+        createdAt: new Date().toISOString(),
+      });
+      save();
+      titleInput.value = "";
+      tagsInput.value = "";
+      codeInput.value = "";
+      statusEl.textContent = "코드를 저장했습니다.";
+      render();
+    });
+    searchEl.addEventListener("input", render);
+    render();
+  })();
+</script>
+<script src="assets/theme.js?v=labels-38"></script>
+</body>
+</html>

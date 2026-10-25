@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202124">
+<meta name="description" content="사피엔스 도구 모음. 할 일·메모·지출·계산기·타이머 등 생활 도구와 학습 기록, 코드 노트를 한곳에서 엽니다.">
+<link rel="canonical" href="https://saearmpark.github.io/sap/tools.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="사피엔스">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="사피엔스 — 도구 모음">
+<meta property="og:description" content="사피엔스 도구 모음. 할 일·메모·지출·계산기·타이머 등 생활 도구와 학습 기록, 코드 노트를 한곳에서 엽니다.">
+<meta property="og:url" content="https://saearmpark.github.io/sap/tools.html">
+<meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>사피엔스 — 도구 모음</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-38">
+<style>
+  .tool-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; margin:12px 0 24px; }
+  .tool-card { display:flex; flex-direction:column; gap:4px; padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink); text-decoration:none; }
+  .tool-card:hover { background:var(--accent-soft); }
+  .tool-card strong { font-size:15px; }
+  .tool-card span { color:var(--ink-soft); font-size:13px; }
+  .tool-section { margin-top:24px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar"><nav class="nav-group" data-nav></nav></aside>
+  <main class="main">
+    <div class="eyebrow">TOOLS</div>
+    <h1>도구 모음</h1>
+    <p class="auth-note">학습 페이지에 숨어 있던 생활 도구를 바로 열 수 있습니다. 모든 데이터는 브라우저에 저장됩니다.</p>
+
+    <section class="tool-section">
+      <h2>생활 도구</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="learn.html#app-todo"><strong>할 일 관리</strong><span>오늘 할 일을 체크</span></a>
+        <a class="tool-card" href="learn.html#app-notes"><strong>메모장</strong><span>짧은 메모를 빠르게</span></a>
+        <a class="tool-card" href="learn.html#app-expenses"><strong>지출 관리</strong><span>날짜별 지출 기록</span></a>
+        <a class="tool-card" href="learn.html#app-calculator"><strong>계산기</strong><span>간단한 사칙연산</span></a>
+        <a class="tool-card" href="learn.html#app-timer"><strong>타이머</strong><span>집중 시간 재기</span></a>
+        <a class="tool-card" href="learn.html#app-unit"><strong>단위 변환</strong><span>길이·무게·온도</span></a>
+        <a class="tool-card" href="learn.html#app-drawing"><strong>그림판</strong><span>간단한 그림 저장</span></a>
+        <a class="tool-card" href="learn.html#app-password"><strong>비밀번호 생성</strong><span>안전한 임시 비밀번호</span></a>
+        <a class="tool-card" href="learn.html#app-random"><strong>랜덤 추첨</strong><span>이름·번호 뽑기</span></a>
+        <a class="tool-card" href="learn.html#app-contacts"><strong>연락처 관리</strong><span>자주 쓰는 연락처</span></a>
+      </div>
+    </section>
+
+    <section class="tool-section">
+      <h2>학습·기록</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="records.html"><strong>학습 기록</strong><span>OPIc 추이와 일정</span></a>
+        <a class="tool-card" href="vocab.html"><strong>영어 단어장</strong><span>저장하고 복습</span></a>
+        <a class="tool-card" href="snippets.html"><strong>코드 노트</strong><span>자주 쓰는 코드 조각</span></a>
+        <a class="tool-card" href="settings.html"><strong>설정·백업</strong><span>데이터 내보내기/가져오기</span></a>
+      </div>
+    </section>
+
+    <section class="tool-section">
+      <h2>제작·자료</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="manual.html"><strong>웹 제작 가이드</strong><span>HTML·CSS·JS·Python</span></a>
+        <a class="tool-card" href="apps.html"><strong>데스크톱 도구</strong><span>파일 정리·이름 변경</span></a>
+        <a class="tool-card" href="game.html"><strong>실습 게임</strong><span>45개 게임과 코드</span></a>
+        <a class="tool-card" href="help.html"><strong>사이트 안내</strong><span>기능·단축키 안내</span></a>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-38"></script>
+<script src="assets/auth.js?v=labels-38"></script>
+<script src="assets/theme.js?v=labels-38"></script>
+</body>
+</html>

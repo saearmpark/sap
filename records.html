@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202124">
+<meta name="description" content="사피엔스 학습 기록. OPIc 모의고사 추이와 최근 응시, 다가오는 일정, 게임 최고 기록을 한눈에 봅니다.">
+<link rel="canonical" href="https://saearmpark.github.io/sap/records.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="사피엔스">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="사피엔스 — 학습 기록">
+<meta property="og:description" content="OPIc 모의고사 추이와 최근 응시, 다가오는 일정, 게임 최고 기록을 한눈에 봅니다.">
+<meta property="og:url" content="https://saearmpark.github.io/sap/records.html">
+<meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>사피엔스 — 학습 기록</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-38">
+<style>
+  .record-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin:14px 0 22px; }
+  .record-card { padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); }
+  .record-card strong { display:block; font-size:24px; }
+  .record-card span { color:var(--ink-soft); font-size:13px; }
+  .record-list { margin:8px 0 0; padding-left:20px; }
+  .record-list li { margin:4px 0; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar"><nav class="nav-group" data-nav></nav></aside>
+  <main class="main">
+    <div class="eyebrow">RECORDS</div>
+    <h1>학습 기록</h1>
+    <p class="auth-note">OPIc 기록은 이 브라우저에, 게임·일정 기록은 서버 계정에 저장됩니다.</p>
+
+    <section>
+      <h2>OPIc 모의고사</h2>
+      <div class="record-grid">
+        <div class="record-card"><strong id="opic-count">0</strong><span>응시 횟수</span></div>
+        <div class="record-card"><strong id="opic-best">—</strong><span>최고 점수</span></div>
+        <div class="record-card"><strong id="opic-latest">—</strong><span>최근 등급</span></div>
+        <div class="record-card"><strong id="opic-month">0</strong><span>최근 30일 응시</span></div>
+      </div>
+      <ul id="opic-recent" class="record-list"><li>기록을 불러오는 중...</li></ul>
+      <p><a href="english.html">영어 모의고사 보러 가기 →</a></p>
+    </section>
+
+    <section>
+      <h2>다가오는 일정</h2>
+      <ul id="record-events" class="record-list"><li>일정을 불러오는 중...</li></ul>
+      <p><a href="calendar.html">일정 관리로 이동 →</a></p>
+    </section>
+
+    <section>
+      <h2>게임 최고 기록</h2>
+      <div class="record-grid" id="record-games"></div>
+      <p><a href="game.html">게임 목록으로 이동 →</a></p>
+    </section>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-38"></script>
+<script src="assets/auth.js?v=labels-38"></script>
+<script>
+  (() => {
+    const API = SAPAuth.API_ROOT;
+    const HISTORY_KEY = "sap-english-opic-history-v1";
+    const GAMES = [
+      { id: "panel-2048", name: "2048" },
+      { id: "panel-bo", name: "벽돌깨기" },
+      { id: "panel-tt", name: "테트리스" }
+    ];
+
+    let history = [];
+    try {
+      const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      history = Array.isArray(saved) ? saved.filter(record => record && typeof record.averageScore === "number") : [];
+    } catch {}
+
+    const count = history.length;
+    const best = count ? Math.max(...history.map(record => record.averageScore)) : null;
+    const latest = history[0];
+    const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const monthCount = history.filter(record => new Date(record.date).getTime() >= monthAgo).length;
+    document.getElementById("opic-count").textContent = String(count);
+    document.getElementById("opic-best").textContent = best === null ? "—" : `${best}점`;
+    document.getElementById("opic-latest").textContent = latest ? (latest.averageGrade || "—") : "—";
+    document.getElementById("opic-month").textContent = String(monthCount);
+
+    const recent = document.getElementById("opic-recent");
+    recent.replaceChildren();
+    if (!count) {
+      const item = document.createElement("li");
+      item.textContent = "아직 응시 기록이 없습니다.";
+      recent.appendChild(item);
+    } else {
+      history.slice(0, 5).forEach(record => {
+        const item = document.createElement("li");
+        const date = new Date(record.date).toLocaleDateString("ko-KR");
+        item.textContent = `${date} · ${record.averageGrade || "-"} · ${record.averageScore}점`;
+        recent.appendChild(item);
+      });
+    }
+
+    const eventsEl = document.getElementById("record-events");
+    function renderEvents(events) {
+      const today = new Date().toISOString().slice(0, 10);
+      const upcoming = (Array.isArray(events) ? events : [])
+        .filter(event => event && event.end_date >= today)
+        .sort((a, b) => String(a.start_date).localeCompare(String(b.start_date)))
+        .slice(0, 5);
+      eventsEl.replaceChildren();
+      if (!upcoming.length) {
+        const item = document.createElement("li");
+        item.textContent = "다가오는 일정이 없습니다.";
+        eventsEl.appendChild(item);
+        return;
+      }
+      upcoming.forEach(event => {
+        const item = document.createElement("li");
+        item.textContent = `${event.start_date}${event.start_date === event.end_date ? "" : ` ~ ${event.end_date}`} · ${event.title}`;
+        eventsEl.appendChild(item);
+      });
+    }
+
+    if (!SAPAuth.getToken()) {
+      eventsEl.replaceChildren();
+      const item = document.createElement("li");
+      item.textContent = "로그인하면 다가오는 일정을 볼 수 있습니다.";
+      eventsEl.appendChild(item);
+    } else {
+      SAPAuth.apiFetch(`${API}/events`, { suppressAuthRedirect: true })
+        .then(response => response.ok ? response.json() : [])
+        .then(renderEvents)
+        .catch(() => renderEvents([]));
+    }
+
+    const gamesEl = document.getElementById("record-games");
+    if (!SAPAuth.getToken()) {
+      gamesEl.innerHTML = '<p class="auth-note">로그인하면 게임 최고 기록을 볼 수 있습니다.</p>';
+    } else {
+      Promise.all(GAMES.map(game =>
+        SAPAuth.apiFetch(`${API}/game-scores?gameId=${encodeURIComponent(game.id)}`, { suppressAuthRedirect: true })
+          .then(response => response.ok ? response.json() : null)
+          .then(data => ({ ...game, data }))
+          .catch(() => ({ ...game, data: null }))
+      )).then(rows => {
+        gamesEl.replaceChildren();
+        for (const row of rows) {
+          const card = document.createElement("div");
+          card.className = "record-card";
+          const value = row.data && row.data.mine ? `${row.data.mine}점` : "—";
+          const top = row.data && Array.isArray(row.data.top) && row.data.top[0] ? row.data.top[0] : null;
+          card.innerHTML = `<strong>${value}</strong><span>${row.name}${top ? ` · 1위 ${top.playerName}` : ""}</span>`;
+          gamesEl.appendChild(card);
+        }
+      });
+    }
+  })();
+</script>
+<script src="assets/theme.js?v=labels-38"></script>
+</body>
+</html>

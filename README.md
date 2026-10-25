@@ -49,6 +49,10 @@ Java, Python, HTML/CSS를 연습하는 개인 학습 사이트입니다.
 
 PWA 설치를 지원하며, `manifest.webmanifest`·`sw.js`·`offline.html`로 핵심 페이지(홈·알림·검색·일정 포함)와 공용 자산을 캐시하고 연결이 끊기면 오프라인 안내 페이지를 표시합니다.
 
+### 도구·기록
+
+`tools.html`은 학습 페이지에 있던 생활 도구 10종을 한곳에서 열 수 있게 합니다. `records.html`은 OPIc 응시 추이, 다가오는 일정, 게임 최고 기록을 보여줍니다. `vocab.html`은 영어 단어를 저장해 간격 반복으로 복습하고, `snippets.html`은 Java·Python·JavaScript 코드 조각을 저장·검색·복사합니다. `settings.html`에서 테마와 학습 데이터를 JSON으로 백업·복원할 수 있으며, `help.html`에 메뉴 안내와 단축키를 정리했습니다.
+
 ## 로컬 실행
 
 ### 웹 화면

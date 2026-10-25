@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202124">
+<meta name="description" content="사피엔스 설정. 테마 변경과 학습 데이터 JSON 내보내기·가져오기, 앱 데이터 초기화, 계정 관리를 제공합니다.">
+<link rel="canonical" href="https://saearmpark.github.io/sap/settings.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="사피엔스">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="사피엔스 — 설정">
+<meta property="og:description" content="테마 변경과 학습 데이터 JSON 내보내기·가져오기, 앱 데이터 초기화, 계정 관리.">
+<meta property="og:url" content="https://saearmpark.github.io/sap/settings.html">
+<meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>사피엔스 — 설정</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-38">
+<style>
+  .settings-block { margin: 18px 0; padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+  .settings-block h2 { margin: 0 0 8px; font-size: 17px; }
+  .settings-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar"><nav class="nav-group" data-nav></nav></aside>
+  <main class="main">
+    <div class="eyebrow">SETTINGS</div>
+    <h1>설정</h1>
+
+    <section class="settings-block">
+      <h2>화면 테마</h2>
+      <p class="auth-note">선택한 테마는 이 브라우저에 저장됩니다.</p>
+      <div class="settings-row">
+        <button id="theme-light" type="button">라이트 모드</button>
+        <button id="theme-dark" type="button">다크 모드</button>
+      </div>
+      <p id="theme-status" class="form-status" role="status"></p>
+    </section>
+
+    <section class="settings-block">
+      <h2>데이터 백업</h2>
+      <p class="auth-note">할 일·메모·지출·OPIc 기록·단어장·코드 노트 등 이 브라우저에 저장된 데이터를 JSON으로 내보냅니다. 로그인 토큰은 포함되지 않습니다.</p>
+      <div class="settings-row">
+        <button id="export-data" type="button">JSON으로 내보내기</button>
+        <label class="settings-row">가져오기 <input id="import-file" type="file" accept="application/json"></label>
+      </div>
+      <p id="backup-status" class="form-status" role="status"></p>
+    </section>
+
+    <section class="settings-block">
+      <h2>앱 데이터 초기화</h2>
+      <p class="auth-note">할 일·메모·지출·OPIc·단어장·코드 노트 등 로컬 학습 데이터만 지웁니다. 로그인과 테마는 유지됩니다.</p>
+      <button id="clear-data" type="button" class="delete-btn">학습 데이터 지우기</button>
+      <p id="clear-status" class="form-status" role="status"></p>
+    </section>
+
+    <section class="settings-block">
+      <h2>계정</h2>
+      <div class="settings-row">
+        <a class="tool-card" href="mypage.html">마이페이지</a>
+        <a class="tool-card" href="notifications.html">알림 설정 확인</a>
+        <a class="tool-card" href="help.html">사이트 안내</a>
+      </div>
+      <p class="auth-note">회원 탈퇴는 <a href="mypage.html">마이페이지</a>에서 비밀번호 확인 후 진행할 수 있습니다.</p>
+    </section>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-38"></script>
+<script src="assets/auth.js?v=labels-38"></script>
+<script>
+  (() => {
+    const EXCLUDED = new Set(["sap-access-token", "sap-user"]);
+    const themeStatus = document.getElementById("theme-status");
+    const backupStatus = document.getElementById("backup-status");
+    const clearStatus = document.getElementById("clear-status");
+
+    function setTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      try { localStorage.setItem("sap-theme", theme); } catch {}
+      themeStatus.textContent = theme === "dark" ? "다크 모드로 저장했습니다." : "라이트 모드로 저장했습니다.";
+    }
+    document.getElementById("theme-light").addEventListener("click", () => setTheme("light"));
+    document.getElementById("theme-dark").addEventListener("click", () => setTheme("dark"));
+
+    document.getElementById("export-data").addEventListener("click", () => {
+      const data = {};
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+        if (key && key.startsWith("sap-") && !EXCLUDED.has(key)) data[key] = localStorage.getItem(key);
+      }
+      const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), data }, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `sap-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      backupStatus.textContent = "백업 파일을 내려받았습니다.";
+    });
+
+    document.getElementById("import-file").addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const payload = JSON.parse(await file.text());
+        const data = payload && typeof payload === "object" ? (payload.data || payload) : null;
+        if (!data || typeof data !== "object") throw new Error("invalid");
+        let count = 0;
+        for (const [key, value] of Object.entries(data)) {
+          if (!key.startsWith("sap-") || EXCLUDED.has(key) || typeof value !== "string") continue;
+          localStorage.setItem(key, value);
+          count += 1;
+        }
+        backupStatus.textContent = `${count}개 항목을 가져왔습니다. 새로고침합니다...`;
+        setTimeout(() => location.reload(), 600);
+      } catch {
+        backupStatus.textContent = "백업 파일을 읽을 수 없습니다.";
+      }
+    });
+
+    document.getElementById("clear-data").addEventListener("click", () => {
+      if (!confirm("로컬 학습 데이터를 모두 지울까요? 되돌릴 수 없습니다.")) return;
+      const prefixes = ["sap-app-", "sap-english-", "sap-vocab-", "sap-snippets-", "sap-rhythm-", "sap-stocks-cache", "sap-weather-cache", "sap-investment-news-cache", "sap-notifications-", "sap-stock-watchlist"];
+      const keys = [];
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+        if (key && prefixes.some(prefix => key.startsWith(prefix))) keys.push(key);
+      }
+      keys.forEach(key => localStorage.removeItem(key));
+      clearStatus.textContent = `${keys.length}개 항목을 지웠습니다.`;
+    });
+  })();
+</script>
+<script src="assets/theme.js?v=labels-38"></script>
+</body>
+</html>

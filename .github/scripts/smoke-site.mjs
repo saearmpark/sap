@@ -268,7 +268,7 @@ try {
   check(search.navLinks >= 10, "검색 페이지 사이드바가 렌더링됩니다");
   check(pageErrors.length === 0, "검색 페이지에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 
-  for (const page of ["manual.html", "english.html", "calendar.html"]) {
+  for (const page of ["manual.html", "english.html", "calendar.html", "tools.html", "records.html", "vocab.html", "snippets.html", "settings.html", "help.html"]) {
     await navigate(page, 600);
     const info = await evaluate(`({
       nav: document.querySelectorAll(".nav-submenu a").length,
