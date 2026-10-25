@@ -127,7 +127,8 @@
       const advice = document.getElementById("weather-advice");
       const outfit = temp => temp === null ? "기온 정보를 확인할 수 없습니다." : temp <= 5 ? "두꺼운 코트나 패딩, 보온 내의를 추천합니다." : temp <= 12 ? "자켓이나 가벼운 코트와 긴팔 옷이 좋습니다." : temp <= 20 ? "가디건·자켓과 긴팔 또는 얇은 겹쳐 입기를 추천합니다." : temp <= 27 ? "얇은 긴팔이나 반팔과 가벼운 겉옷을 추천합니다." : "반팔과 통풍이 잘되는 얇은 옷을 추천합니다.";
       const umbrella = precip => precip >= 60 ? "우산을 챙기는 것이 좋습니다." : precip >= 30 ? "작은 우산을 준비하면 안심할 수 있습니다." : "우산 없이 외출해도 괜찮겠습니다.";
-      advice.innerHTML = `<h2>오늘·내일 옷차림과 우산</h2><div class="weather-advice-grid"><div class="weather-advice-card"><strong>오늘 · 천안 기준 ${base.low}~${base.high}°</strong><div>${outfit(base.high)}</div><div>${umbrella(base.precip ?? 0)} (강수확률 ${base.precip ?? "-"}%)</div></div><div class="weather-advice-card"><strong>내일 · 천안 기준 ${base.tomorrowLow}~${base.tomorrowHigh}°</strong><div>${outfit(base.tomorrowHigh)}</div><div>${umbrella(base.tomorrowPrecip ?? 0)} (강수확률 ${base.tomorrowPrecip ?? "-"}%)</div></div></div>`;
+      const rainText = (morning, afternoon, fallback) => `오전 ${morning ?? "-"}% · 오후 ${afternoon ?? "-"}% (하루 최대 ${fallback ?? "-"}%)`;
+      advice.innerHTML = `<h2>오늘·내일 옷차림과 우산</h2><div class="weather-advice-grid"><div class="weather-advice-card"><strong>오늘 · 천안 기준 ${base.low}~${base.high}°</strong><div>${outfit(base.high)}</div><div>${umbrella(base.precip ?? 0)}</div><div>강수확률 ${rainText(base.todayMorningPrecip, base.todayAfternoonPrecip, base.precip)}</div></div><div class="weather-advice-card"><strong>내일 · 천안 기준 ${base.tomorrowLow}~${base.tomorrowHigh}°</strong><div>${outfit(base.tomorrowHigh)}</div><div>${umbrella(base.tomorrowPrecip ?? 0)}</div><div>강수확률 ${rainText(base.tomorrowMorningPrecip, base.tomorrowAfternoonPrecip, base.tomorrowPrecip)}</div></div></div>`;
       advice.hidden = false;
     }
 
@@ -135,6 +136,19 @@
 
     function roundValue(value) {
       return Number.isFinite(value) ? Math.round(value) : null;
+    }
+
+    function periodPrecip(entry, dayOffset, startHour, endHour) {
+      const times = entry.hourly?.time;
+      const values = entry.hourly?.precipitation_probability;
+      if (!Array.isArray(times) || !Array.isArray(values)) return null;
+      const day = entry.daily?.time?.[dayOffset];
+      const selected = times.map((iso, i) => {
+        if (!iso.startsWith(`${day}T`)) return null;
+        const hour = Number(iso.slice(11, 13));
+        return hour >= startHour && hour <= endHour ? values[i] : null;
+      }).filter(Number.isFinite);
+      return selected.length ? Math.max(...selected) : null;
     }
 
     function fmtTemp(value) {
@@ -291,6 +305,10 @@
           tomorrowHigh: roundValue(entry.daily?.temperature_2m_max?.[1]),
           tomorrowLow: roundValue(entry.daily?.temperature_2m_min?.[1]),
           tomorrowPrecip: roundValue(entry.daily?.precipitation_probability_max?.[1]),
+          todayMorningPrecip: periodPrecip(entry, 0, 6, 11),
+          todayAfternoonPrecip: periodPrecip(entry, 0, 12, 18),
+          tomorrowMorningPrecip: periodPrecip(entry, 1, 6, 11),
+          tomorrowAfternoonPrecip: periodPrecip(entry, 1, 12, 18),
           morning: roundValue(hourValue(entry, 9, "temperature_2m")),
           afternoon: roundValue(hourValue(entry, 15, "temperature_2m")),
           hours: CITIES[index]?.name === "천안" && Array.isArray(entry.hourly?.time)
