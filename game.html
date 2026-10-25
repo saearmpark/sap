@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#202124">
-<meta name="description" content="45개의 실습 게임과 코드 보기. 브레이크아웃, 스네이크, 2048, 지뢰 찾기, 틱택토 등을 바로 플레이합니다.">
+<meta name="description" content="46개의 실습 게임과 코드 보기. 브레이크아웃, 스네이크, 2048, 지뢰 찾기, 틱택토 등을 바로 플레이합니다.">
 <link rel="canonical" href="https://saearmpark.github.io/sap/game.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="사피엔스">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:title" content="사피엔스 — 학습(게임)">
-<meta property="og:description" content="45개의 실습 게임과 코드 보기. 브레이크아웃, 스네이크, 2048, 지뢰 찾기, 틱택토 등을 바로 플레이합니다.">
+<meta property="og:description" content="46개의 실습 게임과 코드 보기. 브레이크아웃, 스네이크, 2048, 지뢰 찾기, 틱택토 등을 바로 플레이합니다.">
 <meta property="og:url" content="https://saearmpark.github.io/sap/game.html">
 <meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
 <meta name="twitter:card" content="summary">
@@ -463,6 +463,7 @@
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-memory">카드 짝맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-memory">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-guess">숫자 맞히기</button><button class="game-code-button" type="button" data-game-code-view="panel-guess">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-reaction">반응 속도 테스트</button><button class="game-code-button" type="button" data-game-code-view="panel-reaction">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-color">색상 순서 챌린지</button><button class="game-code-button" type="button" data-game-code-view="panel-color">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-mines">지뢰 찾기</button><button class="game-code-button" type="button" data-game-code-view="panel-mines">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-typing">타자 연습</button><button class="game-code-button" type="button" data-game-code-view="panel-typing">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sequence">순서 기억하기</button><button class="game-code-button" type="button" data-game-code-view="panel-sequence">코드 보기</button></div>
@@ -786,6 +787,16 @@
       <button id="reaction-pad" class="reaction-pad" type="button" disabled>시작을 눌러주세요</button>
       <div class="choice-controls"><button id="reaction-start" type="button">시작</button></div>
       <p id="reaction-status" class="extra-game-status" aria-live="polite">최고 기록: -</p>
+    </div>
+    <div id="panel-color" class="card game-panel" data-arrow-nav hidden>
+      <button class="game-back" type="button">← 목록으로</button>
+      <span class="tag">STEP 17</span>
+      <h3>색상 순서 챌린지 (JavaScript)</h3>
+      <p>제시된 색을 10번 연속으로 선택하세요. 총 시간이 짧을수록 좋은 기록입니다.</p>
+      <p id="color-target" class="color-target" aria-live="polite">시작을 눌러 준비하세요.</p>
+      <div id="color-choices" class="choice-controls" aria-label="색상 선택"></div>
+      <div class="choice-controls"><button id="color-start" type="button">시작</button></div>
+      <p id="color-status" class="extra-game-status" aria-live="polite">최고 기록: -</p>
     </div>
     <div id="panel-connect" class="card game-panel" data-arrow-nav hidden>
       <button class="game-back" type="button">← 목록으로</button>
@@ -1374,6 +1385,7 @@
       "panel-rps": "assets/games/panel-rps.js?v=labels-41",
       "panel-guess": "assets/games/panel-guess.js?v=labels-41",
       "panel-reaction": "assets/games/panel-reaction.js?v=labels-41",
+      "panel-color": "assets/games/panel-color.js?v=labels-41",
       "panel-connect": "assets/games/panel-connect.js?v=labels-41",
       "panel-mines": "assets/games/panel-mines.js?v=labels-41",
       "panel-math": "assets/games/panel-math.js?v=labels-41",
@@ -1446,6 +1458,7 @@
       "panel-memory": "카드 짝맞추기",
       "panel-guess": "숫자 맞히기",
       "panel-reaction": "반응 속도 테스트",
+      "panel-color": "색상 순서 챌린지",
       "panel-mines": "지뢰 찾기",
       "panel-typing": "타자 연습",
       "panel-sequence": "순서 기억하기",
@@ -1473,12 +1486,13 @@
       "panel-holdem": "텍사스 홀덤",
     };
 
-    const LOWER_IS_BETTER = new Set(["panel-memory", "panel-guess", "panel-reaction", "panel-mines", "panel-solitaire", "panel-baseball"]);
+    const LOWER_IS_BETTER = new Set(["panel-memory", "panel-guess", "panel-reaction", "panel-color", "panel-mines", "panel-solitaire", "panel-baseball"]);
 
     const SCORE_UNITS = {
       "panel-memory": "회",
       "panel-guess": "회",
       "panel-reaction": "ms",
+      "panel-color": "ms",
       "panel-mines": "초",
       "panel-typing": " WPM",
       "panel-solitaire": "수",

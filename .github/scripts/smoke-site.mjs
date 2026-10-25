@@ -200,7 +200,7 @@ try {
     canvases: [...document.querySelectorAll("canvas")].filter((canvas) => !canvas.getAttribute("aria-label")).length
   })`);
   check(gameMenu.menuVisible, "게임 목록이 기본으로 보입니다");
-  check(gameMenu.games === 45, "게임 45개가 렌더링됩니다", String(gameMenu.games));
+  check(gameMenu.games === 46, "게임 46개가 렌더링됩니다", String(gameMenu.games));
   check(gameMenu.canvases === 0, "모든 캔버스에 aria-label이 있습니다", String(gameMenu.canvases));
   check(pageErrors.length === 0, "게임 목록에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 
@@ -257,7 +257,7 @@ try {
     await evaluate(`document.querySelector(".game-panel:not([hidden]) .game-back")?.click()`);
     await sleep(150);
   }
-  check(brokenGames.length === 0, "45개 게임이 모두 열립니다", brokenGames.join(", "));
+  check(brokenGames.length === 0, "46개 게임이 모두 열립니다", brokenGames.join(", "));
 
   await navigate("search.html", 1200);
   const search = await evaluate(`({
