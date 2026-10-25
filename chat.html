@@ -30,6 +30,7 @@
   .chat-user-list button:hover, .chat-user-list button[aria-current="true"], .chat-room-button[aria-current="true"] { background:var(--accent-soft); border-color:var(--border); }
   .chat-presence { width:9px; height:9px; flex:none; border-radius:50%; background:#9ca3af; }
   .chat-presence.is-online { background:#16a34a; }
+  .chat-unread { margin-left:auto; min-width:18px; padding:1px 6px; border-radius:999px; background:var(--accent); color:#fff; font-size:12px; font-weight:700; text-align:center; }
   .chat-window { display:flex; flex-direction:column; min-height:560px; padding:16px; }
   .chat-header { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid var(--border); }
   .chat-status, .chat-note { color:var(--ink-soft); font-size:13px; }
@@ -59,7 +60,7 @@
     <div class="chat-layout">
       <aside class="chat-users">
         <h2>대화</h2>
-        <button id="chat-room-button" class="chat-room-button" type="button" aria-current="true">공용 대화방</button>
+        <button id="chat-room-button" class="chat-room-button" type="button" aria-current="true"><span>공용 대화방</span><span id="room-unread" class="chat-unread" hidden></span></button>
         <h2 style="margin-top:18px">접속 중인 사용자</h2>
         <div id="chat-user-list" class="chat-user-list"></div>
       </aside>
@@ -96,17 +97,51 @@
     let socket;
     let reconnectTimer;
     let reconnectDelay = 1000;
+    let baseStatus = "연결 중...";
+    let connected = false;
+    let typingTimer = 0;
+    let lastTypingSent = 0;
+    const unread = new Map();
+    const roomUnread = document.getElementById("room-unread");
 
     function renderMessages(messages) {
       messagesEl.replaceChildren();
       messages.forEach(appendMessage);
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
+    function setStatus(text) {
+      chatStatus.textContent = text;
+    }
+    function messageMatchesActive(message) {
+      if (activeChat.type === "ROOM") return message.type === "ROOM";
+      return message.type === "DIRECT"
+        && [message.senderId, message.recipientId].includes(activeChat.id)
+        && [message.senderId, message.recipientId].includes(currentUserId);
+    }
+    function conversationKey(message) {
+      if (message.type === "ROOM") return "ROOM";
+      const other = message.senderId === currentUserId ? message.recipientId : message.senderId;
+      return `user:${other}`;
+    }
+    function updateUnreadBadges() {
+      const roomCount = unread.get("ROOM") || 0;
+      roomUnread.textContent = roomCount ? String(roomCount) : "";
+      roomUnread.hidden = roomCount === 0;
+      userList.querySelectorAll("button[data-user-id]").forEach(button => {
+        const badge = button.querySelector(".chat-unread");
+        const count = unread.get(`user:${button.dataset.userId}`) || 0;
+        if (!badge) return;
+        badge.textContent = count ? String(count) : "";
+        badge.hidden = count === 0;
+      });
+    }
+    function addUnread(message) {
+      const key = conversationKey(message);
+      unread.set(key, (unread.get(key) || 0) + 1);
+      updateUnreadBadges();
+    }
     function appendMessage(message) {
-      if (activeChat.type === "ROOM" && message.type !== "ROOM") return;
-      if (activeChat.type === "DIRECT" && (message.type !== "DIRECT"
-          || ![message.senderId, message.recipientId].includes(activeChat.id)
-          || ![message.senderId, message.recipientId].includes(currentUserId))) return;
+      if (!messageMatchesActive(message)) return;
       const item = document.createElement("article");
       item.className = `chat-message${message.senderId === currentUserId ? " is-mine" : ""}`;
       const meta = document.createElement("div");
@@ -133,13 +168,15 @@
         if (!response.ok) throw new Error(`대화 기록을 불러오지 못했습니다 (HTTP ${response.status}).`);
         renderMessages(await response.json());
       } catch (error) {
-        chatStatus.textContent = error.message || "대화 기록을 불러오지 못했습니다.";
+        setStatus(error.message || "대화 기록을 불러오지 못했습니다.");
       }
     }
     function selectRoom() {
       activeChat = { type: "ROOM", id: null, name: "공용 대화방" };
       roomButton.setAttribute("aria-current", "true");
       userList.querySelectorAll("button").forEach(button => button.removeAttribute("aria-current"));
+      unread.delete("ROOM");
+      updateUnreadBadges();
       loadMessages();
     }
     function selectUser(user) {
@@ -149,6 +186,8 @@
         if (Number(button.dataset.userId) === user.id) button.setAttribute("aria-current", "true");
         else button.removeAttribute("aria-current");
       });
+      unread.delete(`user:${user.id}`);
+      updateUnreadBadges();
       loadMessages();
     }
     function renderUsers(nextUsers) {
@@ -161,7 +200,6 @@
         empty.className = "chat-note";
         empty.textContent = "지금 접속 중인 사용자가 없습니다.";
         userList.appendChild(empty);
-        return;
       }
       onlineUsers.forEach(user => {
         const button = document.createElement("button");
@@ -173,10 +211,24 @@
         indicator.setAttribute("aria-label", "접속 중");
         const label = document.createElement("span");
         label.textContent = user.displayName;
-        button.append(indicator, label);
+        const badge = document.createElement("span");
+        badge.className = "chat-unread";
+        badge.hidden = true;
+        button.append(indicator, label, badge);
         button.addEventListener("click", () => selectUser(user));
         userList.appendChild(button);
       });
+      updateUnreadBadges();
+      // 1:1 대화 중 상대가 오프라인이 되면 안내합니다.
+      if (!connected) return;
+      const partnerOnline = activeChat.type === "DIRECT" && onlineUsers.some(user => user.id === activeChat.id);
+      if (activeChat.type === "DIRECT" && !partnerOnline) {
+        baseStatus = "상대가 오프라인입니다. 메시지는 보관됩니다.";
+        setStatus(baseStatus);
+      } else if (baseStatus.startsWith("상대가 오프라인")) {
+        baseStatus = "실시간 연결됨";
+        setStatus(baseStatus);
+      }
     }
     async function refreshUsers() {
       const response = await SAPAuth.apiFetch(`${SAPAuth.API_ROOT}/chat/users`);
@@ -197,13 +249,28 @@
         const packet = JSON.parse(event.data);
         if (packet.type === "ready") {
           reconnectDelay = 1000;
-          chatStatus.textContent = "실시간 연결됨";
+          connected = true;
+          baseStatus = "실시간 연결됨";
+          setStatus(baseStatus);
           loadMessages();
           return;
         }
         if (packet.type === "presence") renderUsers(packet.users);
-        if (packet.type === "message") appendMessage(packet.message);
-        if (packet.type === "error") chatStatus.textContent = packet.message;
+        if (packet.type === "message") {
+          if (messageMatchesActive(packet.message)) appendMessage(packet.message);
+          else if (packet.message.senderId !== currentUserId) addUnread(packet.message);
+        }
+        if (packet.type === "typing" && packet.senderId !== currentUserId) {
+          const typingHere = packet.chatType === "ROOM"
+            ? activeChat.type === "ROOM"
+            : activeChat.type === "DIRECT" && packet.senderId === activeChat.id;
+          if (typingHere) {
+            setStatus(`${packet.senderName}님이 입력 중...`);
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => setStatus(baseStatus), 2500);
+          }
+        }
+        if (packet.type === "error") setStatus(packet.message);
       });
       socket.addEventListener("close", event => {
         if (event.code === 1008) {
@@ -211,7 +278,9 @@
           location.replace(SAPAuth.loginUrl());
           return;
         }
-        chatStatus.textContent = "연결이 끊겼습니다. 다시 연결 중...";
+        connected = false;
+        baseStatus = "연결이 끊겼습니다. 다시 연결 중...";
+        setStatus(baseStatus);
         clearTimeout(reconnectTimer);
         reconnectTimer = setTimeout(connect, reconnectDelay);
         reconnectDelay = Math.min(reconnectDelay * 2, 15000);
@@ -223,7 +292,7 @@
       event.preventDefault();
       const content = chatInput.value.trim();
       if (!content || socket?.readyState !== WebSocket.OPEN) {
-        chatStatus.textContent = "서버 연결 후 메시지를 보낼 수 있습니다.";
+        setStatus("서버 연결 후 메시지를 보낼 수 있습니다.");
         return;
       }
       socket.send(JSON.stringify({
@@ -241,6 +310,14 @@
         chatForm.requestSubmit();
       }
     });
+    // 입력 중 표시는 1.5초에 한 번만 보내 서버 부담을 줄입니다.
+    chatInput.addEventListener("input", () => {
+      if (socket?.readyState !== WebSocket.OPEN) return;
+      const now = Date.now();
+      if (now - lastTypingSent < 1500) return;
+      lastTypingSent = now;
+      socket.send(JSON.stringify({ type: "typing", chatType: activeChat.type, recipientId: activeChat.id }));
+    });
     window.addEventListener("beforeunload", () => {
       clearTimeout(reconnectTimer);
       socket?.close();
@@ -248,11 +325,11 @@
 
     SAPAuth.requireSession().then(user => {
       if (!user || user.unavailable) {
-        chatStatus.textContent = "로그인 서버에 연결할 수 없습니다.";
+        setStatus("로그인 서버에 연결할 수 없습니다.");
         return;
       }
       currentUserId = user.id;
-      refreshUsers().catch(error => { chatStatus.textContent = error.message; });
+      refreshUsers().catch(error => { setStatus(error.message); });
       loadMessages();
       connect();
     });

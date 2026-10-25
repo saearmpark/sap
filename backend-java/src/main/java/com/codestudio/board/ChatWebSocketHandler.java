@@ -70,6 +70,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
         if ("message".equals(payload.path("type").asText())) {
             handleChatMessage(session, userId, payload);
+        } else if ("typing".equals(payload.path("type").asText())) {
+            handleTyping(session, userId, payload);
         } else {
             sendError(session, "지원하지 않는 요청입니다.");
         }
@@ -111,6 +113,27 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             }
             times.addLast(now);
             return true;
+        }
+    }
+
+    private void handleTyping(WebSocketSession session, Long senderId, JsonNode payload) throws IOException {
+        String chatType = payload.path("chatType").asText("");
+        String senderName = (String) session.getAttributes().get("displayName");
+        Map<String, Object> event = Map.of(
+                "type", "typing",
+                "chatType", chatType,
+                "senderId", senderId,
+                "senderName", senderName);
+        if ("DIRECT".equals(chatType)) {
+            if (!payload.hasNonNull("recipientId") || !payload.path("recipientId").canConvertToLong()) {
+                return;
+            }
+            long recipientId = payload.path("recipientId").longValue();
+            if (recipientId != senderId) {
+                sendToUser(recipientId, objectMapper.writeValueAsString(event));
+            }
+        } else if ("ROOM".equals(chatType)) {
+            broadcast(objectMapper.writeValueAsString(event));
         }
     }
 
