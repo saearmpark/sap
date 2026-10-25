@@ -12,7 +12,7 @@
     const BG_COLORS = ["#1b1f1d", "#95a5a6", "#ffffff"];
 
     let cards = [], selected = [], foundSets = [], running = false;
-    let timerHandle = null, elapsedSec = 0;
+    let timerHandle = null, elapsedSec = 0, paused = false;
 
     function generateCards() {
       const deck = [];
@@ -115,6 +115,7 @@
       foundSets = [];
       scoreEl.textContent = "0";
       running = true;
+      paused = false;
       statusEl.textContent = "합(3장의 카드)을 찾아보세요!";
       elapsedSec = 0;
       clearInterval(timerHandle);
@@ -135,7 +136,18 @@
         statusEl.textContent = "시작 버튼을 눌러주세요";
         boardEl.innerHTML = "";
       },
+      resume() {
+        if (!paused) return;
+        paused = false;
+        running = true;
+        clearInterval(timerHandle);
+        timerHandle = setInterval(() => {
+          elapsedSec++;
+          timerEl.textContent = formatTime(elapsedSec);
+        }, 1000);
+      },
       stop() {
+        paused = running;
         running = false;
         clearInterval(timerHandle);
       },

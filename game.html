@@ -19,7 +19,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>사피엔스 — 학습(게임)</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-35">
+<link rel="stylesheet" href="assets/style.css?v=labels-36">
 <style>
   .game-list {
     display: flex;
@@ -396,6 +396,10 @@
   .stack-canvas { width: min(100%, 380px); cursor: pointer; touch-action: manipulation; }
   .solitaire-board { --cw: clamp(34px, 12.5vw, 58px); display: flex; flex-direction: column; gap: 14px; width: min(100%, 640px); margin: 14px 0; }
   .solitaire-row { display: flex; gap: 6px; }
+  @media (max-width: 480px) {
+    .solitaire-board { --cw: clamp(30px, 10.5vw, 44px); }
+    .solitaire-row { gap: 4px; }
+  }
   .solitaire-pile { position: relative; flex: 0 0 auto; width: var(--cw); min-height: calc(var(--cw) * 1.4 + var(--cw) * 0.42 * 6); }
   .solitaire-pile.is-short { min-height: calc(var(--cw) * 1.4); }
   .solitaire-card {
@@ -1354,51 +1358,51 @@
     const panels = Array.from(document.querySelectorAll(".game-panel"));
     const initialized = new Set();
     const GAME_SCRIPTS = {
-      "panel-ttt": "assets/games/panel-ttt.js?v=labels-35",
-      "panel-bo": "assets/games/panel-bo.js?v=labels-35",
-      "panel-sh": "assets/games/panel-sh.js?v=labels-35",
-      "panel-pz": "assets/games/panel-pz.js?v=labels-35",
-      "panel-sn": "assets/games/panel-sn.js?v=labels-35",
-      "panel-tt": "assets/games/panel-tt.js?v=labels-35",
-      "panel-2048": "assets/games/panel-2048.js?v=labels-35",
-      "panel-mole": "assets/games/panel-mole.js?v=labels-35",
-      "panel-pong": "assets/games/panel-pong.js?v=labels-35",
-      "panel-gyeol": "assets/games/panel-gyeol.js?v=labels-35",
-      "panel-dodge": "assets/games/panel-dodge.js?v=labels-35",
-      "panel-sudoku": "assets/games/panel-sudoku.js?v=labels-35",
-      "panel-memory": "assets/games/panel-memory.js?v=labels-35",
-      "panel-rps": "assets/games/panel-rps.js?v=labels-35",
-      "panel-guess": "assets/games/panel-guess.js?v=labels-35",
-      "panel-reaction": "assets/games/panel-reaction.js?v=labels-35",
-      "panel-connect": "assets/games/panel-connect.js?v=labels-35",
-      "panel-mines": "assets/games/panel-mines.js?v=labels-35",
-      "panel-math": "assets/games/panel-math.js?v=labels-35",
-      "panel-gomoku": "assets/games/panel-gomoku.js?v=labels-35",
-      "panel-runner": "assets/games/panel-runner.js?v=labels-35",
-      "panel-animal-shogi": "assets/games/panel-animal-shogi.js?v=labels-35",
-      "panel-word-chain": "assets/games/panel-word-chain.js?v=labels-35",
-      "panel-blackjack": "assets/games/panel-blackjack.js?v=labels-35",
-      "panel-holdem": "assets/games/panel-holdem.js?v=labels-35",
-      "panel-dots-boxes": "assets/games/panel-dots-boxes.js?v=labels-35",
-      "panel-typing": "assets/games/panel-typing.js?v=labels-35",
-      "panel-baseball": "assets/games/panel-baseball.js?v=labels-35",
-      "panel-sequence": "assets/games/panel-sequence.js?v=labels-35",
-      "panel-othello": "assets/games/panel-othello.js?v=labels-35",
-      "panel-checkers": "assets/games/panel-checkers.js?v=labels-35",
-      "panel-chess": "assets/games/panel-chess.js?v=labels-35",
-      "panel-janggi": "assets/games/panel-janggi.js?v=labels-35",
-      "panel-yut": "assets/games/panel-yut.js?v=labels-35",
-      "panel-pac": "assets/games/panel-pac.js?v=labels-35",
-      "panel-frog": "assets/games/panel-frog.js?v=labels-35",
-      "panel-bomber": "assets/games/panel-bomber.js?v=labels-35",
-      "panel-match3": "assets/games/panel-match3.js?v=labels-35",
-      "panel-flappy": "assets/games/panel-flappy.js?v=labels-35",
-      "panel-bubble": "assets/games/panel-bubble.js?v=labels-35",
-      "panel-invaders": "assets/games/panel-invaders.js?v=labels-35",
-      "panel-solitaire": "assets/games/panel-solitaire.js?v=labels-35",
-      "panel-tanks": "assets/games/panel-tanks.js?v=labels-35",
-      "panel-stack": "assets/games/panel-stack.js?v=labels-35",
-      "panel-rhythm": "assets/games/panel-rhythm.js?v=labels-35"
+      "panel-ttt": "assets/games/panel-ttt.js?v=labels-36",
+      "panel-bo": "assets/games/panel-bo.js?v=labels-36",
+      "panel-sh": "assets/games/panel-sh.js?v=labels-36",
+      "panel-pz": "assets/games/panel-pz.js?v=labels-36",
+      "panel-sn": "assets/games/panel-sn.js?v=labels-36",
+      "panel-tt": "assets/games/panel-tt.js?v=labels-36",
+      "panel-2048": "assets/games/panel-2048.js?v=labels-36",
+      "panel-mole": "assets/games/panel-mole.js?v=labels-36",
+      "panel-pong": "assets/games/panel-pong.js?v=labels-36",
+      "panel-gyeol": "assets/games/panel-gyeol.js?v=labels-36",
+      "panel-dodge": "assets/games/panel-dodge.js?v=labels-36",
+      "panel-sudoku": "assets/games/panel-sudoku.js?v=labels-36",
+      "panel-memory": "assets/games/panel-memory.js?v=labels-36",
+      "panel-rps": "assets/games/panel-rps.js?v=labels-36",
+      "panel-guess": "assets/games/panel-guess.js?v=labels-36",
+      "panel-reaction": "assets/games/panel-reaction.js?v=labels-36",
+      "panel-connect": "assets/games/panel-connect.js?v=labels-36",
+      "panel-mines": "assets/games/panel-mines.js?v=labels-36",
+      "panel-math": "assets/games/panel-math.js?v=labels-36",
+      "panel-gomoku": "assets/games/panel-gomoku.js?v=labels-36",
+      "panel-runner": "assets/games/panel-runner.js?v=labels-36",
+      "panel-animal-shogi": "assets/games/panel-animal-shogi.js?v=labels-36",
+      "panel-word-chain": "assets/games/panel-word-chain.js?v=labels-36",
+      "panel-blackjack": "assets/games/panel-blackjack.js?v=labels-36",
+      "panel-holdem": "assets/games/panel-holdem.js?v=labels-36",
+      "panel-dots-boxes": "assets/games/panel-dots-boxes.js?v=labels-36",
+      "panel-typing": "assets/games/panel-typing.js?v=labels-36",
+      "panel-baseball": "assets/games/panel-baseball.js?v=labels-36",
+      "panel-sequence": "assets/games/panel-sequence.js?v=labels-36",
+      "panel-othello": "assets/games/panel-othello.js?v=labels-36",
+      "panel-checkers": "assets/games/panel-checkers.js?v=labels-36",
+      "panel-chess": "assets/games/panel-chess.js?v=labels-36",
+      "panel-janggi": "assets/games/panel-janggi.js?v=labels-36",
+      "panel-yut": "assets/games/panel-yut.js?v=labels-36",
+      "panel-pac": "assets/games/panel-pac.js?v=labels-36",
+      "panel-frog": "assets/games/panel-frog.js?v=labels-36",
+      "panel-bomber": "assets/games/panel-bomber.js?v=labels-36",
+      "panel-match3": "assets/games/panel-match3.js?v=labels-36",
+      "panel-flappy": "assets/games/panel-flappy.js?v=labels-36",
+      "panel-bubble": "assets/games/panel-bubble.js?v=labels-36",
+      "panel-invaders": "assets/games/panel-invaders.js?v=labels-36",
+      "panel-solitaire": "assets/games/panel-solitaire.js?v=labels-36",
+      "panel-tanks": "assets/games/panel-tanks.js?v=labels-36",
+      "panel-stack": "assets/games/panel-stack.js?v=labels-36",
+      "panel-rhythm": "assets/games/panel-rhythm.js?v=labels-36"
     };
     const gameScriptLoads = new Map();
 
@@ -1687,8 +1691,8 @@
     });
   })();
 </script>
-<script src="assets/common.js?v=labels-35"></script>
-<script src="assets/auth.js?v=labels-35"></script>
-<script src="assets/theme.js?v=labels-35"></script>
+<script src="assets/common.js?v=labels-36"></script>
+<script src="assets/auth.js?v=labels-36"></script>
+<script src="assets/theme.js?v=labels-36"></script>
 </body>
 </html>

@@ -10,6 +10,7 @@
     let started = false;
     let ended = false;
     let startedAt = 0;
+    let pausedAt = 0;
 
     function neighbors(index) {
       const row = Math.floor(index / SIZE), col = index % SIZE, result = [];
@@ -121,5 +122,16 @@
       flagModeBtn.textContent = `깃발 모드: ${flagMode ? "켬" : "끔"}`;
     });
     document.getElementById("mines-reset").addEventListener("click", reset);
-    registerGame("panel-mines", { init: reset, stop() {} });
+    registerGame("panel-mines", {
+      init: reset,
+      resume() {
+        if (pausedAt) {
+          startedAt += Date.now() - pausedAt;
+          pausedAt = 0;
+        }
+      },
+      stop() {
+        if (started && !ended) pausedAt = Date.now();
+      },
+    });
   })();

@@ -9,7 +9,7 @@
     const SOLVED = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]; // 0 = 빈칸
 
     let tiles = SOLVED.slice();
-    let running = false, timerHandle = null, elapsedSec = 0;
+    let running = false, timerHandle = null, elapsedSec = 0, paused = false;
 
     function formatTime(sec) {
       const m = Math.floor(sec / 60).toString().padStart(2, "0");
@@ -76,6 +76,7 @@
       shuffle();
       render();
       running = true;
+      paused = false;
       statusEl.textContent = "빈칸 옆 숫자를 클릭해 이동하세요";
       elapsedSec = 0;
       timerEl.textContent = "00:00";
@@ -95,7 +96,18 @@
         statusEl.textContent = "시작 버튼을 눌러주세요";
         render();
       },
+      resume() {
+        if (!paused) return;
+        paused = false;
+        running = true;
+        clearInterval(timerHandle);
+        timerHandle = setInterval(() => {
+          elapsedSec++;
+          timerEl.textContent = formatTime(elapsedSec);
+        }, 1000);
+      },
       stop() {
+        paused = running;
         running = false;
         clearInterval(timerHandle);
       },

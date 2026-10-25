@@ -23,6 +23,8 @@
     let startedAt = Date.now();
     let completedSeconds = null;
     let scoreReported = false;
+    let timerHandle = 0;
+    let pausedAt = 0;
 
     function elapsedSeconds() {
       return completedSeconds ?? Math.floor((Date.now() - startedAt) / 1000);
@@ -40,7 +42,15 @@
       timerEl.textContent = `경과 시간: ${formatTime(elapsedSeconds())}${completedSeconds !== null ? " · 완료" : ""}`;
     }
 
-    setInterval(updateTimer, 1000);
+    function startTimer() {
+      clearInterval(timerHandle);
+      timerHandle = setInterval(updateTimer, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerHandle);
+      timerHandle = 0;
+    }
 
     function shuffle(items) {
       for (let i = items.length - 1; i > 0; i--) {
@@ -289,7 +299,9 @@
       startedAt = Date.now();
       completedSeconds = null;
       scoreReported = false;
+      pausedAt = 0;
       updateTimer();
+      startTimer();
       solution = createSolution().flat();
       puzzle = solution.flat();
       notes = Array.from({ length: 81 }, () => new Set());
@@ -400,6 +412,17 @@
 
     registerGame("panel-sudoku", {
       init: newPuzzle,
-      stop() {},
+      resume() {
+        if (pausedAt) {
+          startedAt += Date.now() - pausedAt;
+          pausedAt = 0;
+        }
+        if (completedSeconds === null) startTimer();
+        else updateTimer();
+      },
+      stop() {
+        stopTimer();
+        if (completedSeconds === null) pausedAt = Date.now();
+      },
     });
   })();
