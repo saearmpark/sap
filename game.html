@@ -11857,6 +11857,7 @@
       song = composeSong(pendingSeed ?? makeSeed(), LEVELS[level]);
       reset();
       statusEl.textContent = `${LEVELS[level].label} 난이도로 준비했습니다. 시작 버튼을 눌러주세요.`;
+      window.refreshGameLeaderboard?.("panel-rhythm");
     });
     refreshSoundButton();
     document.addEventListener("keydown", event => {
@@ -11947,7 +11948,19 @@
     };
 
     function formatScore(gameId, value) {
-      return `${value}${SCORE_UNITS[gameId] || ""}`;
+      const baseId = gameId.replace(/-l\d+$/, "");
+      return `${value}${SCORE_UNITS[baseId] || ""}`;
+    }
+
+    // 리듬 게임은 레벨별로 기록을 따로 저장합니다.
+    function rhythmLevelNumber() {
+      const value = document.getElementById("rhythm-level")?.value || "level2";
+      const match = /^level([1-6])$/.exec(value);
+      return match ? Number(match[1]) : 2;
+    }
+
+    function leaderboardGameId(gameId) {
+      return gameId === "panel-rhythm" ? `panel-rhythm-l${rhythmLevelNumber()}` : gameId;
     }
 
     function addLeaderboards() {
@@ -11973,8 +11986,12 @@
     }
 
     function renderLeaderboard(gameId, data) {
-      const details = document.getElementById(`lb-${gameId}`);
+      const baseId = gameId.replace(/-l\d+$/, "");
+      const details = document.getElementById(`lb-${baseId}`);
       if (!details) return;
+      if (baseId === "panel-rhythm") {
+        details.querySelector("summary").textContent = `Level ${rhythmLevelNumber()} 랭킹 — 내 최고 기록과 상위 10`;
+      }
       const me = window.SAPAuth?.getUser()?.displayName;
       const mine = details.querySelector(".lb-mine");
       const empty = details.querySelector(".lb-empty");
@@ -12016,26 +12033,29 @@
         clearLeaderboard(gameId);
         return;
       }
+      const scoringId = leaderboardGameId(gameId);
       try {
         const order = LOWER_IS_BETTER.has(gameId) ? "&order=asc" : "";
-        const res = await window.SAPAuth.apiFetch(`${window.SAPAuth.API_ROOT}/game-scores?gameId=${encodeURIComponent(gameId)}${order}`);
-        if (res.ok) renderLeaderboard(gameId, await res.json());
+        const res = await window.SAPAuth.apiFetch(`${window.SAPAuth.API_ROOT}/game-scores?gameId=${encodeURIComponent(scoringId)}${order}`);
+        if (res.ok) renderLeaderboard(scoringId, await res.json());
       } catch {}
     }
 
     async function reportScore(gameId, score) {
       if (!SCORING_GAMES[gameId] || !Number.isFinite(score) || score <= 0) return;
       if (!window.SAPAuth?.getToken()) return;
+      const scoringId = leaderboardGameId(gameId);
       try {
         const res = await window.SAPAuth.apiFetch(`${window.SAPAuth.API_ROOT}/game-scores`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ gameId, score: Math.round(score), order: LOWER_IS_BETTER.has(gameId) ? "asc" : "desc" }),
+          body: JSON.stringify({ gameId: scoringId, score: Math.round(score), order: LOWER_IS_BETTER.has(gameId) ? "asc" : "desc" }),
         });
         if (res.ok) refreshLeaderboard(gameId);
       } catch {}
     }
     window.reportScore = reportScore;
+    window.refreshGameLeaderboard = refreshLeaderboard;
 
     addLeaderboards();
 
@@ -12083,6 +12103,10 @@
     }
 
     window.addEventListener("popstate", syncFromLocation);
+    // 공용 스크립트(로그인)가 나중에 로드되므로, 로드가 끝난 뒤 현재 게임 랭킹을 다시 불러옵니다.
+    window.addEventListener("load", () => {
+      if (activeId && SCORING_GAMES[activeId]) refreshLeaderboard(activeId);
+    });
     if (location.hash) syncFromLocation();
 
     document.querySelectorAll(".game-list-item").forEach(btn => {
