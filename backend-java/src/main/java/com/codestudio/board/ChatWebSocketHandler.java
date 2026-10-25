@@ -13,6 +13,8 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,12 +24,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatWebSocketHandler extends TextWebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(ChatWebSocketHandler.class);
     private static final int MAX_MESSAGE_LENGTH = 1000;
+    private static final int RATE_LIMIT_MESSAGES = 5;
+    private static final long RATE_LIMIT_WINDOW_MS = 5_000L;
 
     private final ObjectMapper objectMapper;
     private final AuthService authService;
     private final UserAccountRepository users;
     private final ChatMessageRepository messages;
     private final Map<Long, Set<WebSocketSession>> sessionsByUser = new ConcurrentHashMap<>();
+    private final Map<Long, Deque<Long>> messageTimesByUser = new ConcurrentHashMap<>();
     private final Set<WebSocketSession> allSessions = ConcurrentHashMap.newKeySet();
 
     public ChatWebSocketHandler(
@@ -94,6 +99,21 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         broadcastPresence();
     }
 
+    private boolean allowMessage(Long userId) {
+        long now = System.currentTimeMillis();
+        Deque<Long> times = messageTimesByUser.computeIfAbsent(userId, ignored -> new ArrayDeque<>());
+        synchronized (times) {
+            while (!times.isEmpty() && now - times.peekFirst() >= RATE_LIMIT_WINDOW_MS) {
+                times.removeFirst();
+            }
+            if (times.size() >= RATE_LIMIT_MESSAGES) {
+                return false;
+            }
+            times.addLast(now);
+            return true;
+        }
+    }
+
     private void handleChatMessage(WebSocketSession session, Long senderId, JsonNode payload) throws IOException {
         String content = payload.path("content").asText("").trim();
         if (content.isEmpty() || content.length() > MAX_MESSAGE_LENGTH) {
@@ -114,6 +134,11 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             }
         } else if (!"ROOM".equals(chatType)) {
             sendError(session, "지원하지 않는 대화 방식입니다.");
+            return;
+        }
+
+        if (!allowMessage(senderId)) {
+            sendError(session, "메시지를 너무 빠르게 보내고 있습니다. 잠시 후 다시 시도하세요.");
             return;
         }
 
@@ -141,6 +166,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             userSessions.remove(session);
             if (userSessions.isEmpty()) {
                 sessionsByUser.remove(userId, userSessions);
+                messageTimesByUser.remove(userId);
                 broadcastPresence();
             }
         }
