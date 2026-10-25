@@ -19,7 +19,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>사피엔스 — 투자정보</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-32">
+<link rel="stylesheet" href="assets/style.css?v=labels-33">
 </head>
 <body>
 <div class="layout">
@@ -49,9 +49,9 @@
     </section>
   </main>
 </div>
-<script src="assets/common.js?v=labels-32"></script>
-<script src="assets/auth.js?v=labels-32"></script>
-<script src="assets/feed.js?v=labels-32"></script>
+<script src="assets/common.js?v=labels-33"></script>
+<script src="assets/auth.js?v=labels-33"></script>
+<script src="assets/feed.js?v=labels-33"></script>
 <script>
   (() => {
     const API = window.SAPCommon.API_ROOT;
@@ -67,14 +67,14 @@
     let lastQuotes = [];
     let watchlist = readWatchlist();
 
-    function readCache() {
+    function readQuoteCache() {
       try {
         const raw = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
         return Array.isArray(raw) && raw.length ? raw : null;
       } catch { return null; }
     }
 
-    function writeCache(quotes) {
+    function writeQuoteCache(quotes) {
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(quotes)); } catch {}
     }
 
@@ -148,10 +148,6 @@
       });
       watchlistListEl.replaceChildren(...chips);
       watchlistStatusEl.textContent = `${items.length}개`;
-    }
-
-    function relTime(iso) {
-      return window.SAPCommon.relTime(iso);
     }
 
     function formatPrice(value, currency) {
@@ -269,15 +265,15 @@
           statusEl.textContent = "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
           return;
         }
-        statusEl.textContent = `시세 ${quotes.length}건 · ${relTime(data.updatedAt)} 갱신${data.partial ? " · 일부 시세 지연" : ""}`;
+        statusEl.textContent = `시세 ${quotes.length}건 · ${window.SAPCommon.relTime(data.updatedAt)} 갱신${data.partial ? " · 일부 시세 지연" : ""}`;
         const signature = JSON.stringify(quotes);
         if (signature !== lastSignature) {
           lastSignature = signature;
           render(quotes);
         }
-        writeCache(quotes);
+        writeQuoteCache(quotes);
       } catch (error) {
-        statusEl.textContent = readCache()
+        statusEl.textContent = readQuoteCache()
           ? "서버 연결이 느립니다. 저장된 시세를 표시합니다."
           : "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
       }
@@ -290,7 +286,7 @@
       renderWatchlist(lastQuotes);
     });
 
-    const cachedQuotes = readCache();
+    const cachedQuotes = readQuoteCache();
     if (cachedQuotes) {
       lastSignature = JSON.stringify(cachedQuotes);
       render(cachedQuotes);
@@ -310,6 +306,6 @@
     noun: "경제 소식",
   });
 </script>
-<script src="assets/theme.js?v=labels-32"></script>
+<script src="assets/theme.js?v=labels-33"></script>
 </body>
 </html>

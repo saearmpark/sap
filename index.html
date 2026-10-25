@@ -19,7 +19,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>사피엔스 — 홈</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-32">
+<link rel="stylesheet" href="assets/style.css?v=labels-33">
 </head>
 <body>
 <div class="layout">
@@ -96,11 +96,12 @@
     </div>
   </main>
 </div>
-<script src="assets/common.js?v=labels-32"></script>
-<script src="assets/auth.js?v=labels-32"></script>
+<script src="assets/common.js?v=labels-33"></script>
+<script src="assets/auth.js?v=labels-33"></script>
 <script>
   (() => {
     const API = window.SAPCommon.API_ROOT;
+    const { localDate, addDays, addMonths, withTimeout } = window.SAPCommon;
     const statusEl = document.getElementById("briefing-status");
     const WEATHER_CACHE_KEY = "sap-weather-cache-v2";
     const STOCKS_CACHE_KEY = "sap-stocks-cache";
@@ -143,33 +144,6 @@
       } catch {
         return DEFAULT_WATCHLIST.slice();
       }
-    }
-
-    function withTimeout(promise, ms) {
-      return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))
-      ]);
-    }
-
-    function localDate(date) {
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-    }
-
-    function addDays(dateKey, days) {
-      const date = new Date(`${dateKey}T00:00:00`);
-      date.setDate(date.getDate() + days);
-      return localDate(date);
-    }
-
-    function addMonths(dateKey, months) {
-      const date = new Date(`${dateKey}T00:00:00`);
-      const day = date.getDate();
-      date.setDate(1);
-      date.setMonth(date.getMonth() + months);
-      const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-      date.setDate(Math.min(day, lastDay));
-      return localDate(date);
     }
 
     function expandOccurrences(events, rangeStart, rangeEnd) {
@@ -405,6 +379,6 @@
     });
   })();
 </script>
-<script src="assets/theme.js?v=labels-32"></script>
+<script src="assets/theme.js?v=labels-33"></script>
 </body>
 </html>

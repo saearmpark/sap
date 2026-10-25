@@ -19,7 +19,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>사피엔스 — 검색</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-32">
+<link rel="stylesheet" href="assets/style.css?v=labels-33">
 <style>
   .search-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .search-form input[type="search"] {
@@ -61,13 +61,14 @@
     <div id="search-results"></div>
   </main>
 </div>
-<script src="assets/common.js?v=labels-32"></script>
-<script src="assets/auth.js?v=labels-32"></script>
+<script src="assets/common.js?v=labels-33"></script>
+<script src="assets/auth.js?v=labels-33"></script>
 <script>
   (() => {
     const form = document.getElementById("search-form");
     const input = document.getElementById("search-input");
     const status = document.getElementById("search-status");
+    const { withTimeout } = window.SAPCommon;
     const resultsEl = document.getElementById("search-results");
     const staticIndex = [];
     let staticReady = null;
@@ -83,13 +84,6 @@
       { key: "file", label: "자료실" },
       { key: "account", label: "계정" }
     ];
-
-    function withTimeout(promise, ms) {
-      return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))
-      ]);
-    }
 
     async function parsePage(path) {
       const response = await withTimeout(fetch(path, { cache: "no-store" }), 8000);
@@ -376,6 +370,6 @@
     }
   })();
 </script>
-<script src="assets/theme.js?v=labels-32"></script>
+<script src="assets/theme.js?v=labels-33"></script>
 </body>
 </html>

@@ -461,9 +461,9 @@
   });
 
   window.SAPCommon = {
-    API_ROOT, buildNotificationItems, clearNotificationState, escapeHtml,
-    markNotificationSynced, notificationUnreadCount, readCache, refreshNotificationCache,
-    relTime, renderSidebar, sortNotificationItems, updateNotificationBadge, writeCache
+    API_ROOT, addDays, addMonths, buildNotificationItems, clearNotificationState, escapeHtml,
+    localDate, markNotificationSynced, notificationUnreadCount, readCache, refreshNotificationCache,
+    relTime, renderSidebar, sortNotificationItems, updateNotificationBadge, withTimeout, writeCache
   };
   ensureSkipLink();
   renderSidebar();

@@ -674,11 +674,7 @@
   let sentenceAutoTimer = null;
   const SENTENCE_AUTO_MS = 8000;
 
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (char) => (
-      { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]
-    ));
-  }
+  const escapeHtml = window.SAPCommon.escapeHtml;
 
   function shuffle(items) {
     const copy = [...items];

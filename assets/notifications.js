@@ -1,5 +1,6 @@
 (() => {
   const API = window.SAPCommon.API_ROOT;
+  const withTimeout = window.SAPCommon.withTimeout;
   const CACHE_KEY = "sap-notifications-cache";
   const SEEN_KEY = "sap-notifications-seen-v1";
   const listEl = document.getElementById("notification-list");
@@ -39,13 +40,6 @@
     } else {
       try { localStorage.removeItem(CACHE_KEY); } catch {}
     }
-  }
-
-  function withTimeout(promise, ms) {
-    return Promise.race([
-      promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))
-    ]);
   }
 
   async function fetchJson(path) {
