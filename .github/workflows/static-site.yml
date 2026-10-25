@@ -6,12 +6,20 @@ on:
     paths:
       - "*.html"
       - "assets/**"
+      - "sw.js"
+      - "manifest.webmanifest"
+      - "robots.txt"
+      - "sitemap.xml"
       - ".github/scripts/**"
       - ".github/workflows/static-site.yml"
   pull_request:
     paths:
       - "*.html"
       - "assets/**"
+      - "sw.js"
+      - "manifest.webmanifest"
+      - "robots.txt"
+      - "sitemap.xml"
       - ".github/scripts/**"
       - ".github/workflows/static-site.yml"
 
@@ -37,7 +45,24 @@ jobs:
         run: node .github/scripts/check-links.mjs
       - name: Check shared asset versions
         run: node .github/scripts/check-assets.mjs
+      - name: Check metadata and sitemap
+        run: node .github/scripts/check-seo.mjs
       - name: Check PWA files
         run: |
           node --check sw.js
           node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest', 'utf8'))"
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Set up Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v2
+      - name: Run browser smoke test
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: node .github/scripts/smoke-site.mjs

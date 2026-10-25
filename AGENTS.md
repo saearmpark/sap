@@ -17,7 +17,20 @@ Keep static pages at the root and reuse shared assets where practical. Follow ex
 
 ## Testing Guidelines
 
-For Java changes, run `mvn test`; the checked-in tests cover authentication, game persistence and room recovery, score storage, WebSocket handling, news collection, and stock quote parsing. For static-site changes, run `node .github/scripts/check-inline-scripts.mjs`, `node .github/scripts/check-links.mjs`, and `node .github/scripts/check-assets.mjs`. For UI, API, and game changes, also launch the affected page or service and check the changed behavior manually. Include the command or manual checks performed in your change description.
+For Java changes, run `mvn test`; the checked-in tests cover authentication, game persistence and room recovery, score storage, WebSocket handling, news collection, and stock quote parsing. For static-site changes, run `node .github/scripts/check-inline-scripts.mjs`, `node .github/scripts/check-links.mjs`, `node .github/scripts/check-assets.mjs`, and `node .github/scripts/check-seo.mjs`. For UI, API, and game changes, also launch the affected page or service and check the changed behavior manually; `node .github/scripts/smoke-site.mjs` runs a headless Chrome smoke test when Chrome is installed (Node 22+ for the global `WebSocket`). Include the command or manual checks performed in your change description.
+
+## Static Page Maintenance
+
+Adding or renaming a root page touches several shared lists. Work through this checklist so the checks stay green:
+
+1. Add the page to `.github/scripts/pages.txt` (alphabetical position does not matter, but keep one file per line).
+2. Add a `<meta name="description">`, canonical URL, Open Graph, and Twitter card tags after the `theme-color` meta; copy the block from an existing page and update the text and URL.
+3. Register the page in the sidebar in `assets/common.js` (`NAV`), or in the relevant submenu.
+4. Add a search entry in `search.html` (`staticIndex`) when the page should be discoverable.
+5. Add the page to `sw.js` `CORE` only if it is lightweight and useful offline; large pages such as `game.html` are cached on first visit instead.
+6. Add authenticated or private pages (`login.html`, `mypage.html`, `admin.html`, `offline.html`) to `robots.txt` disallow and mark them `noindex`; public pages belong in `sitemap.xml`.
+7. Bump the shared asset version with `node .github/scripts/bump-assets.mjs` whenever `assets/*.css` or `assets/*.js` changes. The script updates every page and the `sw.js` cache name, and adjusts the "next version" prose in `manual-connect.html`. Use `--dry-run` first to review.
+8. Run the four static checks above (and `node .github/scripts/smoke-site.mjs` when the layout or scripts changed) before committing.
 
 ## Commit & Pull Request Guidelines
 
