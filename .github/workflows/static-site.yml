@@ -41,6 +41,9 @@ jobs:
           for file in assets/*.js; do
             node --check "$file"
           done
+          for file in assets/games/*.js; do
+            node --check "$file"
+          done
       - name: Check inline scripts
         run: node .github/scripts/check-inline-scripts.mjs
       - name: Check page list and links

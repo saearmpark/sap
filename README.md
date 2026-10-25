@@ -10,7 +10,7 @@ Java, Python, HTML/CSS를 연습하는 개인 학습 사이트입니다.
 ```text
 .
 ├── *.html                  # GitHub Pages 화면 (홈, 학습, 영어, 웹제작절차, 로그인, 자유 게시판, 공지사항, 게임, 404 등)
-├── assets/                 # 공통 스타일과 인증·테마·목록 렌더 스크립트
+├── assets/                 # 공통 스타일·스크립트와 게임별 스크립트(assets/games/)
 ├── .github/scripts/        # 정적 검사, 자산 버전 올림, 브라우저 스모크 테스트
 ├── backend-java/
 │   ├── src/main/            # Spring Boot API 소스와 설정
