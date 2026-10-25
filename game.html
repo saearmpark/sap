@@ -423,6 +423,8 @@
   .rhythm-key:nth-child(3).is-active { background:#fef3c7; box-shadow:0 0 0 3px #fde68a, 0 0 22px #feca57; }
   .rhythm-key:nth-child(4).is-active { background:#fce7f3; box-shadow:0 0 0 3px #fbcfe8, 0 0 22px #ff9ff3; }
   .rhythm-key:disabled { opacity:.5; cursor:default; }
+  .rhythm-level-pick { display:flex; align-items:center; gap:6px; font-weight:600; color:var(--ink-soft); }
+  .rhythm-level-pick select { padding:6px 10px; border:1px solid var(--border); border-radius:8px; background:#fff; color:#17181a; font-weight:700; }
 </style>
 </head>
 <body class="learning-page">
@@ -1201,13 +1203,14 @@
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 60</span>
       <h3>리듬 게임 (JavaScript)</h3>
-      <p>D·F·J·K 키나 아래 판정 버튼으로 네 줄의 노트를 판정선에 맞춰 누르세요. 매 판 새로 생성되는 신시사이저 곡에 맞춰 48초 동안 점수와 콤보를 쌓습니다. 시간이 지날수록 노트가 촘촘해지고 배율이 올라가 점수를 더 많이 얻습니다.</p>
+      <p>D·F·J·K 키나 아래 판정 버튼으로 네 줄의 노트를 판정선에 맞춰 누르세요. 매 판 새로 생성되는 신시사이저 곡에 맞춰 48초 동안 점수와 콤보를 쌓습니다. 시간이 지날수록 노트가 촘촘해지고 배율이 올라가 점수를 더 많이 얻습니다. 난이도를 바꾸면 노트 밀도와 낙하 속도, 판정 범위가 함께 달라집니다.</p>
       <p class="mobile-hint">PC: D F J K 키 · 모바일: 아래 판정 버튼을 탭하세요. 음악은 소리 버튼으로 켜고 끌 수 있습니다.</p>
       <div class="rhythm-hud" aria-label="리듬 게임 현황">
         <span>점수 <span id="rhythm-score">0</span></span>
         <span>콤보 <span id="rhythm-combo">0</span></span>
         <span>정확도 <span id="rhythm-accuracy">100%</span></span>
         <span>남은 시간 <span id="rhythm-time">48</span>초</span>
+        <span>레벨 <span id="rhythm-level-name">보통</span></span>
         <span>배율 <span id="rhythm-mult">x1</span></span>
         <span>시드 <span id="rhythm-seed">-----</span></span>
       </div>
@@ -1219,6 +1222,14 @@
         <button class="rhythm-key" type="button" data-lane="3" disabled>K</button>
       </div>
       <div class="choice-controls">
+        <label class="rhythm-level-pick">난이도
+          <select id="rhythm-level" aria-label="리듬 게임 난이도">
+            <option value="easy">쉬움</option>
+            <option value="normal" selected>보통</option>
+            <option value="hard">어려움</option>
+            <option value="expert">전문가</option>
+          </select>
+        </label>
         <button id="rhythm-start" type="button">시작</button>
         <button id="rhythm-replay" type="button" disabled>같은 곡</button>
         <button id="rhythm-mute" type="button" aria-pressed="true">🔊 소리 켜짐</button>
@@ -11043,6 +11054,8 @@
     const seedEl = document.getElementById("rhythm-seed");
     const multEl = document.getElementById("rhythm-mult");
     const replayBtn = document.getElementById("rhythm-replay");
+    const levelSelect = document.getElementById("rhythm-level");
+    const levelNameEl = document.getElementById("rhythm-level-name");
     const keyButtons = Array.from(document.querySelectorAll(".rhythm-key"));
     const KEYS = ["d", "f", "j", "k"];
     const LANE_COLORS = ["#48dbfb", "#1dd1a1", "#feca57", "#ff9ff3"];
@@ -11050,16 +11063,65 @@
     const LANE_W = W / 4;
     const HIT_Y = H - 64;
     const TOP_Y = 34;
-    const TRAVEL = 1500;
+    let travel = 1500;
     const DURATION = 48000;
     const BAR_MS = 2000;
     const STEP_MS = BAR_MS / 16;
-    const WINDOWS = [
-      { label: "PERFECT", ms: 45, score: 100 },
-      { label: "GREAT", ms: 90, score: 70 },
-      { label: "GOOD", ms: 140, score: 40 },
-    ];
-    const MAX_WINDOW = WINDOWS[WINDOWS.length - 1].ms;
+    // 난이도마다 노트 밀도·낙하 속도·판정 범위가 달라집니다.
+    const LEVELS = {
+      easy: {
+        label: "쉬움",
+        density: 2,
+        travel: 1750,
+        doubles: 0,
+        offbeat: 0,
+        windows: [
+          { label: "PERFECT", ms: 65, score: 100 },
+          { label: "GREAT", ms: 115, score: 70 },
+          { label: "GOOD", ms: 170, score: 40 },
+        ],
+      },
+      normal: {
+        label: "보통",
+        density: 3,
+        travel: 1500,
+        doubles: 0.06,
+        offbeat: 1,
+        windows: [
+          { label: "PERFECT", ms: 55, score: 100 },
+          { label: "GREAT", ms: 100, score: 70 },
+          { label: "GOOD", ms: 150, score: 40 },
+        ],
+      },
+      hard: {
+        label: "어려움",
+        density: 4,
+        travel: 1250,
+        doubles: 0.12,
+        offbeat: 2,
+        windows: [
+          { label: "PERFECT", ms: 45, score: 100 },
+          { label: "GREAT", ms: 85, score: 70 },
+          { label: "GOOD", ms: 130, score: 40 },
+        ],
+      },
+      expert: {
+        label: "전문가",
+        density: 5,
+        travel: 1050,
+        doubles: 0.2,
+        offbeat: 3,
+        windows: [
+          { label: "PERFECT", ms: 38, score: 100 },
+          { label: "GREAT", ms: 72, score: 70 },
+          { label: "GOOD", ms: 110, score: 40 },
+        ],
+      },
+    };
+    const LEVEL_KEY = "sap-rhythm-level";
+    let level = "normal";
+    let windows = LEVELS.normal.windows;
+    let maxWindow = windows[windows.length - 1].ms;
     const SOUND_KEY = "sap-rhythm-sound";
     // 12초마다 한 단계씩 어려워지고, 배율도 함께 올라갑니다.
     const PHASE_MULT = [1, 1.5, 2, 3];
@@ -11083,7 +11145,9 @@
     let judgeLabel, judgeUntil, flashUntil, hitPulse, rings, keyTimers;
     let song, nextEvent = 0, audioCtx, audioOrigin = 0, masterGain, musicGain, noiseBuffer;
     let soundOn = readSound();
+    let pendingSeed = seedFromHash();
     const scheduled = [];
+    applyLevel(readLevel());
 
     function makeSeed() {
       return Math.floor((Date.now() + Math.random() * 100000) % 100000);
@@ -11106,13 +11170,13 @@
     }
 
     // 강박(1·2·3·4박)을 자주, 뒤로 갈수록 약박과 16분음을 섞습니다.
-    function pickStep(rng, phase) {
+    function pickStep(rng, phase, aggression) {
       const strong = [0, 4, 8, 12];
       const weak = [2, 6, 10, 14];
       const pool = [...strong, ...strong, ...weak];
-      if (phase >= 1) pool.push(...weak);
-      if (phase >= 2) pool.push(1, 3, 5, 7, 9, 11, 13, 15);
-      if (phase >= 3) pool.push(...strong);
+      if (phase >= 1 || aggression >= 1) pool.push(...weak);
+      if (phase >= 2 || aggression >= 2) pool.push(1, 3, 5, 7, 9, 11, 13, 15);
+      if (phase >= 3 || aggression >= 3) pool.push(...strong);
       return pick(rng, pool);
     }
 
@@ -11131,8 +11195,9 @@
     }
 
     // 시드로 곡을 만들고, 같은 이벤트에서 노트 차트까지 뽑습니다.
-    function composeSong(seed) {
+    function composeSong(seed, config) {
       const rng = makeRng(seed);
+      const settings = config || LEVELS[level];
       const key = Math.floor(rng() * 12);
       const scale = rng() < 0.35 ? SCALES.minor : SCALES.major;
       const progression = pick(rng, PROGRESSIONS);
@@ -11182,10 +11247,10 @@
           [1, 3, 5, 7, 9, 11, 13].forEach(step => add(start + step * STEP_MS, "hat", 0, 0.025));
         }
 
-        const density = 3 + phase + (rng() < 0.45 ? 1 : 0);
+        const density = settings.density + phase + (rng() < 0.45 ? 1 : 0);
         const steps = [];
         for (let index = 0; index < density; index++) {
-          const step = pickStep(rng, phase);
+          const step = pickStep(rng, phase, settings.offbeat);
           if (!steps.includes(step)) steps.push(step);
         }
         steps.sort((a, b) => a - b);
@@ -11210,7 +11275,7 @@
           addLead(time, target, lane);
 
           // 마지막 단계에서는 가끔 두 줄을 동시에 눌러야 하는 노트가 나옵니다.
-          if (phase >= 3 && rng() < 0.16) {
+          if (phase >= 2 && rng() < settings.doubles) {
             const extraLane = (lane + 1 + Math.floor(rng() * 3)) % 4;
             addLead(time, target + (rng() < 0.5 ? 0 : 7), extraLane);
           }
@@ -11226,6 +11291,34 @@
       events.sort((a, b) => a.time - b.time);
       chart.sort((a, b) => a.time - b.time);
       return { events, chart, seed };
+    }
+
+    function readLevel() {
+      try {
+        const saved = localStorage.getItem(LEVEL_KEY);
+        if (saved && LEVELS[saved]) return saved;
+      } catch { /* 저장소를 못 읽어도 기본 난이도로 진행합니다. */ }
+      return "normal";
+    }
+
+    function saveLevel(value) {
+      try { localStorage.setItem(LEVEL_KEY, value); } catch { /* 저장할 수 없어도 재생은 계속합니다. */ }
+    }
+
+    function applyLevel(value) {
+      level = LEVELS[value] ? value : "normal";
+      const config = LEVELS[level];
+      travel = config.travel;
+      windows = config.windows;
+      maxWindow = windows[windows.length - 1].ms;
+      if (levelSelect) levelSelect.value = level;
+      if (levelNameEl) levelNameEl.textContent = config.label;
+    }
+
+    // #panel-rhythm?seed=12345 처럼 공유 링크의 시드를 읽습니다.
+    function seedFromHash() {
+      const match = /(?:^|[?&])seed=(\d{1,6})/.exec(location.hash);
+      return match ? Number(match[1]) : null;
     }
 
     function readSound() {
@@ -11412,7 +11505,7 @@
 
     function reset() {
       stopMusic();
-      if (!song) song = composeSong(makeSeed());
+      if (!song) song = composeSong(pendingSeed ?? makeSeed(), LEVELS[level]);
       notes = song.chart.map(note => ({ lane: note.lane, time: note.time, midi: note.midi, state: "pending" }));
       running = false;
       finished = false;
@@ -11435,6 +11528,7 @@
       seedEl.textContent = String(song.seed).padStart(5, "0");
       multEl.textContent = "x1";
       replayBtn.disabled = true;
+      levelSelect.disabled = false;
       updateHud();
       draw(0);
     }
@@ -11457,12 +11551,12 @@
       for (const note of notes) {
         if (note.lane !== lane || note.state !== "pending") continue;
         const delta = Math.abs(chartTime - note.time);
-        if (delta > MAX_WINDOW) continue;
+        if (delta > maxWindow) continue;
         if (!best || delta < best.delta) best = { note, delta };
       }
       if (!best) return;
 
-      const judge = WINDOWS.find(entry => best.delta <= entry.ms);
+      const judge = windows.find(entry => best.delta <= entry.ms);
       best.note.state = "hit";
       hitCount++;
       judged++;
@@ -11481,7 +11575,7 @@
 
     function missCheck(now) {
       for (const note of notes) {
-        if (note.state !== "pending" || now <= note.time + MAX_WINDOW) continue;
+        if (note.state !== "pending" || now <= note.time + maxWindow) continue;
         note.state = "miss";
         judged++;
         combo = 0;
@@ -11549,7 +11643,7 @@
       ctx.strokeStyle = "rgba(255,255,255,.10)";
       ctx.lineWidth = 1;
       for (let bar = BAR_MS; bar < DURATION; bar += BAR_MS) {
-        const y = HIT_Y - ((bar - now) / TRAVEL) * (HIT_Y - TOP_Y);
+        const y = HIT_Y - ((bar - now) / travel) * (HIT_Y - TOP_Y);
         if (y < TOP_Y || y > HIT_Y) continue;
         ctx.beginPath();
         ctx.moveTo(0, y);
@@ -11566,7 +11660,7 @@
 
       for (const note of notes) {
         if (note.state === "hit") continue;
-        const y = HIT_Y - ((note.time - now) / TRAVEL) * (HIT_Y - TOP_Y);
+        const y = HIT_Y - ((note.time - now) / travel) * (HIT_Y - TOP_Y);
         if (y < TOP_Y - 30 || y > HIT_Y + 34) continue;
         drawNote(note.lane, y, note.state);
       }
@@ -11643,6 +11737,7 @@
       draw(DURATION);
       statusEl.textContent = `점수 ${score} · 최고 콤보 ${bestCombo} · 정확도 ${accuracy()}% · 맞힘 ${hitCount}/${totalNotes} · 시드 ${String(song.seed).padStart(5, "0")}`;
       replayBtn.disabled = false;
+      levelSelect.disabled = false;
       if (score > 0) window.reportScore?.("panel-rhythm", score);
     }
 
@@ -11676,8 +11771,11 @@
     }
 
     function start(seed) {
-      song = composeSong(seed ?? makeSeed());
+      const chosen = seed ?? pendingSeed ?? makeSeed();
+      pendingSeed = null;
+      song = composeSong(chosen, LEVELS[level]);
       reset();
+      history.replaceState(null, "", `#panel-rhythm?seed=${song.seed}`);
       const ready = ensureAudio();
       if (ready) {
         const offset = 0.12;
@@ -11689,11 +11787,12 @@
         audioOrigin = 0;
       }
       running = true;
+      levelSelect.disabled = true;
       keyButtons.forEach(button => { button.disabled = false; });
       const label = String(song.seed).padStart(5, "0");
       statusEl.textContent = ready && soundOn
-        ? `시드 ${label} · D F J K 키로 노트를 맞추세요. 음악에 맞춰 누르면 좋습니다.`
-        : `시드 ${label} · D F J K 키로 노트를 맞추세요.`;
+        ? `시드 ${label} · ${LEVELS[level].label} · D F J K 키로 노트를 맞추세요. 음악에 맞춰 누르면 좋습니다.`
+        : `시드 ${label} · ${LEVELS[level].label} · D F J K 키로 노트를 맞추세요.`;
       rafId = requestAnimationFrame(loop);
     }
 
@@ -11709,6 +11808,17 @@
     startBtn.addEventListener("click", () => start());
     replayBtn.addEventListener("click", () => start(song ? song.seed : undefined));
     muteBtn.addEventListener("click", toggleSound);
+    levelSelect.addEventListener("change", () => {
+      if (running) {
+        levelSelect.value = level;
+        return;
+      }
+      applyLevel(levelSelect.value);
+      saveLevel(level);
+      song = composeSong(pendingSeed ?? makeSeed(), LEVELS[level]);
+      reset();
+      statusEl.textContent = `${LEVELS[level].label} 난이도로 준비했습니다. 시작 버튼을 눌러주세요.`;
+    });
     refreshSoundButton();
     document.addEventListener("keydown", event => {
       if (!running || event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
@@ -11727,6 +11837,16 @@
       button.addEventListener("click", event => {
         if (event.detail === 0) press(lane);
       });
+    });
+
+    // 같은 탭에서 공유 링크(#panel-rhythm?seed=...)로 이동해도 곡을 다시 불러옵니다.
+    window.addEventListener("hashchange", () => {
+      const seed = seedFromHash();
+      if (running || seed === null) return;
+      pendingSeed = seed;
+      song = composeSong(seed, LEVELS[level]);
+      reset();
+      statusEl.textContent = `시드 ${String(seed).padStart(5, "0")} 곡을 불러왔습니다. 시작 버튼을 눌러주세요.`;
     });
 
     registerGame("panel-rhythm", { init: reset, stop });
@@ -11915,7 +12035,7 @@
     function syncFromLocation() {
       let id = "";
       try {
-        id = decodeURIComponent(location.hash.replace(/^#/, ""));
+        id = decodeURIComponent(location.hash.replace(/^#/, "").split("?")[0]);
       } catch {
         id = "";
       }
