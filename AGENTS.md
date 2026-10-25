@@ -17,7 +17,7 @@ Keep static pages at the root and reuse shared assets where practical. Follow ex
 
 ## Testing Guidelines
 
-For Java changes, run `mvn test`; the checked-in tests cover authentication, game persistence and room recovery, score storage, WebSocket handling, news collection, and stock quote parsing. For static-site changes, run `node .github/scripts/check-inline-scripts.mjs`, `node .github/scripts/check-links.mjs`, `node .github/scripts/check-assets.mjs`, and `node .github/scripts/check-seo.mjs`. For UI, API, and game changes, also launch the affected page or service and check the changed behavior manually; `node .github/scripts/smoke-site.mjs` runs a headless Chrome smoke test when Chrome is installed (Node 22+ for the global `WebSocket`). Include the command or manual checks performed in your change description.
+For Java changes, run `mvn test`; the checked-in tests cover authentication, game persistence and room recovery, score storage, WebSocket handling, news collection, and stock quote parsing. For static-site changes, run `node .github/scripts/check-inline-scripts.mjs`, `node .github/scripts/check-links.mjs`, `node .github/scripts/check-assets.mjs`, and `node .github/scripts/check-seo.mjs`. For UI, API, and game changes, also launch the affected page or service and check the changed behavior manually; `node .github/scripts/smoke-site.mjs` runs a headless Chrome smoke test when Chrome is installed (Node 22+ for the global `WebSocket`). Include the command or manual checks performed in your change description. Schedule recurrence helpers are covered by `node --test tests/schedule.test.mjs`.
 
 ## Static Page Maintenance
 

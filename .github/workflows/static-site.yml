@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "*.html"
+      - "tests/**"
       - "assets/**"
       - "sw.js"
       - "manifest.webmanifest"
@@ -15,6 +16,7 @@ on:
   pull_request:
     paths:
       - "*.html"
+      - "tests/**"
       - "assets/**"
       - "sw.js"
       - "manifest.webmanifest"
@@ -49,6 +51,8 @@ jobs:
         run: node .github/scripts/check-seo.mjs
       - name: Check content counts
         run: node .github/scripts/check-counts.mjs
+      - name: Run helper tests
+        run: node --test tests/schedule.test.mjs
       - name: Check PWA files
         run: |
           node --check sw.js

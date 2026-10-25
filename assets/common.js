@@ -462,8 +462,9 @@
 
   window.SAPCommon = {
     API_ROOT, addDays, addMonths, buildNotificationItems, clearNotificationState, escapeHtml,
-    localDate, markNotificationSynced, notificationUnreadCount, readCache, refreshNotificationCache,
-    relTime, renderSidebar, sortNotificationItems, updateNotificationBadge, withTimeout, writeCache
+    expandOccurrences, localDate, markNotificationSynced, notificationUnreadCount, readCache,
+    refreshNotificationCache, relTime, renderSidebar, sortNotificationItems, updateNotificationBadge,
+    withTimeout, writeCache
   };
   ensureSkipLink();
   renderSidebar();

@@ -19,7 +19,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>사피엔스 — 홈</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-33">
+<link rel="stylesheet" href="assets/style.css?v=labels-34">
 </head>
 <body>
 <div class="layout">
@@ -96,8 +96,8 @@
     </div>
   </main>
 </div>
-<script src="assets/common.js?v=labels-33"></script>
-<script src="assets/auth.js?v=labels-33"></script>
+<script src="assets/common.js?v=labels-34"></script>
+<script src="assets/auth.js?v=labels-34"></script>
 <script>
   (() => {
     const API = window.SAPCommon.API_ROOT;
@@ -147,36 +147,12 @@
     }
 
     function expandOccurrences(events, rangeStart, rangeEnd) {
-      const occurrences = [];
-      events.forEach(event => {
-        const rule = event.repeat_rule || "none";
-        if (rule === "none") {
-          if (event.end_date >= rangeStart && event.start_date <= rangeEnd) {
-            occurrences.push({ title: event.title, publicEvent: event.public_event, start: event.start_date, end: event.end_date });
-          }
-          return;
-        }
-        let start = event.start_date;
-        let end = event.end_date;
-        let guard = 0;
-        while (start <= rangeEnd && guard < 60) {
-          if (end >= rangeStart) {
-            occurrences.push({ title: event.title, publicEvent: event.public_event, start, end });
-          }
-          if (rule === "daily") {
-            start = addDays(start, 1);
-            end = addDays(end, 1);
-          } else if (rule === "weekly") {
-            start = addDays(start, 7);
-            end = addDays(end, 7);
-          } else {
-            start = addMonths(start, 1);
-            end = addMonths(end, 1);
-          }
-          guard++;
-        }
-      });
-      return occurrences;
+      return window.SAPCommon.expandOccurrences(events, rangeStart, rangeEnd).map(event => ({
+        title: event.title,
+        publicEvent: event.public_event,
+        start: event.start_date,
+        end: event.end_date,
+      }));
     }
 
     function weatherName(code) {
@@ -379,6 +355,6 @@
     });
   })();
 </script>
-<script src="assets/theme.js?v=labels-33"></script>
+<script src="assets/theme.js?v=labels-34"></script>
 </body>
 </html>
