@@ -26,19 +26,11 @@
           "manual-finish.html"
         ]
       },
-      { href: "english.html", label: "영어" },
-      { href: "vocab.html", label: "단어장" },
-      { href: "snippets.html", label: "코드 노트" }
+      { href: "english.html", label: "영어" }
     ] },
     { label: "제작", items: [
       { href: "learn.html", label: "앱" },
       { href: "game.html", label: "게임" }
-    ] },
-    { label: "도구", items: [
-      { href: "tools.html", label: "도구 모음" }
-    ] },
-    { label: "기록", items: [
-      { href: "records.html", label: "학습 기록" }
     ] },
     { label: "소통", items: [
       { href: "board.html", label: "게시판" },
@@ -46,13 +38,11 @@
       { href: "chat.html", label: "대화" }
     ] },
     { label: "자료", items: [
-      { href: "files.html", label: "내 자료" },
+      { href: "files.html", label: "자료실" },
       { href: "apps.html", label: "공용 도구" }
     ] },
     { label: "계정", items: [
       { href: "calendar.html", label: "일정" },
-      { href: "settings.html", label: "설정" },
-      { href: "help.html", label: "안내" },
       { href: "login.html", label: "로그인 / 회원가입", authLink: true }
     ] }
   ];

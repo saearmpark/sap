@@ -19,7 +19,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>사피엔스 — 검색</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-38">
+<link rel="stylesheet" href="assets/style.css?v=labels-39">
 <style>
   .search-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .search-form input[type="search"] {
@@ -61,8 +61,8 @@
     <div id="search-results"></div>
   </main>
 </div>
-<script src="assets/common.js?v=labels-38"></script>
-<script src="assets/auth.js?v=labels-38"></script>
+<script src="assets/common.js?v=labels-39"></script>
+<script src="assets/auth.js?v=labels-39"></script>
 <script>
   (() => {
     const form = document.getElementById("search-form");
@@ -148,42 +148,7 @@
           text: "다가오는 일정 새 공지 게시판 글 자료실 업로드 읽지 않은 알림 모두 읽음",
           href: "notifications.html"
         });
-        staticIndex.push({
-          key: "apps",
-          title: "도구 모음",
-          text: "생활 도구 할 일 메모 지출 계산기 타이머 단위 변환 그림판 비밀번호 랜덤 연락처 모음",
-          href: "tools.html"
-        });
-        staticIndex.push({
-          key: "account",
-          title: "학습 기록",
-          text: "OPIc 모의고사 점수 추이 최근 응시 다가오는 일정 게임 최고 기록 대시보드",
-          href: "records.html"
-        });
-        staticIndex.push({
-          key: "english",
-          title: "영어 단어장",
-          text: "영어 단어 표현 뜻 저장 복습 간격 반복 암기",
-          href: "vocab.html"
-        });
-        staticIndex.push({
-          key: "manual",
-          title: "코드 노트",
-          text: "자바 파이썬 자바스크립트 HTML SQL 코드 조각 스니펫 저장 검색 복사",
-          href: "snippets.html"
-        });
-        staticIndex.push({
-          key: "account",
-          title: "설정·데이터 백업",
-          text: "테마 다크모드 데이터 내보내기 가져오기 JSON 백업 초기화",
-          href: "settings.html"
-        });
-        staticIndex.push({
-          key: "account",
-          title: "사이트 안내",
-          text: "도움말 메뉴 기능 단축키 데이터 보관 업데이트 문제 해결",
-          href: "help.html"
-        });
+
 
         try {
           const learn = await parsePage("learn.html");
@@ -406,6 +371,6 @@
     }
   })();
 </script>
-<script src="assets/theme.js?v=labels-38"></script>
+<script src="assets/theme.js?v=labels-39"></script>
 </body>
 </html>

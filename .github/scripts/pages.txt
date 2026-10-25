@@ -28,9 +28,3 @@ manual-connect.html
 manual-server.html
 manual-ai-cli.html
 manual-finish.html
-tools.html
-settings.html
-records.html
-vocab.html
-snippets.html
-help.html
