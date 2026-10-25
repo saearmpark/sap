@@ -6,7 +6,7 @@
     { label: "소식", items: [
       { href: "news.html", label: "날씨" },
       { href: "stocks.html", label: "투자" },
-      { href: "ai-usage.html", label: "AI 사용량" }
+      
     ] },
     { label: "학습", items: [
       {

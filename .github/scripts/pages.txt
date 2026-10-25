@@ -4,7 +4,6 @@ offline.html
 search.html
 notifications.html
 news.html
-ai-usage.html
 stocks.html
 learn.html
 english.html

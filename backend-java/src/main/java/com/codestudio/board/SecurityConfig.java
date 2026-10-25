@@ -28,7 +28,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers("/api/news").permitAll()
                         .requestMatchers("/api/stocks").permitAll()
-                        .requestMatchers("/api/ai-usage").permitAll()
                         .requestMatchers("/ws/chat", "/ws/game").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
