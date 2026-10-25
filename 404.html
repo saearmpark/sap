@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202124">
+<script>
+  (function () {
+    var root = location.pathname.indexOf("/sap/") === 0 ? "/sap/" : "/";
+    var base = document.createElement("base");
+    base.href = root;
+    document.head.appendChild(base);
+  })();
+</script>
+<meta name="description" content="요청한 페이지를 찾을 수 없습니다. 홈이나 검색으로 이동해 원하는 페이지를 찾아보세요.">
+<link rel="canonical" href="https://saearmpark.github.io/sap/404.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="사피엔스">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="사피엔스 — 페이지를 찾을 수 없습니다">
+<meta property="og:description" content="요청한 페이지를 찾을 수 없습니다. 홈이나 검색으로 이동해 원하는 페이지를 찾아보세요.">
+<meta property="og:url" content="https://saearmpark.github.io/sap/404.html">
+<meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>사피엔스 — 페이지를 찾을 수 없습니다</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-32">
+<style>
+  .notfound { max-width: 680px; }
+  .notfound p { color: var(--ink-soft); line-height: 1.7; }
+  .notfound-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 22px; }
+  .notfound-links a {
+    display: inline-block;
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .notfound-links a:hover { border-color: var(--accent); }
+  .notfound-tip { font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main">
+    <div class="notfound">
+      <div class="eyebrow">404</div>
+      <h1>페이지를 찾을 수 없습니다</h1>
+      <p>주소가 바뀌었거나 삭제된 페이지입니다. 아래 링크에서 원하는 페이지로 이동하세요.</p>
+      <div class="notfound-links">
+        <a href="index.html">홈으로</a>
+        <a href="search.html">검색</a>
+        <a href="game.html">게임 제작</a>
+        <a href="manual.html">웹제작절차</a>
+        <a href="board.html">게시판</a>
+      </div>
+      <p class="notfound-tip">찾던 페이지가 맞다면 사이트 업데이트로 주소가 바뀌었을 수 있습니다. 검색에서 페이지 이름을 입력해 보세요.</p>
+    </div>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-32"></script>
+<script src="assets/theme.js?v=labels-32"></script>
+</body>
+</html>

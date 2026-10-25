@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /sap/admin.html
+Disallow: /sap/mypage.html
+Disallow: /sap/login.html
+Disallow: /sap/offline.html
+Disallow: /sap/404.html
+
+Sitemap: https://saearmpark.github.io/sap/sitemap.xml

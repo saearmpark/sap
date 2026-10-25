@@ -90,6 +90,24 @@
     return button;
   }
 
+  function ensureSkipLink() {
+    if (document.querySelector(".skip-link")) return;
+    const main = document.querySelector("main");
+    if (!main) return;
+    if (!main.id) main.id = "main-content";
+    main.setAttribute("tabindex", "-1");
+    const link = document.createElement("a");
+    link.className = "skip-link";
+    link.href = `#${main.id}`;
+    link.textContent = "본문 바로가기";
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      main.focus();
+      main.scrollIntoView({ block: "start" });
+    });
+    document.body.prepend(link);
+  }
+
   // 각 페이지에 반복되던 사이드바를 한 곳에서 만들어, 현재 페이지만 active/open 처리합니다.
   function renderSidebar() {
     const nav = document.querySelector("nav.nav-group[data-nav]");
@@ -447,6 +465,7 @@
     markNotificationSynced, notificationUnreadCount, readCache, refreshNotificationCache,
     relTime, renderSidebar, sortNotificationItems, updateNotificationBadge, writeCache
   };
+  ensureSkipLink();
   renderSidebar();
   updateNotificationBadge();
 })();

@@ -4,12 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#202124">
+<meta name="description" content="44개의 실습 게임과 코드 보기. 브레이크아웃, 스네이크, 2048, 지뢰 찾기, 틱택토 등을 바로 플레이합니다.">
+<link rel="canonical" href="https://saearmpark.github.io/sap/game.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="사피엔스">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="사피엔스 — 학습(게임)">
+<meta property="og:description" content="44개의 실습 게임과 코드 보기. 브레이크아웃, 스네이크, 2048, 지뢰 찾기, 틱택토 등을 바로 플레이합니다.">
+<meta property="og:url" content="https://saearmpark.github.io/sap/game.html">
+<meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="assets/icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <title>사피엔스 — 학습(게임)</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-31">
+<link rel="stylesheet" href="assets/style.css?v=labels-32">
 <style>
   .game-list {
     display: flex;
@@ -504,7 +514,7 @@
       <h3>벽돌깨기 (JavaScript)</h3>
       <p class="mobile-hint">모바일: 캔버스를 손가락으로 누른 채 좌우로 움직이면 패들이 따라옵니다.</p>
 
-      <canvas id="bo-canvas" class="breakout-canvas" width="480" height="320"></canvas>
+      <canvas id="bo-canvas" class="breakout-canvas" width="480" height="320" aria-label="벽돌깨기 게임 화면"></canvas>
       <div class="ttt-controls">
         <span id="bo-status" class="ttt-status">시작 버튼을 눌러주세요</span>
         <button id="bo-start" type="button">시작</button>
@@ -517,7 +527,7 @@
       <h3>슈팅게임 (JavaScript)</h3>
       <p class="mobile-hint">모바일: 아래 버튼으로 이동·발사할 수 있습니다.</p>
 
-      <canvas id="sh-canvas" class="breakout-canvas" width="480" height="360"></canvas>
+      <canvas id="sh-canvas" class="breakout-canvas" width="480" height="360" aria-label="슈팅게임 화면"></canvas>
       <div class="mobile-controls">
         <button id="sh-left" class="mobile-btn" type="button">◀</button>
         <button id="sh-right" class="mobile-btn" type="button">▶</button>
@@ -550,7 +560,7 @@
       <h3>스네이크 (JavaScript)</h3>
       <p class="mobile-hint">모바일: 아래 방향 버튼으로 조작할 수 있습니다.</p>
 
-      <canvas id="sn-canvas" class="breakout-canvas" width="400" height="400"></canvas>
+      <canvas id="sn-canvas" class="breakout-canvas" width="400" height="400" aria-label="스네이크 게임 화면"></canvas>
       <div class="mobile-controls">
         <div class="dpad">
           <button id="sn-up" class="mobile-btn" type="button">▲</button>
@@ -572,15 +582,15 @@
       <span class="tag">STEP 6</span>
       <h3>테트리스 (JavaScript)</h3>
       <div class="tt-layout">
-        <canvas id="tt-canvas" class="breakout-canvas" width="240" height="480"></canvas>
+        <canvas id="tt-canvas" class="breakout-canvas" width="240" height="480" aria-label="테트리스 게임 화면"></canvas>
         <div class="tt-side">
           <div class="tt-box">
             <div class="tt-box-label">HOLD</div>
-            <canvas id="tt-hold-canvas" width="56" height="56"></canvas>
+            <canvas id="tt-hold-canvas" width="56" height="56" aria-label="테트리스 보관 블록"></canvas>
           </div>
           <div class="tt-box">
             <div class="tt-box-label">NEXT</div>
-            <canvas id="tt-next-canvas" width="56" height="56"></canvas>
+            <canvas id="tt-next-canvas" width="56" height="56" aria-label="테트리스 다음 블록"></canvas>
           </div>
         </div>
       </div>
@@ -609,7 +619,7 @@
       <h3>2048 (JavaScript)</h3>
       <p class="mobile-hint">모바일: 아래 방향 버튼으로 조작할 수 있습니다.</p>
 
-      <canvas id="tw-canvas" class="breakout-canvas" width="360" height="360"></canvas>
+      <canvas id="tw-canvas" class="breakout-canvas" width="360" height="360" aria-label="2048 게임 화면"></canvas>
       <div class="mobile-controls">
         <div class="dpad">
           <button id="tw-up" class="mobile-btn" type="button">▲</button>
@@ -645,7 +655,7 @@
       <div style="font-family: var(--mono); font-size: 13px; margin-bottom: 10px; color: var(--ink-soft);">
         ⏱️ 경과 시간: <span id="pong-timer">00:00</span>
       </div>
-      <canvas id="pong-canvas" class="breakout-canvas" width="480" height="320"></canvas>
+      <canvas id="pong-canvas" class="breakout-canvas" width="480" height="320" aria-label="퐁 게임 화면"></canvas>
       <div class="mobile-controls">
         <div class="dpad">
           <button id="pong-up" class="mobile-btn" type="button">▲</button>
@@ -679,7 +689,7 @@
       <h3>똥피하기 (JavaScript)</h3>
       <p class="mobile-hint">모바일: 캔버스를 손가락으로 누른 채 좌우로 움직이세요.</p>
 
-      <canvas id="dodge-canvas" class="breakout-canvas" width="360" height="480"></canvas>
+      <canvas id="dodge-canvas" class="breakout-canvas" width="360" height="480" aria-label="똥피하기 게임 화면"></canvas>
       <div class="ttt-controls">
         <span id="dodge-status" class="ttt-status">시작 버튼을 눌러주세요</span>
         <button id="dodge-start" type="button">시작</button>
@@ -11119,9 +11129,11 @@
 
     addLeaderboards();
 
-    function openGame(id) {
+    function openGame(id, updateUrl = true) {
+      const panel = panels.find(p => p.id === id);
+      if (!panel) return;
       menuEl.hidden = true;
-      panels.forEach(p => { p.hidden = p.id !== id; });
+      panels.forEach(p => { p.hidden = p !== panel; });
 
       // 이 게임 화면을 처음 여는 경우에만 init()을 호출합니다.
       // (다시 들어왔을 때는 이전 진행 상태를 그대로 보여줍니다.)
@@ -11133,10 +11145,11 @@
       }
       if (SCORING_GAMES[id]) refreshLeaderboard(id);
       activeId = id;
+      if (updateUrl) history.pushState(null, "", `#${id}`);
       requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
 
-    function closeGame() {
+    function closeGame(updateUrl = true) {
       // 돌고 있던 게임 루프/타이머를 멈춥니다 (다른 화면에서 계속 도는 것을 막기 위함).
       if (activeId) {
         window.gamePanels[activeId]?.stop?.();
@@ -11144,8 +11157,23 @@
       panels.forEach(p => { p.hidden = true; });
       menuEl.hidden = false;
       activeId = null;
+      if (updateUrl) history.pushState(null, "", location.pathname + location.search);
       requestAnimationFrame(() => menuEl.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
+
+    function syncFromLocation() {
+      let id = "";
+      try {
+        id = decodeURIComponent(location.hash.replace(/^#/, ""));
+      } catch {
+        id = "";
+      }
+      if (id && panels.some(panel => panel.id === id)) openGame(id, false);
+      else closeGame(false);
+    }
+
+    window.addEventListener("popstate", syncFromLocation);
+    if (location.hash) syncFromLocation();
 
     document.querySelectorAll(".game-list-item").forEach(btn => {
       btn.addEventListener("click", () => openGame(btn.dataset.target));
@@ -11186,8 +11214,8 @@
     });
   })();
 </script>
-<script src="assets/common.js?v=labels-31"></script>
-<script src="assets/auth.js?v=labels-31"></script>
-<script src="assets/theme.js?v=labels-31"></script>
+<script src="assets/common.js?v=labels-32"></script>
+<script src="assets/auth.js?v=labels-32"></script>
+<script src="assets/theme.js?v=labels-32"></script>
 </body>
 </html>
