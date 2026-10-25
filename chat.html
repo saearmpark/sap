@@ -60,7 +60,7 @@
       <aside class="chat-users">
         <h2>대화</h2>
         <button id="chat-room-button" class="chat-room-button" type="button" aria-current="true">공용 대화방</button>
-        <h2 style="margin-top:18px">사용자</h2>
+        <h2 style="margin-top:18px">접속 중인 사용자</h2>
         <div id="chat-user-list" class="chat-user-list"></div>
       </aside>
       <section class="chat-window" aria-label="대화 창">
@@ -154,16 +154,25 @@
     function renderUsers(nextUsers) {
       users = nextUsers;
       userList.replaceChildren();
-      users.filter(user => user.id !== currentUserId).forEach(user => {
+      // 접속 중인 사용자만 표시합니다. 오프라인 사용자는 목록에 남기지 않습니다.
+      const onlineUsers = users.filter(user => user.id !== currentUserId && user.online);
+      if (onlineUsers.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "chat-note";
+        empty.textContent = "지금 접속 중인 사용자가 없습니다.";
+        userList.appendChild(empty);
+        return;
+      }
+      onlineUsers.forEach(user => {
         const button = document.createElement("button");
         button.type = "button";
         button.dataset.userId = user.id;
         if (activeChat.type === "DIRECT" && user.id === activeChat.id) button.setAttribute("aria-current", "true");
         const indicator = document.createElement("span");
-        indicator.className = `chat-presence${user.online ? " is-online" : ""}`;
-        indicator.setAttribute("aria-label", user.online ? "접속 중" : "오프라인");
+        indicator.className = "chat-presence is-online";
+        indicator.setAttribute("aria-label", "접속 중");
         const label = document.createElement("span");
-        label.textContent = `${user.displayName}${user.online ? "" : " · 오프라인"}`;
+        label.textContent = user.displayName;
         button.append(indicator, label);
         button.addEventListener("click", () => selectUser(user));
         userList.appendChild(button);
