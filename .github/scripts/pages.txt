@@ -3,6 +3,7 @@ offline.html
 404.html
 search.html
 notifications.html
+profile.html
 news.html
 stocks.html
 learn.html

@@ -1,6 +1,7 @@
 package com.codestudio.board;
 
 import java.util.Map;
+import java.util.HashMap;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,10 +59,43 @@ public class AuthController {
     public ResponseEntity<?> me(Authentication authentication) {
         long userId = (Long) authentication.getPrincipal();
         return users.findById(userId)
-                .<ResponseEntity<?>>map(user -> ResponseEntity.ok(Map.of(
-                        "id", user.getId(), "username", user.getUsername(), "displayName", user.getDisplayName(),
-                        "isAdmin", user.isAdministrator())))
+                .<ResponseEntity<?>>map(user -> {
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("id", user.getId()); result.put("username", user.getUsername());
+                    result.put("displayName", user.getDisplayName()); result.put("email", user.getEmail());
+                    result.put("phone", user.getPhone()); result.put("profileNote", user.getProfileNote());
+                    result.put("isAdmin", user.isAdministrator());
+                    return ResponseEntity.ok(result);
+                })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody ProfileRequest request, Authentication authentication) {
+        long userId = (Long) authentication.getPrincipal();
+        return users.findById(userId).map(user -> {
+            String displayName = request.displayName() == null ? "" : request.displayName().trim();
+            if (displayName.isBlank() || displayName.length() > 30) {
+                return ResponseEntity.badRequest().body(Map.of("message", "표시 이름은 1~30자로 입력하세요."));
+            }
+            user.setDisplayName(displayName);
+            user.setEmail(trim(request.email(), 120));
+            user.setPhone(trim(request.phone(), 30));
+            user.setProfileNote(trim(request.profileNote(), 500));
+            users.save(user);
+            Map<String, Object> result = new HashMap<>();
+            result.put("displayName", user.getDisplayName());
+            result.put("email", user.getEmail());
+            result.put("phone", user.getPhone());
+            result.put("profileNote", user.getProfileNote());
+            return ResponseEntity.ok(result);
+        }).orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    private static String trim(String value, int max) {
+        if (value == null || value.isBlank()) return null;
+        String trimmed = value.trim();
+        return trimmed.length() <= max ? trimmed : trimmed.substring(0, max);
     }
 
     @PostMapping("/logout")
@@ -79,4 +114,5 @@ public class AuthController {
 
     public record AuthRequest(String username, String password, String displayName) {}
     public record PasswordChangeRequest(String currentPassword, String newPassword) {}
+    public record ProfileRequest(String displayName, String email, String phone, String profileNote) {}
 }

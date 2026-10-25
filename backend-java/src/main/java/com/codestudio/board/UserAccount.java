@@ -20,6 +20,15 @@ public class UserAccount {
     @Column(nullable = false, length = 30)
     private String displayName;
 
+    @Column(length = 120)
+    private String email;
+
+    @Column(length = 30)
+    private String phone;
+
+    @Column(length = 500)
+    private String profileNote;
+
     @Column(nullable = false, length = 100)
     private String passwordHash;
 
@@ -46,6 +55,9 @@ public class UserAccount {
     public Long getId() { return id; }
     public String getUsername() { return username; }
     public String getDisplayName() { return displayName; }
+    public String getEmail() { return email; }
+    public String getPhone() { return phone; }
+    public String getProfileNote() { return profileNote; }
     public String getPasswordHash() { return passwordHash; }
     public String getApprovalStatus() { return approvalStatus == null ? "PENDING" : approvalStatus; }
     public boolean isApproved() { return "APPROVED".equals(approvalStatus); }
@@ -53,6 +65,10 @@ public class UserAccount {
 
     public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public void setProfileNote(String profileNote) { this.profileNote = profileNote; }
 
     public void promoteToAdministrator() {
         this.approvalStatus = "APPROVED";

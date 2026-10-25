@@ -4,7 +4,7 @@ import { join } from "node:path";
 // 검색·공유 메타데이터, sitemap, robots 설정이 서로 어긋나지 않는지 확인합니다.
 const root = process.cwd();
 const base = "https://saearmpark.github.io/sap/";
-const noindexPages = new Set(["admin.html", "mypage.html", "login.html", "offline.html", "404.html"]);
+const noindexPages = new Set(["admin.html", "mypage.html", "profile.html", "login.html", "offline.html", "404.html"]);
 const pages = readFileSync(join(root, ".github", "scripts", "pages.txt"), "utf8")
   .split(/\r?\n/)
   .map((line) => line.trim())

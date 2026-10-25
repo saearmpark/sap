@@ -42,6 +42,7 @@
     { label: "계정", items: [
       { href: "calendar.html", label: "일정" },
       { href: "notifications.html", label: "알림" },
+      { href: "profile.html", label: "프로필", authLink: true },
       { href: "login.html", label: "로그인 / 회원가입", authLink: true }
     ] }
   ];
