@@ -197,11 +197,11 @@
     }
 
     function show(items) {
+      render(items);
       if (window.L && renderMap(items)) {
         gridEl.hidden = true;
       } else {
         gridEl.hidden = false;
-        render(items);
       }
       renderHourly(items);
     }
