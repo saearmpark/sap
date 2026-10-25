@@ -44,7 +44,7 @@
         <h3 class="weather-hourly-title">천안 시간대별 예상 · 현재부터 24시간</h3>
         <div id="weather-hourly-strip" class="weather-hourly-strip"></div>
       </div>
-      <section id="weather-advice" class="weather-advice" aria-label="오늘과 내일 날씨 생활 추천" hidden></section>
+      <section id="weather-advice" class="weather-advice" aria-label="오늘과 내일 날씨 생활 추천"><h2>오늘·내일 옷차림과 우산</h2><p>날씨 정보를 불러오면 옷차림과 우산 추천을 표시합니다.</p></section>
     </section>
   </main>
 </div>
@@ -309,6 +309,7 @@
         });
         statusEl.textContent = `실시간 · ${stamp} 기준`;
       } catch (error) {
+        document.getElementById("weather-advice").innerHTML = "<h2>오늘·내일 옷차림과 우산</h2><p>날씨 정보를 불러오지 못해 추천을 계산할 수 없습니다. 잠시 후 새로고침해 주세요.</p>";
         statusEl.textContent = readCache()
           ? "날씨 서버 연결이 느립니다. 저장된 정보를 표시합니다."
           : "날씨를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
