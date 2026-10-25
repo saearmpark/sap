@@ -55,7 +55,9 @@
         const safe = Math.max(0, Math.min(100, Math.round(percent)));
         value.textContent = `${String(safe).padStart(2, "0")}%`;
         fill.style.width = `${safe}%`;
-        status.textContent = data.updatedAt ? `마지막 업데이트: ${data.updatedAt}` : "마지막 업데이트 정보 없음";
+        status.textContent = data.spentUsd !== undefined
+          ? `이번 달 사용 $${data.spentUsd} / 예산 $${data.budgetUsd} · ${data.updatedAt}`
+          : (data.updatedAt ? `마지막 업데이트: ${data.updatedAt}` : "마지막 업데이트 정보 없음");
       })
       .catch(() => { value.textContent = "--%"; status.textContent = "사용량 정보를 아직 연결하지 않았습니다."; });
   })();

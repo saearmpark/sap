@@ -190,4 +190,8 @@ try {
 
 ## 프론트엔드 연결
 
+### OpenAI API 사용량 표시
+
+`/api/ai-usage`는 OpenAI Admin API의 이번 달 비용을 5분간 캐시해 조회하고, 설정한 월 예산 대비 잔여율을 반환합니다. 서버 환경변수에 `OPENAI_ADMIN_KEY`와 `OPENAI_MONTHLY_BUDGET_USD`를 설정해야 하며, 관리자 키는 브라우저나 저장소에 노출하지 마세요. 이 값은 Codex ChatGPT 플랜 잔여량이 아니라 해당 OpenAI API 조직의 비용 기준입니다.
+
 저장소 루트의 `board.html`과 `files.html`에 운영 API 주소가 설정되어 있습니다. 로컬 화면에서 Java 서버를 사용하려면 해당 페이지의 `API_BASE`를 `http://127.0.0.1:8080/api/posts` 또는 `http://127.0.0.1:8080/api/files`로 바꾸세요. 브라우저 요청은 `CorsConfig`의 허용 출처 설정을 따릅니다.
