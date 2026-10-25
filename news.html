@@ -122,12 +122,12 @@
 
     function render(items) {
       gridEl.replaceChildren(...items.map(card));
-      const base = items.find(item => item.name === "서울") || items[0];
+      const base = items.find(item => item.name === "천안") || items[0];
       if (!base) return;
       const advice = document.getElementById("weather-advice");
       const outfit = temp => temp === null ? "기온 정보를 확인할 수 없습니다." : temp <= 5 ? "두꺼운 코트나 패딩, 보온 내의를 추천합니다." : temp <= 12 ? "자켓이나 가벼운 코트와 긴팔 옷이 좋습니다." : temp <= 20 ? "가디건·자켓과 긴팔 또는 얇은 겹쳐 입기를 추천합니다." : temp <= 27 ? "얇은 긴팔이나 반팔과 가벼운 겉옷을 추천합니다." : "반팔과 통풍이 잘되는 얇은 옷을 추천합니다.";
       const umbrella = precip => precip >= 60 ? "우산을 챙기는 것이 좋습니다." : precip >= 30 ? "작은 우산을 준비하면 안심할 수 있습니다." : "우산 없이 외출해도 괜찮겠습니다.";
-      advice.innerHTML = `<h2>오늘·내일 옷차림과 우산</h2><div class="weather-advice-grid"><div class="weather-advice-card"><strong>오늘 · 서울 기준 ${base.low}~${base.high}°</strong><div>${outfit(base.high)}</div><div>${umbrella(base.precip ?? 0)} (강수확률 ${base.precip ?? "-"}%)</div></div><div class="weather-advice-card"><strong>내일 · 서울 기준 ${base.tomorrowLow}~${base.tomorrowHigh}°</strong><div>${outfit(base.tomorrowHigh)}</div><div>${umbrella(base.tomorrowPrecip ?? 0)} (강수확률 ${base.tomorrowPrecip ?? "-"}%)</div></div></div>`;
+      advice.innerHTML = `<h2>오늘·내일 옷차림과 우산</h2><div class="weather-advice-grid"><div class="weather-advice-card"><strong>오늘 · 천안 기준 ${base.low}~${base.high}°</strong><div>${outfit(base.high)}</div><div>${umbrella(base.precip ?? 0)} (강수확률 ${base.precip ?? "-"}%)</div></div><div class="weather-advice-card"><strong>내일 · 천안 기준 ${base.tomorrowLow}~${base.tomorrowHigh}°</strong><div>${outfit(base.tomorrowHigh)}</div><div>${umbrella(base.tomorrowPrecip ?? 0)} (강수확률 ${base.tomorrowPrecip ?? "-"}%)</div></div></div>`;
       advice.hidden = false;
     }
 
