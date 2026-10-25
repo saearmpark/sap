@@ -1201,13 +1201,15 @@
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 60</span>
       <h3>리듬 게임 (JavaScript)</h3>
-      <p>D·F·J·K 키나 아래 판정 버튼으로 네 줄의 노트를 판정선에 맞춰 누르세요. 노트가 떨어지는 동안 간단한 신시사이저 음악이 흐르고, 48초 동안 점수와 콤보를 쌓습니다. 정확하게 누를수록 높은 점수를 얻습니다.</p>
+      <p>D·F·J·K 키나 아래 판정 버튼으로 네 줄의 노트를 판정선에 맞춰 누르세요. 매 판 새로 생성되는 신시사이저 곡에 맞춰 48초 동안 점수와 콤보를 쌓습니다. 시간이 지날수록 노트가 촘촘해지고 배율이 올라가 점수를 더 많이 얻습니다.</p>
       <p class="mobile-hint">PC: D F J K 키 · 모바일: 아래 판정 버튼을 탭하세요. 음악은 소리 버튼으로 켜고 끌 수 있습니다.</p>
       <div class="rhythm-hud" aria-label="리듬 게임 현황">
         <span>점수 <span id="rhythm-score">0</span></span>
         <span>콤보 <span id="rhythm-combo">0</span></span>
         <span>정확도 <span id="rhythm-accuracy">100%</span></span>
         <span>남은 시간 <span id="rhythm-time">48</span>초</span>
+        <span>배율 <span id="rhythm-mult">x1</span></span>
+        <span>시드 <span id="rhythm-seed">-----</span></span>
       </div>
       <canvas id="rhythm-canvas" class="rhythm-canvas" width="380" height="480" aria-label="리듬 게임 화면"></canvas>
       <div class="rhythm-lanes" aria-label="리듬 게임 판정 버튼">
@@ -1218,6 +1220,7 @@
       </div>
       <div class="choice-controls">
         <button id="rhythm-start" type="button">시작</button>
+        <button id="rhythm-replay" type="button" disabled>같은 곡</button>
         <button id="rhythm-mute" type="button" aria-pressed="true">🔊 소리 켜짐</button>
       </div>
       <p id="rhythm-status" class="extra-game-status" aria-live="polite">시작 버튼을 눌러주세요.</p>
@@ -11037,6 +11040,9 @@
     const statusEl = document.getElementById("rhythm-status");
     const startBtn = document.getElementById("rhythm-start");
     const muteBtn = document.getElementById("rhythm-mute");
+    const seedEl = document.getElementById("rhythm-seed");
+    const multEl = document.getElementById("rhythm-mult");
+    const replayBtn = document.getElementById("rhythm-replay");
     const keyButtons = Array.from(document.querySelectorAll(".rhythm-key"));
     const KEYS = ["d", "f", "j", "k"];
     const LANE_COLORS = ["#48dbfb", "#1dd1a1", "#feca57", "#ff9ff3"];
@@ -11055,30 +11061,22 @@
     ];
     const MAX_WINDOW = WINDOWS[WINDOWS.length - 1].ms;
     const SOUND_KEY = "sap-rhythm-sound";
-    // 음이름(피치 클래스)을 네 줄에 나눠 배치해 멜로디가 그대로 노트가 되게 합니다.
-    const LANE_BY_PITCH = { 0: 0, 2: 1, 4: 2, 5: 3, 7: 0, 9: 1, 11: 2 };
-    const CHORDS = [36, 43, 45, 41]; // C - G - Am - F
-    // 한 마디(16스텝)씩 반복되는 멜로디입니다. 노트와 음악이 같은 데이터를 씁니다.
-    const PHRASES = [
-      [
-        { step: 0, midi: 72 }, { step: 2, midi: 76 }, { step: 3, midi: 79 }, { step: 4, midi: 76 },
-        { step: 6, midi: 74 }, { step: 8, midi: 72 }, { step: 10, midi: 69 }, { step: 12, midi: 72 },
-        { step: 14, midi: 74 },
-      ],
-      [
-        { step: 0, midi: 77 }, { step: 2, midi: 79 }, { step: 4, midi: 81 }, { step: 6, midi: 79 },
-        { step: 8, midi: 77 }, { step: 10, midi: 76 }, { step: 12, midi: 74 }, { step: 14, midi: 72 },
-      ],
-      [
-        { step: 0, midi: 79 }, { step: 2, midi: 76 }, { step: 4, midi: 74 }, { step: 6, midi: 72 },
-        { step: 8, midi: 69 }, { step: 10, midi: 72 }, { step: 12, midi: 74 }, { step: 14, midi: 76 },
-      ],
-      [
-        { step: 0, midi: 72 }, { step: 0, midi: 76 }, { step: 3, midi: 74 }, { step: 4, midi: 76 },
-        { step: 6, midi: 79 }, { step: 8, midi: 76 }, { step: 10, midi: 74 }, { step: 12, midi: 69 },
-        { step: 14, midi: 67 },
-      ],
+    // 12초마다 한 단계씩 어려워지고, 배율도 함께 올라갑니다.
+    const PHASE_MULT = [1, 1.5, 2, 3];
+    const PHASE_BARS = [5, 6, 6, 5];
+    const SCALES = {
+      major: [0, 2, 4, 5, 7, 9, 11],
+      minor: [0, 2, 3, 5, 7, 8, 10],
+    };
+    // I–V–vi–IV 같은 진행 중 하나를 골라 씁니다. 4마디가 한 바퀴입니다.
+    const PROGRESSIONS = [
+      [0, 7, 9, 5],
+      [9, 5, 0, 7],
+      [0, 5, 9, 7],
+      [0, 9, 5, 7],
+      [5, 0, 9, 7],
     ];
+    const MINOR_DEGREES = [2, 4, 9];
 
     let notes, running, finished, rafId, startedAt;
     let score, combo, bestCombo, judged, quality, hitCount, totalNotes;
@@ -11087,52 +11085,147 @@
     let soundOn = readSound();
     const scheduled = [];
 
-    function laneOf(midi) {
-      const pitch = ((midi % 12) + 12) % 12;
-      return LANE_BY_PITCH[pitch] ?? Math.abs(midi) % 4;
+    function makeSeed() {
+      return Math.floor((Date.now() + Math.random() * 100000) % 100000);
     }
 
-    // 노트 차트와 음악을 한 번에 만듭니다. 같은 time 값을 쓰므로 박자가 어긋나지 않습니다.
-    function buildSong() {
+    // 같은 시드를 넣으면 같은 곡이 나오는 작은 난수기입니다.
+    function makeRng(seed) {
+      let state = (seed >>> 0) + 0x9e3779b9;
+      return function random() {
+        state = (state + 0x6d2b79f5) >>> 0;
+        let t = state;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function pick(rng, list) {
+      return list[Math.floor(rng() * list.length)];
+    }
+
+    // 강박(1·2·3·4박)을 자주, 뒤로 갈수록 약박과 16분음을 섞습니다.
+    function pickStep(rng, phase) {
+      const strong = [0, 4, 8, 12];
+      const weak = [2, 6, 10, 14];
+      const pool = [...strong, ...strong, ...weak];
+      if (phase >= 1) pool.push(...weak);
+      if (phase >= 2) pool.push(1, 3, 5, 7, 9, 11, 13, 15);
+      if (phase >= 3) pool.push(...strong);
+      return pick(rng, pool);
+    }
+
+    // 1번 마디부터 5·6·6·5마디씩 네 단계로 나눕니다.
+    function phaseOfBar(bar) {
+      let edge = 1;
+      for (let phase = 0; phase < PHASE_BARS.length; phase++) {
+        edge += PHASE_BARS[phase];
+        if (bar < edge) return phase;
+      }
+      return PHASE_BARS.length - 1;
+    }
+
+    function phaseAt(time) {
+      return phaseOfBar(Math.floor(time / BAR_MS));
+    }
+
+    // 시드로 곡을 만들고, 같은 이벤트에서 노트 차트까지 뽑습니다.
+    function composeSong(seed) {
+      const rng = makeRng(seed);
+      const key = Math.floor(rng() * 12);
+      const scale = rng() < 0.35 ? SCALES.minor : SCALES.major;
+      const progression = pick(rng, PROGRESSIONS);
       const events = [];
       const chart = [];
       const add = (time, type, midi = 0, value = 0.3) => events.push({ time, type, midi, value });
-      const addLead = (time, midi) => {
-        add(time, "lead", midi, 0.34);
-        chart.push({ lane: laneOf(midi), time, midi, state: "pending" });
+      const addLead = (time, midi, lane) => {
+        add(time, "lead", midi, 0.32);
+        chart.push({ lane, time, midi, state: "pending" });
       };
 
       // 0마디는 카운트인입니다. 노트가 떨어지는 동안 박자를 잡아 줍니다.
       add(0, "kick");
-      add(0, "bass", 36, 0.55);
+      add(0, "bass", 36 + key, 0.55);
       add(BAR_MS / 2, "snare");
-      add(BAR_MS / 2, "bass", 43, 0.55);
+      add(BAR_MS / 2, "bass", 43 + key, 0.55);
       for (let step = 0; step < 16; step += 2) {
         add(step * STEP_MS, "hat", 0, step % 4 === 0 ? 0.09 : 0.055);
       }
 
       const outroBar = Math.floor(DURATION / BAR_MS) - 1;
+      let previousPitch = 72 + key;
+      let previousLane = -1;
+
       for (let bar = 1; bar < outroBar; bar++) {
         const start = bar * BAR_MS;
-        const phrase = PHRASES[(bar - 1) % PHRASES.length];
-        const root = CHORDS[(bar - 1) % CHORDS.length];
-        phrase.forEach(note => addLead(start + note.step * STEP_MS, note.midi));
-        [0, 4, 8, 12].forEach(step => add(start + step * STEP_MS, "bass", root, 0.42));
+        const phase = phaseOfBar(bar);
+        const degree = progression[(bar - 1) % progression.length];
+        const root = 48 + key + degree;
+        const third = root + (MINOR_DEGREES.includes(degree) ? 3 : 4);
+        const chordTones = [root, third, root + 7, root + 12, third + 12];
+
+        const bassSteps = phase >= 3 ? [0, 2, 4, 6, 8, 10, 12, 14]
+          : phase >= 2 ? [0, 4, 6, 8, 12, 14]
+          : [0, 4, 8, 12];
+        bassSteps.forEach(step => add(start + step * STEP_MS, "bass", root - 12, 0.34));
+        add(start, "pad", root + 12, 1.1);
+
         [0, 8].forEach(step => add(start + step * STEP_MS, "kick"));
+        if (phase >= 2) add(start + 10 * STEP_MS, "kick");
         [4, 12].forEach(step => add(start + step * STEP_MS, "snare"));
-        for (let step = 1; step < 16; step += 2) add(start + step * STEP_MS, "hat", 0, 0.05);
-        add(start, "pad", root + 24, 1.1);
+        if (phase >= 3) add(start + 15 * STEP_MS, "snare");
+        for (let step = 0; step < 16; step += 2) {
+          add(start + step * STEP_MS, "hat", 0, step % 4 === 0 ? 0.06 : 0.04);
+        }
+        if (phase >= 3) {
+          [1, 3, 5, 7, 9, 11, 13].forEach(step => add(start + step * STEP_MS, "hat", 0, 0.025));
+        }
+
+        const density = 3 + phase + (rng() < 0.45 ? 1 : 0);
+        const steps = [];
+        for (let index = 0; index < density; index++) {
+          const step = pickStep(rng, phase);
+          if (!steps.includes(step)) steps.push(step);
+        }
+        steps.sort((a, b) => a - b);
+
+        for (const step of steps) {
+          const time = start + step * STEP_MS;
+          const candidates = [];
+          for (const tone of chordTones) {
+            if (tone >= 60 && tone <= 86 && !candidates.includes(tone)) candidates.push(tone);
+          }
+          for (const interval of scale) {
+            const midi = 60 + key + interval;
+            if (midi >= 60 && midi <= 86 && !candidates.includes(midi)) candidates.push(midi);
+          }
+          candidates.sort((a, b) => Math.abs(a - previousPitch) - Math.abs(b - previousPitch));
+          const target = pick(rng, candidates.slice(0, 3));
+          previousPitch = target;
+
+          let lane = Math.floor(rng() * 4);
+          if (lane === previousLane) lane = (lane + 1 + Math.floor(rng() * 3)) % 4;
+          previousLane = lane;
+          addLead(time, target, lane);
+
+          // 마지막 단계에서는 가끔 두 줄을 동시에 눌러야 하는 노트가 나옵니다.
+          if (phase >= 3 && rng() < 0.16) {
+            const extraLane = (lane + 1 + Math.floor(rng() * 3)) % 4;
+            addLead(time, target + (rng() < 0.5 ? 0 : 7), extraLane);
+          }
+        }
       }
 
-      // 마지막 마디는 도미솔 화음으로 마무리합니다.
       const outro = outroBar * BAR_MS;
       add(outro, "kick");
-      add(outro, "bass", 36, 1.5);
-      add(outro, "pad", 60, 1.7);
-      [72, 76, 79].forEach(midi => addLead(outro, midi));
+      add(outro, "bass", 36 + key, 1.5);
+      add(outro, "pad", 60 + key, 1.7);
+      [0, 4, 7].forEach((interval, index) => addLead(outro + index * STEP_MS * 2, 60 + key + interval, [0, 2, 3][index]));
 
       events.sort((a, b) => a.time - b.time);
-      return { events, chart };
+      chart.sort((a, b) => a.time - b.time);
+      return { events, chart, seed };
     }
 
     function readSound() {
@@ -11319,7 +11412,7 @@
 
     function reset() {
       stopMusic();
-      if (!song) song = buildSong();
+      if (!song) song = composeSong(makeSeed());
       notes = song.chart.map(note => ({ lane: note.lane, time: note.time, midi: note.midi, state: "pending" }));
       running = false;
       finished = false;
@@ -11339,6 +11432,9 @@
       keyButtons.forEach(button => button.classList.remove("is-active"));
       keyButtons.forEach(button => { button.disabled = true; });
       timeEl.textContent = String(DURATION / 1000);
+      seedEl.textContent = String(song.seed).padStart(5, "0");
+      multEl.textContent = "x1";
+      replayBtn.disabled = true;
       updateHud();
       draw(0);
     }
@@ -11371,7 +11467,8 @@
       hitCount++;
       judged++;
       quality += judge.score / 100;
-      score += judge.score + Math.min(combo, 20) * 2;
+      const phase = phaseAt(best.note.time);
+      score += Math.round((judge.score + Math.min(combo, 20) * 2) * PHASE_MULT[phase]);
       combo++;
       bestCombo = Math.max(bestCombo, combo);
       judgeLabel = judge.label;
@@ -11544,7 +11641,8 @@
       finished = true;
       timeEl.textContent = "0";
       draw(DURATION);
-      statusEl.textContent = `점수 ${score} · 최고 콤보 ${bestCombo} · 정확도 ${accuracy()}% · 맞힘 ${hitCount}/${totalNotes}`;
+      statusEl.textContent = `점수 ${score} · 최고 콤보 ${bestCombo} · 정확도 ${accuracy()}% · 맞힘 ${hitCount}/${totalNotes} · 시드 ${String(song.seed).padStart(5, "0")}`;
+      replayBtn.disabled = false;
       if (score > 0) window.reportScore?.("panel-rhythm", score);
     }
 
@@ -11554,6 +11652,7 @@
       scheduleAudio(now);
       missCheck(now);
       const left = Math.ceil((DURATION - now) / 1000);
+      multEl.textContent = "x" + PHASE_MULT[phaseAt(Math.max(0, now))];
       timeEl.textContent = String(Math.max(0, Math.min(DURATION / 1000, left)));
       updateHud();
       draw(now);
@@ -11576,7 +11675,8 @@
       }
     }
 
-    function start() {
+    function start(seed) {
+      song = composeSong(seed ?? makeSeed());
       reset();
       const ready = ensureAudio();
       if (ready) {
@@ -11590,9 +11690,10 @@
       }
       running = true;
       keyButtons.forEach(button => { button.disabled = false; });
+      const label = String(song.seed).padStart(5, "0");
       statusEl.textContent = ready && soundOn
-        ? "D F J K 키로 노트를 맞추세요. 음악에 맞춰 누르면 좋습니다."
-        : "D F J K 키로 노트를 맞추세요.";
+        ? `시드 ${label} · D F J K 키로 노트를 맞추세요. 음악에 맞춰 누르면 좋습니다.`
+        : `시드 ${label} · D F J K 키로 노트를 맞추세요.`;
       rafId = requestAnimationFrame(loop);
     }
 
@@ -11605,7 +11706,8 @@
       if (running) statusEl.textContent = soundOn ? "소리를 켰습니다." : "소리를 껐습니다.";
     }
 
-    startBtn.addEventListener("click", start);
+    startBtn.addEventListener("click", () => start());
+    replayBtn.addEventListener("click", () => start(song ? song.seed : undefined));
     muteBtn.addEventListener("click", toggleSound);
     refreshSoundButton();
     document.addEventListener("keydown", event => {
