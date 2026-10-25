@@ -1203,14 +1203,14 @@
       <button class="game-back" type="button">← 목록으로</button>
       <span class="tag">STEP 60</span>
       <h3>리듬 게임 (JavaScript)</h3>
-      <p>D·F·J·K 키나 아래 판정 버튼으로 네 줄의 노트를 판정선에 맞춰 누르세요. 매 판 새로 생성되는 신시사이저 곡에 맞춰 48초 동안 점수와 콤보를 쌓습니다. 시간이 지날수록 노트가 촘촘해지고 배율이 올라가 점수를 더 많이 얻습니다. 난이도를 바꾸면 노트 밀도와 낙하 속도, 판정 범위가 함께 달라집니다.</p>
+      <p>D·F·J·K 키나 아래 판정 버튼으로 네 줄의 노트를 판정선에 맞춰 누르세요. 매 판 새로 생성되는 신시사이저 곡에 맞춰 48초 동안 점수와 콤보를 쌓습니다. 시간이 지날수록 노트가 촘촘해지고 배율이 올라가 점수를 더 많이 얻습니다. 난이도(Level 1~6)를 바꾸면 노트 밀도와 낙하 속도, 판정 범위가 함께 달라집니다.</p>
       <p class="mobile-hint">PC: D F J K 키 · 모바일: 아래 판정 버튼을 탭하세요. 음악은 소리 버튼으로 켜고 끌 수 있습니다.</p>
       <div class="rhythm-hud" aria-label="리듬 게임 현황">
         <span>점수 <span id="rhythm-score">0</span></span>
         <span>콤보 <span id="rhythm-combo">0</span></span>
         <span>정확도 <span id="rhythm-accuracy">100%</span></span>
         <span>남은 시간 <span id="rhythm-time">48</span>초</span>
-        <span>레벨 <span id="rhythm-level-name">보통</span></span>
+        <span>레벨 <span id="rhythm-level-name">Level 2</span></span>
         <span>배율 <span id="rhythm-mult">x1</span></span>
         <span>시드 <span id="rhythm-seed">-----</span></span>
       </div>
@@ -1224,10 +1224,12 @@
       <div class="choice-controls">
         <label class="rhythm-level-pick">난이도
           <select id="rhythm-level" aria-label="리듬 게임 난이도">
-            <option value="easy">쉬움</option>
-            <option value="normal" selected>보통</option>
-            <option value="hard">어려움</option>
-            <option value="expert">전문가</option>
+            <option value="level1">Level 1</option>
+            <option value="level2" selected>Level 2</option>
+            <option value="level3">Level 3</option>
+            <option value="level4">Level 4</option>
+            <option value="level5">Level 5</option>
+            <option value="level6">Level 6</option>
           </select>
         </label>
         <button id="rhythm-start" type="button">시작</button>
@@ -11067,13 +11069,14 @@
     const DURATION = 48000;
     const BAR_MS = 2000;
     const STEP_MS = BAR_MS / 16;
-    // 난이도마다 노트 밀도·낙하 속도·판정 범위가 달라집니다.
+    // Level 1~6. 숫자가 높을수록 노트가 촘촘하고 빨리 떨어지며 판정이 엄격합니다.
     const LEVELS = {
-      easy: {
-        label: "쉬움",
+      level1: {
+        label: "Level 1",
         density: 2,
         travel: 1750,
         doubles: 0,
+        triples: 0,
         offbeat: 0,
         windows: [
           { label: "PERFECT", ms: 65, score: 100 },
@@ -11081,11 +11084,12 @@
           { label: "GOOD", ms: 170, score: 40 },
         ],
       },
-      normal: {
-        label: "보통",
+      level2: {
+        label: "Level 2",
         density: 3,
         travel: 1500,
         doubles: 0.06,
+        triples: 0,
         offbeat: 1,
         windows: [
           { label: "PERFECT", ms: 55, score: 100 },
@@ -11093,11 +11097,12 @@
           { label: "GOOD", ms: 150, score: 40 },
         ],
       },
-      hard: {
-        label: "어려움",
+      level3: {
+        label: "Level 3",
         density: 4,
         travel: 1250,
         doubles: 0.12,
+        triples: 0,
         offbeat: 2,
         windows: [
           { label: "PERFECT", ms: 45, score: 100 },
@@ -11105,11 +11110,12 @@
           { label: "GOOD", ms: 130, score: 40 },
         ],
       },
-      expert: {
-        label: "전문가",
+      level4: {
+        label: "Level 4",
         density: 5,
         travel: 1050,
         doubles: 0.2,
+        triples: 0,
         offbeat: 3,
         windows: [
           { label: "PERFECT", ms: 38, score: 100 },
@@ -11117,10 +11123,38 @@
           { label: "GOOD", ms: 110, score: 40 },
         ],
       },
+      level5: {
+        label: "Level 5",
+        density: 6,
+        travel: 950,
+        doubles: 0.3,
+        triples: 0.04,
+        offbeat: 3,
+        windows: [
+          { label: "PERFECT", ms: 33, score: 100 },
+          { label: "GREAT", ms: 62, score: 70 },
+          { label: "GOOD", ms: 96, score: 40 },
+        ],
+      },
+      level6: {
+        label: "Level 6",
+        density: 7,
+        travel: 850,
+        doubles: 0.4,
+        triples: 0.1,
+        offbeat: 3,
+        windows: [
+          { label: "PERFECT", ms: 28, score: 100 },
+          { label: "GREAT", ms: 54, score: 70 },
+          { label: "GOOD", ms: 84, score: 40 },
+        ],
+      },
     };
     const LEVEL_KEY = "sap-rhythm-level";
-    let level = "normal";
-    let windows = LEVELS.normal.windows;
+    // 예전 이름으로 저장된 값도 새 레벨로 이어 줍니다.
+    const LEVEL_ALIASES = { easy: "level1", normal: "level2", hard: "level3", expert: "level4" };
+    let level = "level2";
+    let windows = LEVELS.level2.windows;
     let maxWindow = windows[windows.length - 1].ms;
     const SOUND_KEY = "sap-rhythm-sound";
     // 12초마다 한 단계씩 어려워지고, 배율도 함께 올라갑니다.
@@ -11274,10 +11308,14 @@
           previousLane = lane;
           addLead(time, target, lane);
 
-          // 마지막 단계에서는 가끔 두 줄을 동시에 눌러야 하는 노트가 나옵니다.
+          // 높은 레벨에서는 두 줄, 아주 높은 레벨에서는 세 줄 동시 노트도 나옵니다.
           if (phase >= 2 && rng() < settings.doubles) {
             const extraLane = (lane + 1 + Math.floor(rng() * 3)) % 4;
             addLead(time, target + (rng() < 0.5 ? 0 : 7), extraLane);
+            if (phase >= 3 && rng() < (settings.triples || 0)) {
+              const rest = [0, 1, 2, 3].filter(candidate => candidate !== lane && candidate !== extraLane);
+              addLead(time, target + 12, rest[Math.floor(rng() * rest.length)]);
+            }
           }
         }
       }
@@ -11297,8 +11335,9 @@
       try {
         const saved = localStorage.getItem(LEVEL_KEY);
         if (saved && LEVELS[saved]) return saved;
+        if (saved && LEVEL_ALIASES[saved]) return LEVEL_ALIASES[saved];
       } catch { /* 저장소를 못 읽어도 기본 난이도로 진행합니다. */ }
-      return "normal";
+      return "level2";
     }
 
     function saveLevel(value) {
@@ -11306,7 +11345,7 @@
     }
 
     function applyLevel(value) {
-      level = LEVELS[value] ? value : "normal";
+      level = LEVELS[value] ? value : "level2";
       const config = LEVELS[level];
       travel = config.travel;
       windows = config.windows;
