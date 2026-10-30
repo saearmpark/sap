@@ -242,6 +242,82 @@ try {
     "리듬 게임 타이머와 키 입력이 동작합니다", JSON.stringify(rhythmPlay));
   check(pageErrors.length === 0, "리듬 게임에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 
+  await navigate("game.html?smoke=3#panel-rhythm?seed=12345", 1200);
+  const rhythmSeed = await evaluate(`({
+    visible: !document.getElementById("panel-rhythm").hidden,
+    seed: document.getElementById("rhythm-seed").textContent,
+    levels: document.querySelectorAll("#rhythm-level option").length
+  })`);
+  check(rhythmSeed.visible && rhythmSeed.seed === "12345" && rhythmSeed.levels === 6,
+    "시드 링크가 같은 곡과 6단계 난이도를 불러옵니다", JSON.stringify(rhythmSeed));
+
+  const rhythmLevel = await evaluate(`(() => {
+    const select = document.getElementById("rhythm-level");
+    select.value = "level6";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    return {
+      name: document.getElementById("rhythm-level-name").textContent,
+      saved: localStorage.getItem("sap-rhythm-level"),
+      seed: document.getElementById("rhythm-seed").textContent
+    };
+  })()`);
+  check(rhythmLevel.name === "Level 6" && rhythmLevel.saved === "level6" && rhythmLevel.seed === "12345",
+    "난이도를 바꾸면 곡은 유지하고 난이도만 저장합니다", JSON.stringify(rhythmLevel));
+
+  await evaluate(`document.getElementById("rhythm-start").click()`);
+  await sleep(300);
+  const rhythmLocked = await evaluate(`({
+    status: document.getElementById("rhythm-status").textContent,
+    locked: document.getElementById("rhythm-level").disabled,
+    enabled: [...document.querySelectorAll(".rhythm-key")].filter((key) => !key.disabled).length
+  })`);
+  check(rhythmLocked.status.includes("시드 12345") && rhythmLocked.status.includes("Level 6")
+    && rhythmLocked.locked && rhythmLocked.enabled === 4,
+    "시작하면 선택한 난이도로 잠기고 판정 버튼이 켜집니다", JSON.stringify(rhythmLocked));
+
+  await evaluate(`document.getElementById("rhythm-mute").click()`);
+  const rhythmMuted = await evaluate(`({
+    label: document.getElementById("rhythm-mute").textContent,
+    pressed: document.getElementById("rhythm-mute").getAttribute("aria-pressed"),
+    saved: localStorage.getItem("sap-rhythm-sound")
+  })`);
+  check(rhythmMuted.label.includes("꺼짐") && rhythmMuted.pressed === "false" && rhythmMuted.saved === "off",
+    "소리 버튼이 음소거 상태를 저장합니다", JSON.stringify(rhythmMuted));
+
+  // 48초를 기다리지 않고 종료 상태를 확인하려고 페이지 시계만 잠시 앞으로 당깁니다.
+  await evaluate(`(() => {
+    window.__realNow = performance.now.bind(performance);
+    const jumped = window.__realNow() + 60000;
+    performance.now = () => jumped;
+    window.__restoreNow = () => { performance.now = window.__realNow; };
+  })()`);
+  await sleep(300);
+  const rhythmFinished = await evaluate(`(() => {
+    window.__restoreNow();
+    return {
+      replay: !document.getElementById("rhythm-replay").disabled,
+      unlocked: !document.getElementById("rhythm-level").disabled,
+      time: document.getElementById("rhythm-time").textContent,
+      status: document.getElementById("rhythm-status").textContent
+    };
+  })()`);
+  check(rhythmFinished.replay && rhythmFinished.unlocked && rhythmFinished.time === "0"
+    && rhythmFinished.status.includes("시드 12345"),
+    "리듬 게임이 끝나면 결과와 다시 보기가 열립니다", JSON.stringify(rhythmFinished));
+
+  await evaluate(`document.getElementById("rhythm-replay").click()`);
+  await sleep(300);
+  const rhythmReplay = await evaluate(`({
+    seed: document.getElementById("rhythm-seed").textContent,
+    locked: document.getElementById("rhythm-level").disabled,
+    enabled: [...document.querySelectorAll(".rhythm-key")].filter((key) => !key.disabled).length,
+    status: document.getElementById("rhythm-status").textContent
+  })`);
+  check(rhythmReplay.seed === "12345" && rhythmReplay.locked && rhythmReplay.enabled === 4
+    && rhythmReplay.status.includes("시드 12345"),
+    "다시 보기가 같은 시드로 재시작합니다", JSON.stringify(rhythmReplay));
+  check(pageErrors.length === 0, "리듬 게임 난이도·시드·다시 보기에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
+
   await navigate("game.html?smoke=games", 900);
   const gameIds = await evaluate(`[...document.querySelectorAll(".game-list-item")].map((button) => button.dataset.target)`);
   const brokenGames = [];
