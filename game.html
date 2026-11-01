@@ -54,6 +54,16 @@
   }
   .game-code-button { flex:none; padding:8px 12px; border:0; border-left:1px solid var(--border); border-radius:0; color:var(--ink-soft); background:transparent; font:13px var(--sans); cursor:pointer; }
   .game-code-button:hover { background:var(--accent-soft); }
+  .game-new { display:inline-block; margin-left:8px; padding:1px 7px; border-radius:999px; background:#f59e0b; color:#17181a; font-size:11px; font-weight:800; line-height:1.5; vertical-align:middle; letter-spacing:.02em; }
+  .game-guide { margin:10px 0; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--bg); }
+  .game-guide summary { cursor:pointer; font-weight:700; color:var(--ink); }
+  .game-guide ul { margin:8px 0 0; padding-left:20px; color:var(--ink-soft); }
+  .game-guide li + li { margin-top:4px; }
+  .holdem-ranks { width:100%; margin-top:10px; border-collapse:collapse; font-size:13px; }
+  .holdem-ranks caption { margin-bottom:6px; text-align:left; font-weight:700; color:var(--ink); }
+  .holdem-ranks th, .holdem-ranks td { padding:6px 8px; border:1px solid var(--border); text-align:left; vertical-align:top; }
+  .holdem-ranks th { background:var(--accent-soft); color:var(--ink); }
+  .holdem-ranks th:first-child, .holdem-ranks td:first-child { width:44px; text-align:center; white-space:nowrap; }
   .game-code-dialog { width:min(900px, calc(100% - 32px)); max-height:85vh; padding:20px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink); }
   .game-code-dialog::backdrop { background:rgb(0 0 0 / 55%); }
   .game-code-dialog pre { max-height:65vh; overflow:auto; padding:14px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--ink); font:13px/1.55 var(--mono); white-space:pre; }
@@ -455,58 +465,58 @@
       <h2 class="game-list-heading">기록 게임</h2>
       <p class="game-list-note">점수나 생존 기록을 겨루는 게임입니다. 시작 버튼은 Enter 키로도 누를 수 있습니다.</p>
       <div class="game-list">
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bo">벽돌깨기</button><button class="game-code-button" type="button" data-game-code-view="panel-bo">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sh">슈팅게임</button><button class="game-code-button" type="button" data-game-code-view="panel-sh">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sn">스네이크</button><button class="game-code-button" type="button" data-game-code-view="panel-sn">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-tt">테트리스</button><button class="game-code-button" type="button" data-game-code-view="panel-tt">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-2048">2048</button><button class="game-code-button" type="button" data-game-code-view="panel-2048">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-frog">개구리 건너기</button><button class="game-code-button" type="button" data-game-code-view="panel-frog">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gyeol">결합 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-gyeol">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-mole">두더지 잡기</button><button class="game-code-button" type="button" data-game-code-view="panel-mole">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dodge">똥피하기</button><button class="game-code-button" type="button" data-game-code-view="panel-dodge">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-rhythm">리듬 게임<span class="game-new" title="최근 추가된 게임">NEW</span></button><button class="game-code-button" type="button" data-game-code-view="panel-rhythm">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-reaction">반응 속도 테스트</button><button class="game-code-button" type="button" data-game-code-view="panel-reaction">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bubble">버블 슈터</button><button class="game-code-button" type="button" data-game-code-view="panel-bubble">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bo">벽돌깨기</button><button class="game-code-button" type="button" data-game-code-view="panel-bo">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-match3">보석 맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-match3">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bomber">봄버맨</button><button class="game-code-button" type="button" data-game-code-view="panel-bomber">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-color">색상 순서 챌린지<span class="game-new" title="최근 추가된 게임">NEW</span></button><button class="game-code-button" type="button" data-game-code-view="panel-color">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-solitaire">솔리테어</button><button class="game-code-button" type="button" data-game-code-view="panel-solitaire">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sequence">순서 기억하기</button><button class="game-code-button" type="button" data-game-code-view="panel-sequence">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-guess">숫자 맞히기</button><button class="game-code-button" type="button" data-game-code-view="panel-guess">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sh">슈팅게임</button><button class="game-code-button" type="button" data-game-code-view="panel-sh">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sn">스네이크</button><button class="game-code-button" type="button" data-game-code-view="panel-sn">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sudoku">스도쿠</button><button class="game-code-button" type="button" data-game-code-view="panel-sudoku">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-stack">스택</button><button class="game-code-button" type="button" data-game-code-view="panel-stack">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-invaders">스페이스 인베이더</button><button class="game-code-button" type="button" data-game-code-view="panel-invaders">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pz">슬라이딩 퍼즐</button><button class="game-code-button" type="button" data-game-code-view="panel-pz">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-math">암산 챌린지</button><button class="game-code-button" type="button" data-game-code-view="panel-math">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-runner">점프 달리기</button><button class="game-code-button" type="button" data-game-code-view="panel-runner">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pac">팩맨 (미로 탈출)</button><button class="game-code-button" type="button" data-game-code-view="panel-pac">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-frog">개구리 건너기</button><button class="game-code-button" type="button" data-game-code-view="panel-frog">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bomber">봄버맨</button><button class="game-code-button" type="button" data-game-code-view="panel-bomber">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-match3">보석 맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-match3">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pz">슬라이딩 퍼즐</button><button class="game-code-button" type="button" data-game-code-view="panel-pz">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gyeol">결합 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-gyeol">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sudoku">스도쿠</button><button class="game-code-button" type="button" data-game-code-view="panel-sudoku">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-memory">카드 짝맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-memory">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-guess">숫자 맞히기</button><button class="game-code-button" type="button" data-game-code-view="panel-guess">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-reaction">반응 속도 테스트</button><button class="game-code-button" type="button" data-game-code-view="panel-reaction">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-mines">지뢰 찾기</button><button class="game-code-button" type="button" data-game-code-view="panel-mines">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-memory">카드 짝맞추기</button><button class="game-code-button" type="button" data-game-code-view="panel-memory">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-typing">타자 연습</button><button class="game-code-button" type="button" data-game-code-view="panel-typing">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-sequence">순서 기억하기</button><button class="game-code-button" type="button" data-game-code-view="panel-sequence">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-flappy">플래피 버드</button><button class="game-code-button" type="button" data-game-code-view="panel-flappy">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-bubble">버블 슈터</button><button class="game-code-button" type="button" data-game-code-view="panel-bubble">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-invaders">스페이스 인베이더</button><button class="game-code-button" type="button" data-game-code-view="panel-invaders">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-solitaire">솔리테어</button><button class="game-code-button" type="button" data-game-code-view="panel-solitaire">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-tanks">탱크 대전</button><button class="game-code-button" type="button" data-game-code-view="panel-tanks">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-stack">스택</button><button class="game-code-button" type="button" data-game-code-view="panel-stack">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-rhythm">리듬 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-rhythm">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-color">색상 순서 챌린지</button><button class="game-code-button" type="button" data-game-code-view="panel-color">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-tt">테트리스</button><button class="game-code-button" type="button" data-game-code-view="panel-tt">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pac">팩맨 (미로 탈출)</button><button class="game-code-button" type="button" data-game-code-view="panel-pac">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-flappy">플래피 버드</button><button class="game-code-button" type="button" data-game-code-view="panel-flappy">코드 보기</button></div>
       </div>
 
       <h2 class="game-list-heading">대전 게임</h2>
       <p class="game-list-note">컴퓨터나 다른 사람과 승부를 겨루는 게임입니다.</p>
       <div class="game-list">
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-connect">4목 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-connect">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-rps">가위바위보</button><button class="game-code-button" type="button" data-game-code-view="panel-rps">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-word-chain">끝말잇기</button><button class="game-code-button" type="button" data-game-code-view="panel-word-chain">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-animal-shogi">동물장기</button><button class="game-code-button" type="button" data-game-code-view="panel-animal-shogi">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-baccarat">바카라<span class="game-new" title="최근 추가된 게임">NEW</span></button><button class="game-code-button" type="button" data-game-code-view="panel-baccarat">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-blackjack">블랙잭</button><button class="game-code-button" type="button" data-game-code-view="panel-blackjack">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-baseball">숫자 야구</button><button class="game-code-button" type="button" data-game-code-view="panel-baseball">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gomoku">오목</button><button class="game-code-button" type="button" data-game-code-view="panel-gomoku">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-othello">오셀로 (리버시)</button><button class="game-code-button" type="button" data-game-code-view="panel-othello">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-yut">윷놀이</button><button class="game-code-button" type="button" data-game-code-view="panel-yut">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-janggi">장기</button><button class="game-code-button" type="button" data-game-code-view="panel-janggi">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dots-boxes">점과 상자</button><button class="game-code-button" type="button" data-game-code-view="panel-dots-boxes">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-chess">체스</button><button class="game-code-button" type="button" data-game-code-view="panel-chess">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-checkers">체커</button><button class="game-code-button" type="button" data-game-code-view="panel-checkers">코드 보기</button></div>
+        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-holdem">텍사스 홀덤</button><button class="game-code-button" type="button" data-game-code-view="panel-holdem">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-ttt">틱택토</button><button class="game-code-button" type="button" data-game-code-view="panel-ttt">코드 보기</button></div>
         <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-pong">퐁 / 탁구</button><button class="game-code-button" type="button" data-game-code-view="panel-pong">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-rps">가위바위보</button><button class="game-code-button" type="button" data-game-code-view="panel-rps">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-connect">4목 게임</button><button class="game-code-button" type="button" data-game-code-view="panel-connect">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-gomoku">오목</button><button class="game-code-button" type="button" data-game-code-view="panel-gomoku">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-animal-shogi">동물장기</button><button class="game-code-button" type="button" data-game-code-view="panel-animal-shogi">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-word-chain">끝말잇기</button><button class="game-code-button" type="button" data-game-code-view="panel-word-chain">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-blackjack">블랙잭</button><button class="game-code-button" type="button" data-game-code-view="panel-blackjack">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-holdem">텍사스 홀덤</button><button class="game-code-button" type="button" data-game-code-view="panel-holdem">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-baccarat">바카라</button><button class="game-code-button" type="button" data-game-code-view="panel-baccarat">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-dots-boxes">점과 상자</button><button class="game-code-button" type="button" data-game-code-view="panel-dots-boxes">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-baseball">숫자 야구</button><button class="game-code-button" type="button" data-game-code-view="panel-baseball">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-othello">오셀로 (리버시)</button><button class="game-code-button" type="button" data-game-code-view="panel-othello">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-checkers">체커</button><button class="game-code-button" type="button" data-game-code-view="panel-checkers">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-chess">체스</button><button class="game-code-button" type="button" data-game-code-view="panel-chess">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-janggi">장기</button><button class="game-code-button" type="button" data-game-code-view="panel-janggi">코드 보기</button></div>
-        <div class="game-list-row"><button class="game-list-item" type="button" data-target="panel-yut">윷놀이</button><button class="game-code-button" type="button" data-game-code-view="panel-yut">코드 보기</button></div>
       </div>
     </div>
 
@@ -1701,6 +1711,303 @@
       } catch {}
     }
     window.reportWin = reportWin;
+
+    // ── 게임별 방법 안내 ────────────────────────────────
+    const HOLDEM_RANKS = [
+      ["로열 플러시", "같은 무늬의 10·J·Q·K·A 다섯 장"],
+      ["스트레이트 플러시", "같은 무늬로 숫자가 연속된 다섯 장"],
+      ["포카드", "같은 숫자 네 장"],
+      ["풀하우스", "같은 숫자 세 장 + 같은 숫자 두 장"],
+      ["플러시", "같은 무늬 다섯 장"],
+      ["스트레이트", "무늬와 상관없이 숫자가 연속된 다섯 장"],
+      ["트리플", "같은 숫자 세 장"],
+      ["투 페어", "같은 숫자 두 장이 두 쌍"],
+      ["원 페어", "같은 숫자 두 장 한 쌍"],
+      ["하이 카드", "위 조합이 없을 때 가장 높은 카드"],
+    ];
+
+    const GAME_GUIDES = {
+      "panel-ttt": [
+        "3×3 칸에 O와 X를 번갈아 두고, 가로·세로·대각선으로 세 개를 먼저 연결하면 승리합니다.",
+        "컴퓨터와 바로 대전하거나, 로그인 후 방을 만들어 온라인 1:1 대전을 할 수 있습니다.",
+        "온라인 대전은 연결이 잠시 끊겨도 60초 안에 자동으로 재접속합니다.",
+      ],
+      "panel-bo": [
+        "좌우로 패들을 움직여 공을 튕겨 위쪽 벽돌을 모두 부수세요.",
+        "공을 놓치면 목숨이 줄고, 목숨을 모두 잃으면 게임이 끝납니다.",
+        "PC는 방향키, 모바일은 캔버스를 누른 채 좌우로 움직입니다.",
+      ],
+      "panel-sh": [
+        "좌우로 이동하며 발사 버튼으로 적을 격추하세요.",
+        "적이나 적의 탄에 맞으면 목숨이 줄어듭니다.",
+        "PC는 방향키와 스페이스, 모바일은 화면 버튼을 사용합니다.",
+      ],
+      "panel-pz": [
+        "빈칸과 맞닿은 숫자를 밀어 1부터 순서대로 정렬하세요.",
+        "모든 숫자를 제자리에 놓으면 완성되며, 걸린 시간이 기록됩니다.",
+        "시작 버튼을 누르면 퍼즐이 새로 섞입니다.",
+      ],
+      "panel-sn": [
+        "먹이를 먹으면 몸이 길어지고 점수가 올라갑니다.",
+        "벽이나 자기 몸에 닿으면 게임이 끝납니다.",
+        "방향키 또는 모바일 방향 버튼으로 이동합니다.",
+      ],
+      "panel-tt": [
+        "떨어지는 블록을 회전·이동해 한 줄을 가득 채우면 그 줄이 사라집니다.",
+        "블록을 쌓아 화면 위쪽까지 닿으면 게임이 끝납니다.",
+        "HOLD로 블록을 보관하고, DROP으로 즉시 떨어뜨릴 수 있습니다.",
+      ],
+      "panel-2048": [
+        "방향키로 모든 타일을 밀고, 같은 숫자 두 개가 만나면 합쳐져 두 배가 됩니다.",
+        "2048 타일을 만들면 승리하며, 더 높은 숫자에 계속 도전할 수 있습니다.",
+        "빈칸이 없고 합칠 타일도 없으면 게임이 끝납니다.",
+      ],
+      "panel-mole": [
+        "30초 동안 3×3 구멍에서 올라오는 두더지를 클릭해 잡으세요.",
+        "많이 잡을수록 점수가 높아집니다.",
+      ],
+      "panel-pong": [
+        "위아래로 막대를 움직여 공을 받아내세요.",
+        "공을 놓치면 상대가 승리합니다.",
+        "공을 맞힐 때마다 공의 속도가 빨라집니다.",
+      ],
+      "panel-gyeol": [
+        "9장의 카드 중 모양·색·바탕이 각각 모두 같거나 모두 다른 3장을 찾으세요.",
+        "세 장을 고른 뒤 ‘결합!’ 버튼을 누르면 판정합니다.",
+        "가능한 결합을 모두 찾으면 클리어이며, 걸린 시간이 기록됩니다.",
+      ],
+      "panel-dodge": [
+        "좌우로 움직여 위에서 떨어지는 똥을 피하세요.",
+        "맞으면 목숨이 줄고, 오래 버틸수록 점수가 올라갑니다.",
+        "PC는 방향키, 모바일은 캔버스를 누른 채 좌우로 움직입니다.",
+      ],
+      "panel-sudoku": [
+        "9×9 판에 1~9를 한 번씩만 넣어 가로·세로·3×3 박스를 모두 채우세요.",
+        "빈칸을 선택하고 숫자 패드를 눌러 입력하며, 가상 숫자 모드로 후보를 적을 수 있습니다.",
+        "난이도(쉬움·보통·어려움)를 고르고 새 게임으로 시작합니다.",
+      ],
+      "panel-memory": [
+        "카드를 두 장씩 뒤집어 같은 그림을 찾으세요.",
+        "모든 짝을 맞추면 완료되며, 적은 시도 횟수일수록 좋습니다.",
+      ],
+      "panel-rps": [
+        "바위는 가위, 가위는 보, 보는 바위를 이깁니다.",
+        "먼저 3승을 올리면 승리합니다.",
+        "점수 초기화로 다시 시작할 수 있습니다.",
+      ],
+      "panel-guess": [
+        "1~100 사이 숫자를 입력하면 정답이 더 큰지 작은지 알려줍니다.",
+        "적은 시도로 맞힐수록 좋은 기록입니다.",
+      ],
+      "panel-reaction": [
+        "시작을 누르고 화면이 초록색으로 바뀌면 최대한 빨리 누르세요.",
+        "초록색이 되기 전에 누르면 무효가 되어 다시 시작해야 합니다.",
+        "기록은 밀리초(ms) 단위로 저장됩니다.",
+      ],
+      "panel-color": [
+        "화면에 제시된 색 이름을 보고 같은 색 버튼을 10번 연속으로 고르세요.",
+        "틀리면 처음부터 다시 시작하며, 10개를 모두 맞힌 총 시간이 기록됩니다.",
+      ],
+      "panel-connect": [
+        "돌을 떨어뜨려 가로·세로·대각선으로 네 개를 먼저 연결하세요.",
+        "당신은 빨강, 컴퓨터는 노랑이며 빨강이 먼저 둡니다.",
+        "판이 가득 찰 때까지 승부가 나지 않으면 무승부입니다.",
+      ],
+      "panel-mines": [
+        "8×8 판에 숨은 지뢰 10개를 피해 안전한 칸을 모두 여세요.",
+        "숫자는 주변 8칸에 있는 지뢰 수를 뜻합니다.",
+        "깃발 모드를 켜면 지뢰로 의심되는 칸을 표시할 수 있습니다.",
+      ],
+      "panel-math": [
+        "60초 동안 덧셈·뺄셈·곱셈 문제를 풀어 정답을 입력하세요.",
+        "맞히면 다음 문제가 나오고 점수가 올라갑니다.",
+        "시간이 끝나면 점수가 기록됩니다.",
+      ],
+      "panel-gomoku": [
+        "가로·세로·대각선으로 검은 돌 다섯 개를 먼저 연결하세요.",
+        "당신은 검은 돌, 컴퓨터는 흰 돌이며 검은 돌이 먼저 둡니다.",
+      ],
+      "panel-animal-shogi": [
+        "말을 눌러 이동하거나, 잡은 말을 손패에서 골라 빈칸에 놓으세요.",
+        "병아리가 상대 진영 끝에 도착하면 닭으로 승격됩니다.",
+        "사자를 잡거나 안전하게 상대 진영 끝에 보내면 이깁니다.",
+      ],
+      "panel-runner": [
+        "스페이스바나 화면 탭으로 장애물을 뛰어넘으세요.",
+        "장애물에 부딪히면 게임이 끝나며, 버틴 거리가 점수가 됩니다.",
+      ],
+      "panel-word-chain": [
+        "앞 단어의 마지막 글자로 시작하는 단어를 입력하세요.",
+        "이미 나온 단어나 이어갈 수 없는 단어를 입력하면 패배합니다.",
+        "네이버 어학사전 링크로 단어를 확인할 수 있습니다.",
+      ],
+      "panel-blackjack": [
+        "카드를 더해 21에 가까운 점수를 만드세요. 21을 넘으면 패배합니다.",
+        "딜러는 17점 이상에서 멈추고, A는 1 또는 11로 계산됩니다.",
+        "카드 받기와 그만 받기를 눌러 딜러와 승부합니다.",
+      ],
+      "panel-holdem": [
+        "버튼이 스몰 블라인드, 상대가 빅 블라인드를 내고 프리플랍부터 베팅합니다.",
+        "체크·콜·레이즈·폴드·올인 중 하나를 선택하며, 레이즈는 이번 라운드 총 베팅액으로 입력합니다.",
+        "내 카드 2장과 커뮤니티 카드 5장 중 가장 좋은 5장 조합으로 승부합니다.",
+      ],
+      "panel-baccarat": [
+        "플레이어와 뱅커 중 9에 더 가까운 쪽에 베팅하세요. 10·J·Q·K는 0, A는 1로 계산합니다.",
+        "합이 10을 넘으면 일의 자리만 셉니다. 6덱 슈와 세 번째 카드 규칙을 사용합니다.",
+        "타이면 플레이어·뱅커 베팅은 돌려받습니다. 배당은 플레이어 1:1, 뱅커 0.95:1, 타이 8:1입니다.",
+      ],
+      "panel-dots-boxes": [
+        "점 사이에 선을 그어 상자의 네 변을 완성하면 점수를 얻고 한 번 더 둡니다.",
+        "당신은 파랑, 컴퓨터는 빨강입니다.",
+        "모든 상자가 채워지면 더 많은 상자를 가진 쪽이 이깁니다.",
+      ],
+      "panel-typing": [
+        "30초 동안 제시된 문장을 정확히 입력하세요.",
+        "첫 글자를 입력하면 시간이 시작되며, 속도(WPM)와 정확도가 기록됩니다.",
+      ],
+      "panel-baseball": [
+        "서로 다른 숫자 3개를 맞히세요. 숫자와 자리가 모두 맞으면 스트라이크, 숫자만 맞으면 볼입니다.",
+        "3스트라이크면 승리하며, 최대 10번까지 추측할 수 있습니다.",
+      ],
+      "panel-sequence": [
+        "불이 켜지는 순서를 기억한 뒤 같은 순서로 색 버튼을 누르세요.",
+        "라운드가 올라갈수록 순서가 길어지고, 틀리면 종료됩니다.",
+      ],
+      "panel-othello": [
+        "상대 돌을 양쪽에서 끼워 뒤집으며 더 많은 돌을 차지하세요.",
+        "당신은 검은 돌, 컴퓨터는 흰 돌입니다.",
+        "양쪽 모두 둘 곳이 없으면 게임이 끝나고 돌이 많은 쪽이 이깁니다.",
+      ],
+      "panel-checkers": [
+        "대각선으로 이동해 상대 말을 잡으세요. 잡을 수 있으면 반드시 잡아야 합니다.",
+        "마지막 줄에 도달하면 킹으로 승격되어 뒤로도 이동할 수 있습니다.",
+        "당신은 빨강, 컴퓨터는 검정이며 빨강이 먼저 둡니다.",
+      ],
+      "panel-chess": [
+        "상대 킹을 체크메이트하세요. 당신은 흰색, 컴퓨터는 검은색입니다.",
+        "캐슬링, 앙파상, 퀸 승격을 지원합니다.",
+      ],
+      "panel-janggi": [
+        "상대 장군을 장군으로 몰아 더 이상 합법적으로 둘 수 없게 만들면 승리합니다.",
+        "빨강은 당신, 파랑은 컴퓨터이며 마·상 배치를 고를 수 있습니다.",
+        "장군이 아닐 때는 ‘한 수 쉬기’로 차례를 넘길 수 있습니다.",
+      ],
+      "panel-yut": [
+        "윷을 던져 나온 결과만큼 말을 이동시키고, 말 4개를 모두 골인시키면 승리합니다.",
+        "윷·모가 나오면 한 번 더 던질 수 있고, 상대 말을 잡아도 한 번 더 던집니다.",
+        "우측 하단 결승점을 지나야 골인하며, 지름길을 선택할 수 있습니다.",
+      ],
+      "panel-pac": [
+        "미로의 점을 모두 먹으며 유령을 피하세요.",
+        "파워 알약을 먹으면 잠시 유령을 쫓아낼 수 있습니다.",
+        "유령에게 잡히면 목숨이 줄고, 모두 잃으면 게임이 끝납니다.",
+      ],
+      "panel-frog": [
+        "차도를 피해 강을 건너 위쪽 목표 지점 5곳에 개구리를 모두 골인시키세요.",
+        "물 위에서는 통나무·거북이를 타고 이동합니다.",
+        "시간 안에 골인하지 못하거나 물에 빠지면 목숨이 줄어듭니다.",
+      ],
+      "panel-bomber": [
+        "폭탄으로 벽돌을 부수며 모든 적을 물리치세요.",
+        "벽돌에서 나오는 아이템을 먹으면 폭탄 개수·화력·이동 속도가 늘어납니다.",
+        "폭발에 휘말리거나 적에게 닿으면 목숨이 줄어듭니다.",
+      ],
+      "panel-match3": [
+        "이웃한 보석을 바꿔 가로·세로로 같은 보석을 3개 이상 맞추세요.",
+        "맞춘 보석은 사라지고 위에서 새 보석이 떨어지며, 연쇄가 이어질수록 점수가 커집니다.",
+        "25번의 이동 안에 최고 점수에 도전하세요.",
+      ],
+      "panel-flappy": [
+        "화면을 누르거나 스페이스바를 눌러 새를 위로 띄우세요.",
+        "파이프 사이를 통과할 때마다 점수가 오르고, 부딪히면 게임이 끝납니다.",
+      ],
+      "panel-bubble": [
+        "같은 색 공을 3개 이상 붙이면 터집니다.",
+        "마우스나 손가락으로 조준하고 클릭·탭 또는 스페이스바로 발사하세요.",
+        "공이 바닥에 닿으면 게임이 끝납니다.",
+      ],
+      "panel-invaders": [
+        "좌우로 이동하며 발사해 적을 모두 격추하세요.",
+        "웨이브를 모두 격추하면 더 강한 다음 스테이지가 이어집니다.",
+        "적의 탄에 맞으면 목숨이 줄어듭니다.",
+      ],
+      "panel-solitaire": [
+        "카드를 눌러 선택하고 목적지 기둥을 누르면 옮겨집니다.",
+        "카드를 더블클릭하면 갈 수 있는 기둥으로 자동으로 옮겨집니다.",
+        "♠♥♦♣ 에이스부터 K까지 순서대로 모으면 승리합니다.",
+      ],
+      "panel-tanks": [
+        "방향키로 이동하고 스페이스로 발사해 적 탱크를 모두 부수세요.",
+        "적 탱크를 모두 부수면 더 강한 다음 스테이지가 이어집니다.",
+        "적의 공격에 맞으면 목숨이 줄어듭니다.",
+      ],
+      "panel-stack": [
+        "좌우로 움직이는 블록을 아래 블록에 겹쳐 쌓으세요.",
+        "겹친 부분만 남고, 완전히 빗나가면 게임이 끝납니다.",
+        "정확히 맞추면 PERFECT 콤보가 이어집니다.",
+      ],
+      "panel-rhythm": [
+        "D·F·J·K 키나 아래 판정 버튼으로 네 줄의 노트를 판정선에 맞춰 누르세요.",
+        "48초 동안 점수와 콤보를 쌓고, 시간이 지날수록 노트가 촘촘해집니다.",
+        "난이도(Level 1~6)에 따라 노트 밀도·낙하 속도·판정 범위가 달라집니다.",
+      ],
+    };
+
+    function buildHoldemRanks() {
+      const table = document.createElement("table");
+      table.className = "holdem-ranks";
+      const caption = document.createElement("caption");
+      caption.textContent = "텍사스 홀덤 족보 (높은 순)";
+      table.appendChild(caption);
+      const head = document.createElement("tr");
+      for (const label of ["순위", "족보", "설명"]) {
+        const th = document.createElement("th");
+        th.scope = "col";
+        th.textContent = label;
+        head.appendChild(th);
+      }
+      table.appendChild(head);
+      HOLDEM_RANKS.forEach(([name, description], index) => {
+        const row = document.createElement("tr");
+        const rank = document.createElement("td");
+        rank.textContent = String(index + 1);
+        const hand = document.createElement("td");
+        hand.textContent = name;
+        const detail = document.createElement("td");
+        detail.textContent = description;
+        row.append(rank, hand, detail);
+        table.appendChild(row);
+      });
+      return table;
+    }
+
+    function addGameGuides() {
+      for (const panel of panels) {
+        const rules = GAME_GUIDES[panel.id];
+        if (!rules) continue;
+        const details = document.createElement("details");
+        details.className = "game-guide";
+        details.dataset.gameGuide = "";
+        if (panel.id === "panel-holdem") details.open = true;
+        const summary = document.createElement("summary");
+        summary.textContent = panel.id === "panel-holdem" ? "게임 방법과 족보" : "게임 방법";
+        details.appendChild(summary);
+        const list = document.createElement("ul");
+        for (const rule of rules) {
+          const item = document.createElement("li");
+          item.textContent = rule;
+          list.appendChild(item);
+        }
+        details.appendChild(list);
+        if (panel.id === "panel-holdem") details.appendChild(buildHoldemRanks());
+        const anchor = Array.from(panel.children).find((el) => el.tagName === "P")
+          || Array.from(panel.children).find((el) => el.tagName === "H3");
+        if (anchor) anchor.after(details);
+        else panel.prepend(details);
+      }
+    }
+
+    addGameGuides();
 
     addLeaderboards();
 

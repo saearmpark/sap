@@ -204,6 +204,39 @@ try {
   check(gameMenu.canvases === 0, "모든 캔버스에 aria-label이 있습니다", String(gameMenu.canvases));
   check(pageErrors.length === 0, "게임 목록에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 
+  const gameMeta = await evaluate(`(() => {
+    const sections = [...document.querySelectorAll("#game-menu .game-list")].map((list) => {
+      const titles = [...list.querySelectorAll(".game-list-item")].map((button) => button.textContent.replace("NEW", "").trim());
+      const sorted = [...titles].sort((a, b) => a.localeCompare(b, "ko"));
+      return { count: titles.length, sorted: titles.join("\\n") === sorted.join("\\n") };
+    });
+    const guides = [...document.querySelectorAll(".game-panel .game-guide")];
+    const holdemRanks = document.querySelectorAll("#panel-holdem .holdem-ranks tr");
+    return {
+      sections,
+      newBadges: document.querySelectorAll("#game-menu .game-new").length,
+      newTargets: [...document.querySelectorAll("#game-menu .game-list-row")]
+        .filter((row) => row.querySelector(".game-new"))
+        .map((row) => row.querySelector(".game-list-item").dataset.target),
+      guides: guides.length,
+      guidePanels: new Set(guides.map((guide) => guide.closest(".game-panel").id)).size,
+      minRules: Math.min(...guides.map((guide) => guide.querySelectorAll("li").length)),
+      holdemOpen: document.querySelector("#panel-holdem .game-guide")?.open === true,
+      holdemRanks: holdemRanks.length - 1,
+      holdemTop: holdemRanks[1]?.children[1]?.textContent || ""
+    };
+  })()`);
+  check(gameMeta.sections.length === 2 && gameMeta.sections[0].count === 30
+    && gameMeta.sections[1].count === 17 && gameMeta.sections.every((section) => section.sorted),
+    "게임 목록이 기록·대전 게임별로 가나다순입니다", JSON.stringify(gameMeta.sections));
+  check(gameMeta.newBadges === 3
+    && ["panel-rhythm", "panel-color", "panel-baccarat"].every((id) => gameMeta.newTargets.includes(id)),
+    "최근 추가된 게임 3개에 NEW 표시가 있습니다", JSON.stringify(gameMeta.newTargets));
+  check(gameMeta.guides === 47 && gameMeta.guidePanels === 47 && gameMeta.minRules >= 2,
+    "모든 게임에 2개 이상의 방법 안내가 있습니다", JSON.stringify(gameMeta));
+  check(gameMeta.holdemOpen && gameMeta.holdemRanks === 10 && gameMeta.holdemTop === "로열 플러시",
+    "홀덤 족보 10단계가 펼쳐져 있습니다", JSON.stringify({ open: gameMeta.holdemOpen, ranks: gameMeta.holdemRanks, top: gameMeta.holdemTop }));
+
   await navigate("game.html?smoke=1#panel-2048", 1200);
   const deepLink = await evaluate(`({
     hash: location.hash,
