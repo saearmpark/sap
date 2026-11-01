@@ -200,7 +200,7 @@ try {
     canvases: [...document.querySelectorAll("canvas")].filter((canvas) => !canvas.getAttribute("aria-label")).length
   })`);
   check(gameMenu.menuVisible, "게임 목록이 기본으로 보입니다");
-  check(gameMenu.games === 46, "게임 46개가 렌더링됩니다", String(gameMenu.games));
+  check(gameMenu.games === 47, "게임 47개가 렌더링됩니다", String(gameMenu.games));
   check(gameMenu.canvases === 0, "모든 캔버스에 aria-label이 있습니다", String(gameMenu.canvases));
   check(pageErrors.length === 0, "게임 목록에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 
@@ -213,6 +213,60 @@ try {
   check(deepLink.hash === "#panel-2048" && !deepLink.panelHidden && deepLink.menuHidden,
     "게임 해시 링크가 해당 게임을 바로 엽니다", JSON.stringify(deepLink));
   check(pageErrors.length === 0, "게임 딥링크에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
+
+  await navigate("game.html?smoke=baccarat#panel-baccarat", 1200);
+  const baccarat = await evaluate(`({
+    visible: !document.getElementById("panel-baccarat").hidden,
+    sides: document.querySelectorAll("#baccarat-bets [data-bet]").length,
+    chips: document.getElementById("baccarat-chips").textContent,
+    dealDisabled: document.getElementById("baccarat-deal").disabled
+  })`);
+  check(baccarat.visible && baccarat.sides === 3 && baccarat.chips === "1,000" && baccarat.dealDisabled,
+    "바카라 화면과 베팅 버튼이 준비됩니다", JSON.stringify(baccarat));
+
+  const baccaratBet = await evaluate(`(() => {
+    document.querySelector('#baccarat-bets [data-bet="banker"]').click();
+    document.querySelector('#baccarat-chip-buttons [data-chip="100"]').click();
+    return {
+      bet: document.getElementById("baccarat-bet").textContent,
+      chips: document.getElementById("baccarat-chips").textContent,
+      pressed: document.querySelector('#baccarat-bets [data-bet="banker"]').getAttribute("aria-pressed"),
+      dealDisabled: document.getElementById("baccarat-deal").disabled
+    };
+  })()`);
+  check(baccaratBet.bet === "100" && baccaratBet.chips === "1,000" && baccaratBet.pressed === "true"
+    && !baccaratBet.dealDisabled,
+    "바카라에서 베팅 대상과 칩을 선택합니다", JSON.stringify(baccaratBet));
+
+  await evaluate(`document.getElementById("baccarat-deal").click()`);
+  await sleep(200);
+  const baccaratDealt = await evaluate(`({
+    playerCards: document.querySelectorAll("#baccarat-player-cards .blackjack-card").length,
+    bankerCards: document.querySelectorAll("#baccarat-banker-cards .blackjack-card").length,
+    playerScore: document.getElementById("baccarat-player-score").textContent,
+    bankerScore: document.getElementById("baccarat-banker-score").textContent,
+    chips: document.getElementById("baccarat-chips").textContent,
+    bet: document.getElementById("baccarat-bet").textContent,
+    status: document.getElementById("baccarat-status").textContent
+  })`);
+  const baccaratChips = Number(baccaratDealt.chips.replace(/[^0-9]/g, ""));
+  check(baccaratDealt.playerCards >= 2 && baccaratDealt.bankerCards >= 2
+    && /^[0-9]$/.test(baccaratDealt.playerScore) && /^[0-9]$/.test(baccaratDealt.bankerScore)
+    && [900, 1000, 1095].includes(baccaratChips) && baccaratDealt.bet === "0"
+    && /플레이어 \d : 뱅커 \d/.test(baccaratDealt.status),
+    "바카라 카드와 점수, 칩 정산이 반영됩니다", JSON.stringify(baccaratDealt));
+
+  await evaluate(`document.getElementById("baccarat-reset").click()`);
+  const baccaratReset = await evaluate(`({
+    chips: document.getElementById("baccarat-chips").textContent,
+    bet: document.getElementById("baccarat-bet").textContent,
+    cards: document.querySelectorAll("#baccarat-player-cards .blackjack-card, #baccarat-banker-cards .blackjack-card").length,
+    dealDisabled: document.getElementById("baccarat-deal").disabled
+  })`);
+  check(baccaratReset.chips === "1,000" && baccaratReset.bet === "0" && baccaratReset.cards === 0
+    && baccaratReset.dealDisabled,
+    "바카라 새 게임이 칩과 패를 초기화합니다", JSON.stringify(baccaratReset));
+  check(pageErrors.length === 0, "바카라 게임에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 
   await navigate("game.html?smoke=2#panel-rhythm", 1200);
   const rhythm = await evaluate(`({
@@ -333,7 +387,7 @@ try {
     await evaluate(`document.querySelector(".game-panel:not([hidden]) .game-back")?.click()`);
     await sleep(150);
   }
-  check(brokenGames.length === 0, "46개 게임이 모두 열립니다", brokenGames.join(", "));
+  check(brokenGames.length === 0, "47개 게임이 모두 열립니다", brokenGames.join(", "));
 
   await navigate("search.html", 1200);
   const search = await evaluate(`({
