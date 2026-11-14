@@ -58,4 +58,22 @@ class NewsItemRepositoryTest {
         assertEquals(20, news.findTop20ByCategoryOrderByIdDesc("국내").size());
         assertEquals(3, news.findTop20ByCategoryOrderByIdDesc("경제").size());
     }
+
+    @Test
+    void deletesStaleEconomicNewsUsingPublishOrFetchTime() {
+        Instant now = Instant.parse("2026-11-14T00:00:00Z");
+        Instant cutoff = now.minusSeconds(7 * 24 * 60 * 60L);
+        news.save(new NewsItem("오래된 발행 기사", "https://example.com/old-published", "old-published", "테스트",
+                "경제", "요약", "", now.minusSeconds(8 * 24 * 60 * 60L), now));
+        news.save(new NewsItem("날짜 없는 오래된 기사", "https://example.com/old-fetched", "old-fetched", "테스트",
+                "경제", "요약", "", null, now.minusSeconds(8 * 24 * 60 * 60L)));
+        news.save(new NewsItem("최근 기사", "https://example.com/recent", "recent", "테스트",
+                "경제", "요약", "", now.minusSeconds(24 * 60 * 60L), now));
+        news.save(new NewsItem("국내 오래된 기사", "https://example.com/domestic-old", "domestic-old", "테스트",
+                "국내", "요약", "", now.minusSeconds(8 * 24 * 60 * 60L), now));
+
+        assertEquals(2, news.deleteStaleByCategory("경제", cutoff));
+        assertEquals(1, news.findTop20ByCategoryOrderByIdDesc("경제").size());
+        assertEquals(1, news.findTop20ByCategoryOrderByIdDesc("국내").size());
+    }
 }

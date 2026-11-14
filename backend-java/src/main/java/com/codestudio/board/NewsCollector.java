@@ -39,6 +39,7 @@ public class NewsCollector {
 
     private static final Logger log = LoggerFactory.getLogger(NewsCollector.class);
     private static final int KEEP_ITEMS = 20;
+    private static final Duration ECONOMIC_NEWS_MAX_AGE = Duration.ofDays(7);
     private static final List<String> CATEGORIES = List.of("국내", "경제");
     private static final Pattern IMAGE_PATTERN =
             Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
@@ -50,12 +51,12 @@ public class NewsCollector {
             new Feed("https://www.yna.co.kr/rss/politics.xml", "국내", "연합뉴스", 10),
             new Feed("https://www.yna.co.kr/rss/society.xml", "국내", "연합뉴스", 10),
             new Feed("https://www.yna.co.kr/rss/market.xml", "경제", "연합뉴스", 2),
-            new Feed("https://news.google.com/rss/search?q=%EC%A6%9D%EC%8B%9C&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3),
-            new Feed("https://news.google.com/rss/search?q=%EA%B8%88%EB%A6%AC&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3),
-            new Feed("https://news.google.com/rss/search?q=%ED%99%98%EC%9C%A8&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3),
-            new Feed("https://news.google.com/rss/search?q=%EA%B0%80%EC%83%81%EC%9E%90%EC%82%B0&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3),
-            new Feed("https://news.google.com/rss/search?q=%EB%AF%B8%EA%B5%AD%20%EC%A6%9D%EC%8B%9C&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3),
-            new Feed("https://news.google.com/rss/search?q=%EC%97%B0%EC%A4%80&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3));
+            new Feed("https://news.google.com/rss/search?q=%EC%A6%9D%EC%8B%9C%20when%3A1d&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3),
+            new Feed("https://news.google.com/rss/search?q=%EA%B8%88%EB%A6%AC%20when%3A1d&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3),
+            new Feed("https://news.google.com/rss/search?q=%ED%99%98%EC%9C%A8%20when%3A1d&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3),
+            new Feed("https://news.google.com/rss/search?q=%EA%B0%80%EC%83%81%EC%9E%90%EC%82%B0%20when%3A1d&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3),
+            new Feed("https://news.google.com/rss/search?q=%EB%AF%B8%EA%B5%AD%20%EC%A6%9D%EC%8B%9C%20when%3A1d&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3),
+            new Feed("https://news.google.com/rss/search?q=%EC%97%B0%EC%A4%80%20when%3A1d&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3));
 
     private final NewsItemRepository repository;
     private final HttpClient http = HttpClient.newBuilder()
@@ -70,6 +71,7 @@ public class NewsCollector {
     @Scheduled(fixedRate = 10 * 60 * 1000L, initialDelay = 15 * 1000L)
     @Transactional
     public void refresh() {
+        int staleRemoved = repository.deleteStaleByCategory("경제", Instant.now().minus(ECONOMIC_NEWS_MAX_AGE));
         Map<String, Set<String>> seenTitles = new HashMap<>();
         for (String category : CATEGORIES) {
             Set<String> titles = new HashSet<>();
@@ -83,8 +85,8 @@ public class NewsCollector {
             added += collect(feed, seenTitles.get(feed.category()));
         }
         int removed = trimToNewest();
-        if (added > 0 || removed > 0) {
-            log.info("News refresh: {} added, {} removed", added, removed);
+        if (added > 0 || removed > 0 || staleRemoved > 0) {
+            log.info("News refresh: {} added, {} trimmed, {} stale removed", added, removed, staleRemoved);
         }
     }
 
@@ -123,6 +125,10 @@ public class NewsCollector {
             if (title.isEmpty() || link.isEmpty()) {
                 continue;
             }
+            Instant publishedAt = parseDate(text(item, "pubDate"));
+            if ("경제".equals(feed.category()) && !isFreshEconomicArticle(publishedAt, now)) {
+                continue;
+            }
             String normalizedTitle = normalizeTitle(title);
             if (normalizedTitle.isEmpty() || !seenTitles.add(normalizedTitle)) {
                 continue;
@@ -143,7 +149,7 @@ public class NewsCollector {
                     feed.category(),
                     summary(text(item, "description")),
                     imageUrl(extractImage(item)),
-                    parseDate(text(item, "pubDate")),
+                    publishedAt,
                     now));
             added++;
             if (feed.limit() > 0 && added >= feed.limit()) {
@@ -192,6 +198,10 @@ public class NewsCollector {
             text = text.substring(0, sourceSep);
         }
         return text.replaceAll("[^\\p{L}\\p{N}]", "").toLowerCase(Locale.ROOT);
+    }
+
+    static boolean isFreshEconomicArticle(Instant publishedAt, Instant now) {
+        return publishedAt != null && !publishedAt.isBefore(now.minus(ECONOMIC_NEWS_MAX_AGE));
     }
 
     private static String summary(String description) {

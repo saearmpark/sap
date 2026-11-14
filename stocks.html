@@ -70,12 +70,29 @@
     function readQuoteCache() {
       try {
         const raw = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
-        return Array.isArray(raw) && raw.length ? raw : null;
+        if (Array.isArray(raw)) return raw.length ? { quotes: raw, updatedAt: null } : null;
+        return raw && Array.isArray(raw.quotes) && raw.quotes.length ? raw : null;
       } catch { return null; }
     }
 
-    function writeQuoteCache(quotes) {
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify(quotes)); } catch {}
+    function writeQuoteCache(quotes, updatedAt) {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ quotes, updatedAt })); } catch {}
+    }
+
+    function formatUpdatedAt(value) {
+      if (!value) return "갱신 시각 확인 불가";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "갱신 시각 확인 불가";
+      const formatted = new Intl.DateTimeFormat("ko-KR", {
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      }).format(date);
+      return `${formatted} KST`;
     }
 
     function readWatchlist() {
@@ -265,16 +282,17 @@
           statusEl.textContent = "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
           return;
         }
-        statusEl.textContent = `시세 ${quotes.length}건 · ${window.SAPCommon.relTime(data.updatedAt)} 갱신${data.partial ? " · 일부 시세 지연" : ""}`;
+        statusEl.textContent = `시세 ${quotes.length}건 · 업데이트 ${formatUpdatedAt(data.updatedAt)} (${window.SAPCommon.relTime(data.updatedAt)})${data.partial ? " · 일부 시세 지연" : ""}`;
         const signature = JSON.stringify(quotes);
         if (signature !== lastSignature) {
           lastSignature = signature;
           render(quotes);
         }
-        writeQuoteCache(quotes);
+        writeQuoteCache(quotes, data.updatedAt);
       } catch (error) {
-        statusEl.textContent = readQuoteCache()
-          ? "서버 연결이 느립니다. 저장된 시세를 표시합니다."
+        const cached = readQuoteCache();
+        statusEl.textContent = cached
+          ? `서버 연결이 느립니다. 저장된 시세 · 업데이트 ${formatUpdatedAt(cached.updatedAt)}`
           : "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
       }
     }
@@ -288,9 +306,9 @@
 
     const cachedQuotes = readQuoteCache();
     if (cachedQuotes) {
-      lastSignature = JSON.stringify(cachedQuotes);
-      render(cachedQuotes);
-      statusEl.textContent = "저장된 시세를 먼저 표시합니다...";
+      lastSignature = JSON.stringify(cachedQuotes.quotes);
+      render(cachedQuotes.quotes);
+      statusEl.textContent = `저장된 시세 · 업데이트 ${formatUpdatedAt(cachedQuotes.updatedAt)}`;
     }
 
     load();

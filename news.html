@@ -31,6 +31,7 @@
   <main class="main">
     <div class="eyebrow">WEATHER</div>
     <h1>날씨</h1>
+    <p>현재 날짜·시각: <time id="weather-current-date">확인 중...</time> KST</p>
     <p>대한민국 주요 도시의 오늘 날씨와 천안의 현재부터 24시간 시간대별 예상을 보여줍니다.</p>
 
     <section class="weather-panel" aria-label="오늘의 날씨">
@@ -50,7 +51,7 @@
 </div>
 <script src="assets/common.js?v=labels-46"></script>
 <script src="assets/auth.js?v=labels-46"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script id="weather-map-script" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" async crossorigin=""></script>
 <script>
   (() => {
     const mapEl = document.getElementById("weather-map");
@@ -58,7 +59,9 @@
     const hourlyEl = document.getElementById("weather-hourly");
     const stripEl = document.getElementById("weather-hourly-strip");
     const statusEl = document.getElementById("weather-status");
+    const currentDateEl = document.getElementById("weather-current-date");
     const CACHE_KEY = "sap-weather-cache-v2";
+    const WEATHER_REFRESH_INTERVAL = 30 * 60 * 1000;
     const CITIES = [
       { name: "서울", lat: 37.5665, lon: 126.9780 },
       { name: "부산", lat: 35.1796, lon: 129.0756 },
@@ -88,6 +91,37 @@
 
     const readCache = () => window.SAPCommon.readCache(CACHE_KEY);
     const writeCache = (items) => window.SAPCommon.writeCache(CACHE_KEY, items);
+
+    function formatUpdatedAt(value) {
+      if (!value) return "갱신 시각 확인 불가";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "갱신 시각 확인 불가";
+      const formatted = new Intl.DateTimeFormat("ko-KR", {
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      }).format(date);
+      return `${formatted} KST`;
+    }
+
+    function updateCurrentDate() {
+      const now = new Date();
+      currentDateEl.dateTime = now.toISOString();
+      currentDateEl.textContent = new Intl.DateTimeFormat("ko-KR", {
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      }).format(now);
+    }
 
     function card(item) {
       const el = document.createElement("article");
@@ -166,6 +200,7 @@
 
     let map = null;
     let markerLayer = null;
+    let latestItems = [];
 
     function ensureMap() {
       if (map) return map;
@@ -211,6 +246,7 @@
     }
 
     function show(items) {
+      latestItems = items;
       render(items);
       if (window.L && renderMap(items)) {
         gridEl.hidden = true;
@@ -219,6 +255,10 @@
       }
       renderHourly(items);
     }
+
+    document.getElementById("weather-map-script").addEventListener("load", () => {
+      if (latestItems.length) show(latestItems);
+    });
 
     function seoulNow() {
       try {
@@ -273,10 +313,14 @@
     }
 
     async function load() {
+      updateCurrentDate();
       const cached = readCache();
       if (cached) {
         show(cached.items);
-        statusEl.textContent = "저장된 날씨를 먼저 표시합니다...";
+        const cacheAge = Date.now() - Number(cached.savedAt);
+        const isFresh = Number.isFinite(cacheAge) && cacheAge >= 0 && cacheAge < WEATHER_REFRESH_INTERVAL;
+        statusEl.textContent = `${isFresh ? "최근 날씨" : "저장된 날씨"} · 업데이트 ${formatUpdatedAt(cached.savedAt)}`;
+        if (isFresh) return;
       } else {
         statusEl.textContent = "날씨를 불러오는 중입니다...";
       }
@@ -322,20 +366,18 @@
         }));
         show(items);
         writeCache(items);
-        const stamp = new Date().toLocaleTimeString("ko-KR", {
-          timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit",
-        });
-        statusEl.textContent = `실시간 · ${stamp} 기준`;
+        statusEl.textContent = `실시간 · 업데이트 ${formatUpdatedAt(new Date())}`;
       } catch (error) {
         document.getElementById("weather-advice").innerHTML = "<h2>오늘·내일 옷차림과 우산</h2><p>날씨 정보를 불러오지 못해 추천을 계산할 수 없습니다. 잠시 후 새로고침해 주세요.</p>";
-        statusEl.textContent = readCache()
-          ? "날씨 서버 연결이 느립니다. 저장된 정보를 표시합니다."
+        statusEl.textContent = cached
+          ? `날씨 서버 연결이 느립니다. 저장된 정보 · 업데이트 ${formatUpdatedAt(cached.savedAt)}`
           : "날씨를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
       }
     }
 
     load();
-    setInterval(load, 10 * 60 * 1000);
+    setInterval(updateCurrentDate, 10 * 60 * 1000);
+    setInterval(load, WEATHER_REFRESH_INTERVAL);
   })();
 </script>
 <script src="assets/theme.js?v=labels-46"></script>

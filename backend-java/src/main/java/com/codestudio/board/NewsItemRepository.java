@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface NewsItemRepository extends JpaRepository<NewsItem, Long> {
@@ -18,4 +19,8 @@ public interface NewsItemRepository extends JpaRepository<NewsItem, Long> {
     @Modifying
     @Query("delete from NewsItem n where n.category = :category and n.id < :cutoff")
     int deleteByCategoryAndIdLessThan(@Param("category") String category, @Param("cutoff") long cutoff);
+
+    @Modifying
+    @Query("delete from NewsItem n where n.category = :category and coalesce(n.publishedAt, n.fetchedAt) < :cutoff")
+    int deleteStaleByCategory(@Param("category") String category, @Param("cutoff") Instant cutoff);
 }
