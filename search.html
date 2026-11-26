@@ -19,7 +19,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>사피엔스 — 검색</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-46">
+<link rel="stylesheet" href="assets/style.css?v=labels-47">
 <style>
   .search-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .search-form input[type="search"] {
@@ -61,8 +61,8 @@
     <div id="search-results"></div>
   </main>
 </div>
-<script src="assets/common.js?v=labels-46"></script>
-<script src="assets/auth.js?v=labels-46"></script>
+<script src="assets/common.js?v=labels-47"></script>
+<script src="assets/auth.js?v=labels-47"></script>
 <script>
   (() => {
     const form = document.getElementById("search-form");
@@ -141,6 +141,12 @@
           title: "투자정보",
           text: "국내외 주식 시세 · 코스피 나스닥 엔비디아 애플 · 비트코인 코인 · 원달러 환율 · 금리 · 금 ETF · WTI 유가",
           href: "stocks.html"
+        });
+        staticIndex.push({
+          key: "fun",
+          title: "재미",
+          text: "오늘의 낱말 퍼즐 한글 워들 게임 룰렛 추천 랜덤 47개 게임 골라 주기 연습 낱말",
+          href: "fun.html"
         });
         staticIndex.push({
           key: "account",
@@ -371,6 +377,6 @@
     }
   })();
 </script>
-<script src="assets/theme.js?v=labels-46"></script>
+<script src="assets/theme.js?v=labels-47"></script>
 </body>
 </html>

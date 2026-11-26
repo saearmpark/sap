@@ -31,6 +31,7 @@
       { href: "learn.html", label: "앱" },
       { href: "game.html", label: "게임" }
     ] },
+    { href: "fun.html", label: "재미" },
     { label: "소통", items: [
       { href: "board.html", label: "게시판" },
       { href: "chat.html", label: "대화" }

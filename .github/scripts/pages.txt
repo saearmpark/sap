@@ -9,6 +9,7 @@ stocks.html
 learn.html
 english.html
 game.html
+fun.html
 board.html
 notice.html
 chat.html

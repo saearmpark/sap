@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202124">
+<meta name="description" content="매일 바뀌는 한글 낱말 퍼즐과 47개 게임 중 하나를 골라 주는 게임 룰렛. 6번의 기회로 오늘의 낱말에 도전하고, 기분에 맞는 게임을 바로 시작하세요.">
+<link rel="canonical" href="https://saearmpark.github.io/sap/fun.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="사피엔스">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="사피엔스 — 재미">
+<meta property="og:description" content="매일 바뀌는 한글 낱말 퍼즐과 47개 게임 중 하나를 골라 주는 게임 룰렛. 6번의 기회로 오늘의 낱말에 도전하고, 기분에 맞는 게임을 바로 시작하세요.">
+<meta property="og:url" content="https://saearmpark.github.io/sap/fun.html">
+<meta property="og:image" content="https://saearmpark.github.io/sap/assets/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>사피엔스 — 재미</title>
+<script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<link rel="stylesheet" href="assets/style.css?v=labels-47">
+<style>
+  .fun-wrap { display:grid; gap:18px; grid-template-columns:repeat(2, minmax(0, 1fr)); align-items:start; }
+  @media (max-width: 900px) { .fun-wrap { grid-template-columns:1fr; } }
+  .fun-card { padding:18px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+  .fun-card h2 { margin:0 0 6px; font-size:18px; }
+  .fun-sub { margin:0 0 12px; color:var(--ink-soft); font-size:13px; line-height:1.55; }
+  .word-meta { margin:0; font-size:13px; font-weight:700; color:var(--ink); }
+  .word-board { display:flex; flex-direction:column; gap:6px; margin:12px 0; }
+  .word-row { display:flex; gap:6px; }
+  .word-tile {
+    width:clamp(46px, 14vw, 58px);
+    height:clamp(46px, 14vw, 58px);
+    display:grid;
+    place-items:center;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:clamp(20px, 5vw, 26px);
+    font-weight:800;
+    line-height:1;
+  }
+  .word-tile.correct { background:#2f7d4f; border-color:#2f7d4f; color:#ffffff; }
+  .word-tile.present { background:#c08a1e; border-color:#c08a1e; color:#17181a; }
+  .word-tile.absent { background:var(--accent-soft); border-color:var(--accent-soft); color:var(--ink-soft); }
+  .word-tile.preview { border-style:dashed; }
+  .word-form { display:flex; gap:8px; }
+  .word-form input { flex:1; min-width:0; }
+  .word-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .word-status { min-height:20px; margin:10px 0 0; font-size:13px; color:var(--ink-soft); }
+  .word-status.win { color:#2f7d4f; font-weight:700; }
+  .word-status.lose { color:#b3261e; font-weight:700; }
+  :root[data-theme="dark"] .word-status.win { color:#7ddca4; }
+  :root[data-theme="dark"] .word-status.lose { color:#ff9d97; }
+  .word-stats { margin:12px 0 0; padding-top:10px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:12px; }
+  .fun-chips { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
+  .fun-chip {
+    padding:5px 12px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:var(--surface);
+    color:var(--ink);
+    font-size:13px;
+  }
+  .fun-chip[aria-pressed="true"] { background:var(--ink); border-color:var(--ink); color:var(--bg); }
+  .roulette-display {
+    display:grid;
+    justify-items:center;
+    align-content:center;
+    gap:8px;
+    min-height:150px;
+    padding:18px;
+    border:1px dashed var(--border);
+    border-radius:12px;
+    background:var(--bg);
+    text-align:center;
+  }
+  .roulette-name { font-size:clamp(22px, 6vw, 30px); font-weight:800; line-height:1.2; }
+  .roulette-display.is-spinning .roulette-name { opacity:.65; }
+  .roulette-note { color:var(--ink-soft); font-size:13px; }
+  .roulette-go {
+    display:inline-block;
+    padding:8px 16px;
+    border-radius:6px;
+    background:var(--ink);
+    color:var(--bg);
+    text-decoration:none;
+    font-weight:700;
+    font-size:14px;
+  }
+  .roulette-go:hover { opacity:.9; }
+  .roulette-go[hidden] { display:none; }
+  .roulette-actions { display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .roulette-count { color:var(--ink-soft); font-size:12px; }
+  .sr-only {
+    position:absolute;
+    width:1px;
+    height:1px;
+    margin:-1px;
+    padding:0;
+    overflow:hidden;
+    clip:rect(0 0 0 0);
+    white-space:nowrap;
+    border:0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .roulette-display.is-spinning .roulette-name { opacity:1; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav-group" data-nav></nav>
+  </aside>
+  <main class="main">
+    <div class="eyebrow">FUN LAB</div>
+    <h1>재미</h1>
+    <p>매일 하나씩 바뀌는 한글 낱말을 6번 안에 맞히고, 무엇을 할지 고민될 때는 게임 룰렛으로 47개 게임 중 하나를 골라 보세요.</p>
+
+    <div class="fun-wrap">
+      <section class="fun-card" id="word" aria-labelledby="word-title">
+        <h2 id="word-title">오늘의 낱말</h2>
+        <p class="fun-sub">정답과 같은 글자 수의 낱말을 입력하세요. <strong>초록</strong>은 자리와 글자가 모두 맞음, <strong>노랑</strong>은 글자만 맞음, <strong>회색</strong>은 정답에 없는 글자입니다. 매일 자정(한국시간)에 새 낱말로 바뀝니다.</p>
+        <p class="word-meta" id="word-meta"></p>
+        <div class="word-board" id="word-board" role="grid" aria-label="낱말 퍼즐 입력 기록"></div>
+        <form class="word-form" id="word-form">
+          <input id="word-input" type="text" lang="ko" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="낱말 입력" placeholder="낱말 입력">
+          <button type="submit">확인</button>
+        </form>
+        <p class="word-status" id="word-status" role="status" aria-live="polite"></p>
+        <div class="word-actions">
+          <button type="button" id="word-share" hidden>결과 복사</button>
+          <button type="button" id="word-practice">연습 낱말</button>
+          <button type="button" id="word-daily" hidden>오늘의 낱말</button>
+        </div>
+        <p class="word-stats" id="word-stats"></p>
+      </section>
+
+      <section class="fun-card" id="roulette" aria-labelledby="roulette-title">
+        <h2 id="roulette-title">게임 룰렛</h2>
+        <p class="fun-sub">지금 기분에 맞는 종류를 고르고 돌리면, 게임 하나를 골라 바로 플레이할 수 있게 연결해 드립니다.</p>
+        <div class="fun-chips" id="roulette-filters" role="group" aria-label="게임 종류 고르기">
+          <button class="fun-chip" type="button" data-filter="all" aria-pressed="true">전체</button>
+          <button class="fun-chip" type="button" data-filter="quick" aria-pressed="false">1분</button>
+          <button class="fun-chip" type="button" data-filter="brain" aria-pressed="false">머리</button>
+          <button class="fun-chip" type="button" data-filter="action" aria-pressed="false">손맛</button>
+          <button class="fun-chip" type="button" data-filter="board" aria-pressed="false">보드</button>
+          <button class="fun-chip" type="button" data-filter="luck" aria-pressed="false">운빨</button>
+        </div>
+        <div class="roulette-display" id="roulette-display">
+          <div class="roulette-name" id="roulette-name">?</div>
+          <div class="roulette-note" id="roulette-note">아래 버튼을 눌러 게임을 골라 보세요.</div>
+          <a class="roulette-go" id="roulette-go" href="game.html" hidden>게임 열기 →</a>
+        </div>
+        <p class="sr-only" id="roulette-live" role="status" aria-live="polite"></p>
+        <div class="roulette-actions">
+          <button type="button" id="roulette-spin">돌리기</button>
+          <span class="roulette-count" id="roulette-count"></span>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="assets/common.js?v=labels-47"></script>
+<script src="assets/auth.js?v=labels-47"></script>
+<script>
+  (() => {
+    "use strict";
+
+    // ── 오늘의 낱말 ─────────────────────────────────────────────
+    const WORDS = [
+      ["사과", "과일"], ["바나나", "과일"], ["딸기", "과일"], ["수박", "과일"], ["포도", "과일"], ["복숭아", "과일"], ["자두", "과일"],
+      ["감자", "채소"], ["당근", "채소"], ["양파", "채소"], ["배추", "채소"], ["오이", "채소"], ["토마토", "채소"], ["호박", "채소"],
+      ["바다", "자연"], ["하늘", "자연"], ["구름", "날씨"], ["무지개", "날씨"], ["태풍", "날씨"], ["소나기", "날씨"], ["안개", "날씨"],
+      ["눈사람", "겨울"], ["겨울", "계절"], ["여름", "계절"], ["가을", "계절"], ["봄날", "계절"],
+      ["학교", "장소"], ["도서관", "장소"], ["운동장", "장소"], ["놀이터", "장소"], ["병원", "장소"], ["시장", "장소"], ["공항", "장소"], ["마을", "장소"],
+      ["지하철", "교통"], ["자전거", "교통"], ["버스", "교통"], ["기차", "교통"], ["비행기", "교통"], ["택시", "교통"],
+      ["신발", "물건"], ["가방", "물건"], ["우산", "물건"], ["안경", "물건"], ["시계", "물건"], ["거울", "물건"], ["베개", "물건"], ["이불", "물건"],
+      ["냉장고", "가전"], ["세탁기", "가전"], ["청소기", "가전"],
+      ["컴퓨터", "전자"], ["핸드폰", "전자"], ["이어폰", "전자"], ["카메라", "전자"],
+      ["축구", "운동"], ["야구", "운동"], ["농구", "운동"], ["배구", "운동"], ["수영", "운동"], ["달리기", "운동"], ["줄넘기", "운동"], ["태권도", "운동"],
+      ["피아노", "악기"], ["드럼", "악기"], ["첼로", "악기"],
+      ["고양이", "동물"], ["강아지", "동물"], ["토끼", "동물"], ["사자", "동물"], ["호랑이", "동물"], ["코끼리", "동물"], ["기린", "동물"], ["펭귄", "동물"], ["돌고래", "동물"], ["다람쥐", "동물"],
+      ["사막", "자연"], ["화산", "자연"], ["폭포", "자연"], ["동굴", "자연"],
+      ["계단", "물건"], ["의자", "물건"], ["책상", "물건"], ["연필", "물건"], ["지우개", "물건"], ["공책", "물건"], ["가위", "물건"], ["접시", "물건"], ["숟가락", "물건"], ["젓가락", "물건"], ["냄비", "물건"], ["텀블러", "물건"],
+      ["우체국", "장소"], ["경찰서", "장소"], ["소방서", "장소"], ["미술관", "장소"], ["박물관", "장소"], ["극장", "장소"], ["빵집", "장소"], ["약국", "장소"]
+    ];
+    const MAX_TRIES = 6;
+    const STATS_KEY = "sap-fun-word-stats-v1";
+    const DAY_MS = 86400000;
+    const KST_OFFSET = 9 * 60 * 60 * 1000;
+
+    const boardEl = document.getElementById("word-board");
+    const metaEl = document.getElementById("word-meta");
+    const statusEl = document.getElementById("word-status");
+    const formEl = document.getElementById("word-form");
+    const inputEl = document.getElementById("word-input");
+    const submitEl = formEl.querySelector("button");
+    const shareEl = document.getElementById("word-share");
+    const practiceEl = document.getElementById("word-practice");
+    const dailyEl = document.getElementById("word-daily");
+    const statsEl = document.getElementById("word-stats");
+
+    let game = null;
+
+    function dayNumber() {
+      const now = new Date(Date.now() + KST_OFFSET);
+      return Math.floor(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) / DAY_MS);
+    }
+
+    function keyForDayNumber(n) {
+      const date = new Date(n * DAY_MS);
+      const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+      const day = String(date.getUTCDate()).padStart(2, "0");
+      return `${date.getUTCFullYear()}-${month}-${day}`;
+    }
+
+    function dailyStateKey(key) {
+      return `sap-fun-word-v1:${key}`;
+    }
+
+    function loadDaily() {
+      const n = dayNumber();
+      const key = keyForDayNumber(n);
+      const word = WORDS[((n * 37) + 11) % WORDS.length];
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(dailyStateKey(key)) || "null"); } catch {}
+      const guesses = Array.isArray(saved?.guesses)
+        ? saved.guesses.filter((guess) => typeof guess === "string").slice(0, MAX_TRIES)
+        : [];
+      return {
+        mode: "daily",
+        key,
+        answer: word[0],
+        category: word[1],
+        guesses,
+        done: Boolean(saved?.done),
+        won: Boolean(saved?.won),
+        recorded: Boolean(saved?.recorded)
+      };
+    }
+
+    function newPracticeGame() {
+      let pick = WORDS[Math.floor(Math.random() * WORDS.length)];
+      if (game && pick[0] === game.answer) {
+        pick = WORDS[(WORDS.indexOf(pick) + 1) % WORDS.length];
+      }
+      return {
+        mode: "practice",
+        key: null,
+        answer: pick[0],
+        category: pick[1],
+        guesses: [],
+        done: false,
+        won: false,
+        recorded: false
+      };
+    }
+
+    function saveDaily() {
+      if (!game || game.mode !== "daily") return;
+      try {
+        localStorage.setItem(dailyStateKey(game.key), JSON.stringify({
+          guesses: game.guesses,
+          done: game.done,
+          won: game.won,
+          recorded: game.recorded
+        }));
+      } catch {}
+    }
+
+    function loadStats() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(STATS_KEY) || "null");
+        if (raw && Number.isFinite(raw.played)) {
+          return {
+            played: Math.max(0, raw.played | 0),
+            wins: Math.max(0, raw.wins | 0),
+            streak: Math.max(0, raw.streak | 0),
+            best: Math.max(0, raw.best | 0),
+            lastWin: typeof raw.lastWin === "string" ? raw.lastWin : "",
+            dist: Array.isArray(raw.dist) && raw.dist.length === MAX_TRIES
+              ? raw.dist.map((value) => Math.max(0, value | 0))
+              : new Array(MAX_TRIES).fill(0)
+          };
+        }
+      } catch {}
+      return { played: 0, wins: 0, streak: 0, best: 0, lastWin: "", dist: new Array(MAX_TRIES).fill(0) };
+    }
+
+    function saveStats(stats) {
+      try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch {}
+    }
+
+    function recordResult(won) {
+      if (!game || game.mode !== "daily") return;
+      const stats = loadStats();
+      if (stats.lastWin === game.key) return;
+      stats.played += 1;
+      if (won) {
+        stats.wins += 1;
+        const yesterday = keyForDayNumber(dayNumber() - 1);
+        stats.streak = stats.lastWin === yesterday ? stats.streak + 1 : 1;
+        stats.best = Math.max(stats.best, stats.streak);
+        stats.lastWin = game.key;
+        stats.dist[Math.max(0, Math.min(game.guesses.length, MAX_TRIES) - 1)] += 1;
+      } else {
+        stats.streak = 0;
+      }
+      saveStats(stats);
+      renderStats();
+    }
+
+    function renderStats() {
+      const stats = loadStats();
+      if (!stats.played) {
+        statsEl.textContent = "아직 기록이 없습니다. 첫 낱말을 맞혀 보세요.";
+        return;
+      }
+      const rate = Math.round((stats.wins / stats.played) * 100);
+      statsEl.textContent = `연속 ${stats.streak}일 · 최고 ${stats.best}일 · 승률 ${rate}% (${stats.wins}/${stats.played})`;
+    }
+
+    function evaluate(guess, answer) {
+      const guessed = Array.from(guess);
+      const target = Array.from(answer);
+      const marks = guessed.map(() => "absent");
+      const left = new Map();
+      target.forEach((char, index) => {
+        if (guessed[index] === char) marks[index] = "correct";
+        else left.set(char, (left.get(char) || 0) + 1);
+      });
+      guessed.forEach((char, index) => {
+        if (marks[index] === "correct") return;
+        const count = left.get(char) || 0;
+        if (count > 0) {
+          marks[index] = "present";
+          left.set(char, count - 1);
+        }
+      });
+      return marks;
+    }
+
+    const MARK_LABEL = {
+      correct: "자리와 글자 모두 맞음",
+      present: "글자는 맞고 자리는 다름",
+      absent: "없는 글자"
+    };
+
+    function makeTile(char, mark) {
+      const tile = document.createElement("div");
+      tile.className = `word-tile ${mark}`;
+      tile.setAttribute("role", "gridcell");
+      tile.setAttribute("aria-hidden", "true");
+      tile.textContent = char;
+      return tile;
+    }
+
+    function renderBoard() {
+      if (!game) return;
+      const answerLength = Array.from(game.answer).length;
+      const typed = Array.from(inputEl.value.trim()).slice(0, answerLength);
+      boardEl.replaceChildren();
+      for (let row = 0; row < MAX_TRIES; row++) {
+        const rowEl = document.createElement("div");
+        rowEl.className = "word-row";
+        rowEl.setAttribute("role", "row");
+        const guess = game.guesses[row];
+        if (guess) {
+          const marks = evaluate(guess, game.answer);
+          rowEl.setAttribute("aria-label", `${row + 1}번째 시도 ${guess}: ${marks.map((mark) => MARK_LABEL[mark]).join(", ")}`);
+          Array.from(guess).forEach((char, index) => rowEl.appendChild(makeTile(char, marks[index])));
+        } else if (row === game.guesses.length && !game.done) {
+          rowEl.setAttribute("aria-label", `${row + 1}번째 줄 입력 중`);
+          for (let col = 0; col < answerLength; col++) {
+            rowEl.appendChild(makeTile(typed[col] || "", "preview"));
+          }
+        } else {
+          rowEl.setAttribute("aria-label", `${row + 1}번째 줄 비어 있음`);
+          for (let col = 0; col < answerLength; col++) {
+            rowEl.appendChild(makeTile("", "empty"));
+          }
+        }
+        boardEl.appendChild(rowEl);
+      }
+    }
+
+    function renderMeta() {
+      const answerLength = Array.from(game.answer).length;
+      const label = game.mode === "daily" ? `오늘의 낱말 · ${game.key}` : "연습 낱말";
+      metaEl.textContent = `${label} · ${game.category} · ${answerLength}글자`;
+    }
+
+    function setStatus(message, tone = "") {
+      statusEl.textContent = message;
+      statusEl.className = tone ? `word-status ${tone}` : "word-status";
+    }
+
+    function syncControls() {
+      inputEl.disabled = game.done;
+      submitEl.disabled = game.done;
+      shareEl.hidden = !game.done;
+      dailyEl.hidden = game.mode === "daily";
+      practiceEl.textContent = game.mode === "practice" ? "다른 낱말" : "연습 낱말";
+      const answerLength = Array.from(game.answer).length;
+      inputEl.placeholder = game.done
+        ? (game.mode === "daily" ? "오늘의 낱말을 마쳤습니다" : "연습을 마쳤습니다")
+        : `${answerLength}글자 낱말 입력`;
+    }
+
+    function startGame(next) {
+      game = next;
+      inputEl.value = "";
+      renderMeta();
+      renderBoard();
+      renderStats();
+      syncControls();
+      if (game.done) {
+        if (game.won) setStatus(`정답입니다! ${game.guesses.length}번 만에 맞혔어요.`, "win");
+        else setStatus(`아쉬워요. 정답은 '${game.answer}'였습니다.`, "lose");
+        return;
+      }
+      setStatus(game.guesses.length
+        ? `${game.guesses.length}번 시도했습니다. 이어서 도전하세요.`
+        : "첫 낱말을 입력해 보세요.");
+      inputEl.focus({ preventScroll: true });
+    }
+
+    formEl.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!game || game.done) return;
+      const guess = inputEl.value.trim();
+      const answerLength = Array.from(game.answer).length;
+      if (!guess) {
+        setStatus(`${answerLength}글자 낱말을 입력해 주세요.`);
+        return;
+      }
+      if (!/^[가-힣]+$/.test(guess)) {
+        setStatus("한글 낱말만 입력할 수 있습니다.");
+        return;
+      }
+      if (Array.from(guess).length !== answerLength) {
+        setStatus(`${answerLength}글자 낱말을 입력해 주세요.`);
+        return;
+      }
+
+      game.guesses.push(guess);
+      const won = guess === game.answer;
+      if (won || game.guesses.length >= MAX_TRIES) {
+        game.done = true;
+        game.won = won;
+        if (!game.recorded) {
+          recordResult(won);
+          game.recorded = true;
+        }
+      }
+      saveDaily();
+      inputEl.value = "";
+      renderBoard();
+      syncControls();
+
+      if (won) {
+        setStatus(`정답입니다! 🎉 ${game.guesses.length}번 만에 맞혔어요.`, "win");
+      } else if (game.done) {
+        setStatus(`아쉬워요. 정답은 '${game.answer}'였습니다.`, "lose");
+      } else {
+        setStatus(`아쉬워요. ${MAX_TRIES - game.guesses.length}번 남았습니다.`);
+        inputEl.focus({ preventScroll: true });
+      }
+    });
+
+    inputEl.addEventListener("input", renderBoard);
+
+    shareEl.addEventListener("click", async () => {
+      if (!game || !game.done) return;
+      const rows = game.guesses.map((guess) => (
+        evaluate(guess, game.answer)
+          .map((mark) => (mark === "correct" ? "🟩" : mark === "present" ? "🟨" : "⬜"))
+          .join("")
+      )).join("\n");
+      const title = game.mode === "daily" ? `사피엔스 낱말 퍼즐 ${game.key}` : "사피엔스 낱말 퍼즐 (연습)";
+      const score = game.won ? `${game.guesses.length}/${MAX_TRIES}` : `X/${MAX_TRIES}`;
+      const text = `${title} ${score}\n${rows}`;
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus("결과를 클립보드에 복사했습니다. 붙여넣어 공유해 보세요.", "win");
+      } catch {
+        try {
+          const helper = document.createElement("textarea");
+          helper.value = text;
+          helper.setAttribute("readonly", "");
+          helper.style.position = "fixed";
+          helper.style.opacity = "0";
+          document.body.appendChild(helper);
+          helper.select();
+          document.execCommand("copy");
+          helper.remove();
+          setStatus("결과를 클립보드에 복사했습니다. 붙여넣어 공유해 보세요.", "win");
+        } catch {
+          window.prompt("아래 결과를 복사해 공유하세요.", text);
+        }
+      }
+    });
+
+    practiceEl.addEventListener("click", () => startGame(newPracticeGame()));
+    dailyEl.addEventListener("click", () => startGame(loadDaily()));
+
+    startGame(loadDaily());
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState !== "visible" || !game || game.mode !== "daily") return;
+      if (game.key !== keyForDayNumber(dayNumber())) startGame(loadDaily());
+    });
+
+    // ── 게임 룰렛 ───────────────────────────────────────────────
+    const GAMES = [
+      ["panel-2048", "2048", ["brain"]],
+      ["panel-frog", "개구리 건너기", ["action"]],
+      ["panel-gyeol", "결합 게임", ["brain"]],
+      ["panel-mole", "두더지 잡기", ["action", "quick"]],
+      ["panel-dodge", "똥피하기", ["action"]],
+      ["panel-reaction", "반응 속도 테스트", ["action", "quick"]],
+      ["panel-bubble", "버블 슈터", ["action"]],
+      ["panel-bo", "벽돌깨기", ["action"]],
+      ["panel-match3", "보석 맞추기", ["brain", "quick"]],
+      ["panel-bomber", "봄버맨", ["action"]],
+      ["panel-solitaire", "솔리테어", ["brain", "luck"]],
+      ["panel-sequence", "순서 기억하기", ["brain", "quick"]],
+      ["panel-guess", "숫자 맞히기", ["brain", "quick"]],
+      ["panel-sh", "슈팅게임", ["action"]],
+      ["panel-sn", "스네이크", ["action"]],
+      ["panel-sudoku", "스도쿠", ["brain"]],
+      ["panel-stack", "스택", ["action", "quick"]],
+      ["panel-invaders", "스페이스 인베이더", ["action"]],
+      ["panel-pz", "슬라이딩 퍼즐", ["brain", "quick"]],
+      ["panel-math", "암산 챌린지", ["brain", "quick"]],
+      ["panel-runner", "점프 달리기", ["action"]],
+      ["panel-mines", "지뢰 찾기", ["brain"]],
+      ["panel-memory", "카드 짝맞추기", ["brain", "quick"]],
+      ["panel-typing", "타자 연습", ["brain", "quick"]],
+      ["panel-tanks", "탱크 대전", ["action"]],
+      ["panel-tt", "테트리스", ["action"]],
+      ["panel-pac", "팩맨 (미로 탈출)", ["action"]],
+      ["panel-flappy", "플래피 버드", ["action", "quick"]],
+      ["panel-connect", "4목 게임", ["board", "brain"]],
+      ["panel-rps", "가위바위보", ["quick", "luck"]],
+      ["panel-word-chain", "끝말잇기", ["brain", "quick"]],
+      ["panel-animal-shogi", "동물장기", ["board"]],
+      ["panel-blackjack", "블랙잭", ["board", "luck"]],
+      ["panel-baseball", "숫자 야구", ["brain"]],
+      ["panel-gomoku", "오목", ["board", "brain"]],
+      ["panel-othello", "오셀로 (리버시)", ["board", "brain"]],
+      ["panel-yut", "윷놀이", ["board", "luck"]],
+      ["panel-janggi", "장기", ["board", "brain"]],
+      ["panel-dots-boxes", "점과 상자", ["board", "quick"]],
+      ["panel-chess", "체스", ["board", "brain"]],
+      ["panel-checkers", "체커", ["board", "brain"]],
+      ["panel-holdem", "텍사스 홀덤", ["board", "luck"]],
+      ["panel-ttt", "틱택토", ["board", "quick"]],
+      ["panel-pong", "퐁 / 탁구", ["action", "quick"]],
+      ["panel-rhythm", "리듬 게임", ["action", "quick"]],
+      ["panel-color", "색상 순서 챌린지", ["brain", "quick"]],
+      ["panel-baccarat", "바카라", ["luck"]]
+    ];
+    const TAG_LABEL = { quick: "1분", brain: "머리", action: "손맛", board: "보드", luck: "운빨" };
+
+    const displayEl = document.getElementById("roulette-display");
+    const nameEl = document.getElementById("roulette-name");
+    const noteEl = document.getElementById("roulette-note");
+    const goEl = document.getElementById("roulette-go");
+    const liveEl = document.getElementById("roulette-live");
+    const countEl = document.getElementById("roulette-count");
+    const filtersEl = document.getElementById("roulette-filters");
+    const spinEl = document.getElementById("roulette-spin");
+
+    let filter = "all";
+    let spinning = false;
+
+    function pool() {
+      return filter === "all" ? GAMES : GAMES.filter((entry) => entry[2].includes(filter));
+    }
+
+    function updateCount() {
+      countEl.textContent = `후보 ${pool().length}개`;
+    }
+
+    function finish(picked) {
+      spinning = false;
+      spinEl.disabled = false;
+      spinEl.textContent = "다시 돌리기";
+      displayEl.classList.remove("is-spinning");
+      nameEl.textContent = picked[1];
+      goEl.href = `game.html#${picked[0]}`;
+      goEl.hidden = false;
+      const tags = picked[2].map((tag) => TAG_LABEL[tag]).join(" · ");
+      noteEl.textContent = tags ? `${tags} · 바로 플레이해 보세요.` : "바로 플레이해 보세요.";
+      liveEl.textContent = `추천 게임: ${picked[1]}`;
+    }
+
+    function spin() {
+      if (spinning) return;
+      const candidates = pool();
+      if (!candidates.length) {
+        noteEl.textContent = "조건에 맞는 게임이 없습니다.";
+        return;
+      }
+      const picked = candidates[Math.floor(Math.random() * candidates.length)];
+      spinning = true;
+      spinEl.disabled = true;
+      goEl.hidden = true;
+      noteEl.textContent = "고르는 중...";
+      displayEl.classList.add("is-spinning");
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        finish(picked);
+        return;
+      }
+      const started = performance.now();
+      const duration = 1200;
+      const tick = () => {
+        const elapsed = performance.now() - started;
+        if (elapsed >= duration) {
+          finish(picked);
+          return;
+        }
+        nameEl.textContent = candidates[Math.floor(Math.random() * candidates.length)][1];
+        const wait = 45 + Math.round(200 * Math.pow(elapsed / duration, 4));
+        setTimeout(tick, wait);
+      };
+      tick();
+    }
+
+    filtersEl.addEventListener("click", (event) => {
+      const chip = event.target.closest(".fun-chip");
+      if (!chip) return;
+      filter = chip.dataset.filter || "all";
+      filtersEl.querySelectorAll(".fun-chip").forEach((item) => {
+        item.setAttribute("aria-pressed", String(item === chip));
+      });
+      updateCount();
+    });
+
+    spinEl.addEventListener("click", spin);
+    updateCount();
+  })();
+</script>
+</body>
+</html>

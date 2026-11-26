@@ -422,6 +422,42 @@ try {
   }
   check(brokenGames.length === 0, "47개 게임이 모두 열립니다", brokenGames.join(", "));
 
+  await navigate("fun.html", 800);
+  const funPage = await evaluate(`({
+    nav: document.querySelectorAll(".nav-submenu a").length,
+    h1: document.querySelector("h1")?.textContent || "",
+    tiles: document.querySelectorAll(".word-tile").length,
+    chips: document.querySelectorAll(".fun-chip").length
+  })`);
+  check(funPage.nav >= 10, "재미 페이지 사이드바가 렌더링됩니다", String(funPage.nav));
+  check(funPage.h1.includes("재미"), "재미 페이지 제목이 보입니다", funPage.h1);
+  check(funPage.tiles >= 12, "낱말 퍼즐 보드가 렌더링됩니다", String(funPage.tiles));
+  check(funPage.chips === 6, "게임 룰렛 필터 6개가 렌더링됩니다", String(funPage.chips));
+  check(pageErrors.length === 0, "재미 페이지에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
+
+  const wordPlay = await evaluate(`(() => {
+    const meta = document.getElementById("word-meta").textContent;
+    const length = Number((meta.match(/(\\d+)글자/) || [])[1]);
+    const input = document.getElementById("word-input");
+    input.value = "가".repeat(length);
+    document.getElementById("word-form").requestSubmit();
+    return {
+      length,
+      marked: document.querySelectorAll(".word-tile.correct, .word-tile.present, .word-tile.absent").length
+    };
+  })()`);
+  check(wordPlay.marked === wordPlay.length, "낱말 퍼즐에 한 번 입력할 수 있습니다", `${wordPlay.marked}/${wordPlay.length}`);
+
+  await evaluate(`document.getElementById("roulette-spin").click()`);
+  await sleep(1500);
+  const wheel = await evaluate(`({
+    hidden: document.getElementById("roulette-go").hidden,
+    href: document.getElementById("roulette-go").getAttribute("href"),
+    name: document.getElementById("roulette-name").textContent
+  })`);
+  check(!wheel.hidden && /^game\.html#panel-/.test(wheel.href), "게임 룰렛이 게임을 추천합니다", wheel.href);
+  check(wheel.name !== "?", "추천 게임 이름이 표시됩니다", wheel.name);
+
   await navigate("search.html", 1200);
   const search = await evaluate(`({
     form: Boolean(document.querySelector('input[type="search"], #search-input')),
@@ -468,6 +504,16 @@ try {
   check(mobile.overflow <= 1, "모바일에 가로 스크롤이 없습니다", String(mobile.overflow));
   check(mobile.skipLink && mobile.sidebar, "모바일에서도 사이드바와 바로가기가 유지됩니다");
   check(pageErrors.length === 0, "모바일 홈에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
+
+  await navigate("fun.html", 600);
+  const mobileFun = await evaluate(`({
+    overflow: document.documentElement.scrollWidth - window.innerWidth,
+    width: Math.round(document.querySelector(".fun-card").getBoundingClientRect().width),
+    mainWidth: Math.round(document.querySelector(".main").getBoundingClientRect().width),
+    bodyWidth: document.body.scrollWidth
+  })`);
+  check(mobileFun.overflow <= 1, "모바일 재미 페이지에 가로 스크롤이 없습니다", `overflow=${mobileFun.overflow} card=${mobileFun.width} main=${mobileFun.mainWidth} body=${mobileFun.bodyWidth}`);
+  check(pageErrors.length === 0, "모바일 재미 페이지에서 스크립트 오류가 없습니다", pageErrors.join(" | "));
 } catch (error) {
   console.error(error);
   failures.push(error.message);
