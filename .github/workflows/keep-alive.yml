@@ -1,12 +1,12 @@
 name: Refresh backend data
 
 # Render 무료 플랜은 15분 동안 요청이 없으면 잠들어 @Scheduled 수집기가 멈춥니다.
-# GitHub Actions 크론은 지연되거나 누락될 수 있으므로 매시간 :07에 호출해
-# 서버를 깨우고 경제 소식을 강제 갱신한 뒤 실제로 최신 상태인지 검증합니다.
-# (Render 무료 한도 750시간을 넘지 않도록 30분 간격이 아닌 1시간 간격을 씁니다.)
+# GitHub Actions 크론은 부하 시 지연되거나 누락될 수 있으므로 매시간 :07과 :37에
+# 두 번 호출해, 한 번이 누락돼도 시간당 갱신이 유지되게 합니다.
 on:
   schedule:
     - cron: "7 * * * *"
+    - cron: "37 * * * *"
   workflow_dispatch:
 
 permissions:
