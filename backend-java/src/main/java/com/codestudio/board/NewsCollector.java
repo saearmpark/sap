@@ -1,10 +1,12 @@
 package com.codestudio.board;
 
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -22,12 +24,16 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,11 +46,27 @@ public class NewsCollector {
     private static final Logger log = LoggerFactory.getLogger(NewsCollector.class);
     private static final int KEEP_ITEMS = 20;
     private static final Duration ECONOMIC_NEWS_MAX_AGE = Duration.ofDays(7);
+    // 연속 요청으로 피드를 반복 호출하지 않도록 최소 5분 간격을 둡니다.
+    private static final Duration MIN_REFRESH_INTERVAL = Duration.ofMinutes(5);
     private static final List<String> CATEGORIES = List.of("국내", "경제");
     private static final Pattern IMAGE_PATTERN =
             Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
 
     private record Feed(String url, String category, String name, int limit) {
+    }
+
+    private record Collected(List<NewsItem> items, List<String> failures, int successes) {
+    }
+
+    private record Applied(int added, int trimmed, int staleRemoved) {
+    }
+
+    /** 한 번의 갱신 결과입니다. healthy는 피드 하나 이상을 정상적으로 읽었다는 뜻입니다. */
+    public record RefreshSummary(int added, int trimmed, int staleRemoved,
+                                 int feedsSucceeded, int feedsFailed) {
+        public boolean healthy() {
+            return feedsSucceeded > 0;
+        }
     }
 
     private static final List<Feed> FEEDS = List.of(
@@ -59,19 +81,153 @@ public class NewsCollector {
             new Feed("https://news.google.com/rss/search?q=%EC%97%B0%EC%A4%80%20when%3A1d&hl=ko&gl=KR&ceid=KR:ko", "경제", "Google 뉴스", 3));
 
     private final NewsItemRepository repository;
+    private final TransactionTemplate transactionTemplate;
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
+    private final ExecutorService refreshExecutor = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "news-refresh");
+        thread.setDaemon(true);
+        return thread;
+    });
+    private final AtomicBoolean refreshing = new AtomicBoolean(false);
+    private volatile Instant lastRefreshAt;
+    private volatile List<String> lastFeedFailures = List.of();
 
-    public NewsCollector(NewsItemRepository repository) {
+    public NewsCollector(NewsItemRepository repository, PlatformTransactionManager transactionManager) {
         this.repository = repository;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
     @Scheduled(fixedRate = 10 * 60 * 1000L, initialDelay = 15 * 1000L)
-    @Transactional
     public void refresh() {
-        int staleRemoved = repository.deleteStaleByCategory("경제", Instant.now().minus(ECONOMIC_NEWS_MAX_AGE));
+        refreshNow();
+    }
+
+    /**
+     * 피드를 수집해 새 소식을 저장합니다. 이미 갱신 중이거나 최근 5분 안에 성공한 갱신이 있으면
+     * null을 반환합니다. 저장은 네트워크 수집이 끝난 뒤 한 트랜잭션으로 처리합니다.
+     */
+    public RefreshSummary refreshNow() {
+        if (!canRefresh(MIN_REFRESH_INTERVAL)) {
+            return null;
+        }
+        if (!refreshing.compareAndSet(false, true)) {
+            return null;
+        }
+        try {
+            return doRefresh();
+        } finally {
+            refreshing.set(false);
+        }
+    }
+
+    /** 데이터가 오래됐고 갱신 중이 아니면 백그라운드 갱신을 시작합니다. */
+    public boolean refreshIfStaleAsync(Duration maxAge) {
+        if (!isStale(maxAge)) {
+            return false;
+        }
+        return refreshAsync();
+    }
+
+    /** 갱신 중이 아니면 백그라운드 갱신 스레드에 작업을 넣습니다. */
+    public boolean refreshAsync() {
+        if (!canRefresh(MIN_REFRESH_INTERVAL)) {
+            return false;
+        }
+        if (!refreshing.compareAndSet(false, true)) {
+            return false;
+        }
+        try {
+            refreshExecutor.execute(() -> {
+                try {
+                    doRefresh();
+                } finally {
+                    refreshing.set(false);
+                }
+            });
+        } catch (RuntimeException error) {
+            refreshing.set(false);
+            log.warn("Could not schedule news refresh: {}", error.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    /** 마지막 성공 갱신 시각과 DB에 저장된 최신 수집 시각 중 더 최근 값입니다. */
+    public Instant latestFetchedAt() {
+        Instant latest = lastRefreshAt;
+        Instant stored = repository.findMaxFetchedAt();
+        if (stored != null && (latest == null || stored.isAfter(latest))) {
+            latest = stored;
+        }
+        return latest;
+    }
+
+    public boolean isStale(Duration maxAge) {
+        return isStale(latestFetchedAt(), maxAge, Instant.now());
+    }
+
+    public static boolean isStale(Instant latest, Duration maxAge, Instant now) {
+        return latest == null || latest.isBefore(now.minus(maxAge));
+    }
+
+    public boolean canRefresh(Duration minInterval) {
+        Instant last = lastRefreshAt;
+        return last == null || !last.isAfter(Instant.now().minus(minInterval));
+    }
+
+    public boolean isRefreshing() {
+        return refreshing.get();
+    }
+
+    public Instant lastRefreshAt() {
+        return lastRefreshAt;
+    }
+
+    public List<String> lastFeedFailures() {
+        return lastFeedFailures;
+    }
+
+    private RefreshSummary doRefresh() {
+        Collected collected;
+        try {
+            collected = collectFeeds();
+        } catch (RuntimeException error) {
+            log.warn("News refresh failed while reading feeds: {}", error.getMessage());
+            return new RefreshSummary(0, 0, 0, 0, FEEDS.size());
+        }
+
+        Applied applied;
+        try {
+            applied = transactionTemplate.execute(status -> apply(collected.items()));
+        } catch (RuntimeException error) {
+            log.warn("News refresh failed while saving: {}", error.getMessage());
+            return new RefreshSummary(0, 0, 0, collected.successes(),
+                    collected.failures().size() + 1);
+        }
+        if (applied == null) {
+            return new RefreshSummary(0, 0, 0, collected.successes(), collected.failures().size());
+        }
+
+        lastFeedFailures = List.copyOf(collected.failures());
+        RefreshSummary summary = new RefreshSummary(applied.added(), applied.trimmed(),
+                applied.staleRemoved(), collected.successes(), collected.failures().size());
+        if (summary.healthy()) {
+            // 일부 피드가 실패해도 성공한 피드가 있으면 갱신된 것으로 봅니다.
+            lastRefreshAt = Instant.now();
+        }
+        if (applied.added() > 0 || applied.trimmed() > 0 || applied.staleRemoved() > 0
+                || !collected.failures().isEmpty()) {
+            log.info("News refresh: {} added, {} trimmed, {} stale removed, {} feeds ok, {} failed",
+                    applied.added(), applied.trimmed(), applied.staleRemoved(),
+                    collected.successes(), collected.failures().size());
+        }
+        return summary;
+    }
+
+    private Collected collectFeeds() {
         Map<String, Set<String>> seenTitles = new HashMap<>();
         for (String category : CATEGORIES) {
             Set<String> titles = new HashSet<>();
@@ -80,14 +236,38 @@ public class NewsCollector {
             }
             seenTitles.put(category, titles);
         }
-        int added = 0;
+
+        List<NewsItem> items = new ArrayList<>();
+        Set<String> seenHashes = new HashSet<>();
+        List<String> failures = new ArrayList<>();
+        int successes = 0;
         for (Feed feed : FEEDS) {
-            added += collect(feed, seenTitles.get(feed.category()));
+            try {
+                collect(feed, seenTitles.get(feed.category()), seenHashes, items);
+                successes++;
+            } catch (Exception error) {
+                String message = error.getMessage() == null
+                        ? error.getClass().getSimpleName()
+                        : error.getMessage();
+                log.warn("Could not load news feed {}: {}", feed.url(), message);
+                failures.add(feed.name() + ": " + message);
+            }
         }
-        int removed = trimToNewest();
-        if (added > 0 || removed > 0 || staleRemoved > 0) {
-            log.info("News refresh: {} added, {} trimmed, {} stale removed", added, removed, staleRemoved);
+        return new Collected(items, failures, successes);
+    }
+
+    private Applied apply(List<NewsItem> candidates) {
+        int staleRemoved = repository.deleteStaleByCategory("경제", Instant.now().minus(ECONOMIC_NEWS_MAX_AGE));
+        int added = 0;
+        for (NewsItem candidate : candidates) {
+            if (repository.existsByLinkHash(candidate.getLinkHash())) {
+                continue;
+            }
+            repository.save(candidate);
+            added++;
         }
+        int trimmed = trimToNewest();
+        return new Applied(added, trimmed, staleRemoved);
     }
 
     private int trimToNewest() {
@@ -103,14 +283,9 @@ public class NewsCollector {
         return removed;
     }
 
-    private int collect(Feed feed, Set<String> seenTitles) {
-        Document doc;
-        try {
-            doc = fetch(feed.url());
-        } catch (Exception error) {
-            log.warn("Could not load news feed {}: {}", feed.url(), error.getMessage());
-            return 0;
-        }
+    private void collect(Feed feed, Set<String> seenTitles, Set<String> seenHashes,
+                         List<NewsItem> out) throws Exception {
+        Document doc = fetch(feed.url());
         NodeList items = doc.getElementsByTagName("item");
         Instant now = Instant.now();
         int added = 0;
@@ -134,14 +309,15 @@ public class NewsCollector {
                 continue;
             }
             String hash = sha256(link);
-            if (repository.existsByLinkHash(hash)) {
+            if (seenHashes.contains(hash) || repository.existsByLinkHash(hash)) {
                 continue;
             }
             String source = clean(text(item, "source"), 80);
             if (source.isEmpty()) {
                 source = feed.name();
             }
-            repository.save(new NewsItem(
+            seenHashes.add(hash);
+            out.add(new NewsItem(
                     title,
                     link,
                     hash,
@@ -156,7 +332,6 @@ public class NewsCollector {
                 break;
             }
         }
-        return added;
     }
 
     private Document fetch(String url) throws Exception {
@@ -287,5 +462,10 @@ public class NewsCollector {
         } catch (Exception error) {
             return Integer.toHexString(value.hashCode());
         }
+    }
+
+    @PreDestroy
+    void shutdown() {
+        refreshExecutor.shutdownNow();
     }
 }

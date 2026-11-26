@@ -1,23 +1,87 @@
-name: Keep backend warm
+name: Refresh backend data
 
-# Render 무료 플랜은 15분 동안 요청이 없으면 인스턴스가 잠들고,
-# 다음 첫 요청에 30~60초가 걸립니다(콜드 스타트). 10분마다 가벼운
-# 인증 확인 엔드포인트 하나만 호출해 인스턴스를 깨어 있게 유지합니다.
+# Render 무료 플랜은 15분 동안 요청이 없으면 잠들어 @Scheduled 수집기가 멈춥니다.
+# GitHub Actions 크론은 지연되거나 누락될 수 있으므로 매시간 :07에 호출해
+# 서버를 깨우고 경제 소식을 강제 갱신한 뒤 실제로 최신 상태인지 검증합니다.
+# (Render 무료 한도 750시간을 넘지 않도록 30분 간격이 아닌 1시간 간격을 씁니다.)
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "7 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: refresh-backend-data
+  cancel-in-progress: false
+
 jobs:
-  ping:
+  refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
+    env:
+      API_BASE: https://board-backend-nngx.onrender.com/api
     steps:
-      - name: Ping backend
+      - name: Wake backend
         run: |
-          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 --retry 2 --retry-delay 5 \
-            "https://board-backend-nngx.onrender.com/api/auth/me")
-          echo "/api/auth/me responded with HTTP $code"
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 120 "$API_BASE/news/status" || true)
+            echo "warmup $attempt: HTTP $code"
+            if [ "$code" = "200" ]; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Backend did not wake up in time" >&2
+          exit 1
+
+      - name: Refresh news
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o refresh.json -w "%{http_code}" --max-time 240 \
+            -X POST "$API_BASE/news/refresh" || true)
+          echo "POST /news/refresh: HTTP $code"
+          cat refresh.json || true
+          echo
+          if [ "$code" != "200" ]; then
+            echo "News refresh request failed" >&2
+            exit 1
+          fi
+
+      - name: Warm stock quotes
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o stocks.json -w "%{http_code}" --max-time 120 \
+            "$API_BASE/stocks" || true)
+          echo "GET /stocks: HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "Stock quote request failed" >&2
+            exit 1
+          fi
+
+      - name: Verify news freshness
+        run: |
+          set -euo pipefail
+          curl -sS --max-time 120 "$API_BASE/news/status" -o status.json
+          cat status.json
+          echo
+          python3 - <<'PY'
+          import json
+          import sys
+
+          with open("status.json", encoding="utf-8") as handle:
+              status = json.load(handle)
+
+          print("latestFetchedAt:", status.get("latestFetchedAt"))
+          print("counts:", status.get("counts"))
+          if status.get("stale"):
+              print("News is still stale after refresh", file=sys.stderr)
+              sys.exit(1)
+          counts = status.get("counts") or {}
+          if not counts.get("경제"):
+              print("No economic news stored", file=sys.stderr)
+              sys.exit(1)
+          print("News data is fresh")
+          PY

@@ -16,6 +16,11 @@ public interface NewsItemRepository extends JpaRepository<NewsItem, Long> {
 
     List<NewsItem> findTop20ByCategoryOrderByIdDesc(String category);
 
+    long countByCategory(String category);
+
+    @Query("select max(n.fetchedAt) from NewsItem n")
+    Instant findMaxFetchedAt();
+
     @Modifying
     @Query("delete from NewsItem n where n.category = :category and n.id < :cutoff")
     int deleteByCategoryAndIdLessThan(@Param("category") String category, @Param("cutoff") long cutoff);

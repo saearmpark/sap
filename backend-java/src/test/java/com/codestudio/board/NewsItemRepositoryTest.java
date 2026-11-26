@@ -9,6 +9,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest(properties = {
@@ -75,5 +76,27 @@ class NewsItemRepositoryTest {
         assertEquals(2, news.deleteStaleByCategory("경제", cutoff));
         assertEquals(1, news.findTop20ByCategoryOrderByIdDesc("경제").size());
         assertEquals(1, news.findTop20ByCategoryOrderByIdDesc("국내").size());
+    }
+
+    @Test
+    void reportsLatestFetchTimeAndCategoryCounts() {
+        Instant now = Instant.parse("2026-11-26T00:00:00Z");
+        news.save(new NewsItem("경제 최신", "https://example.com/e1", "e1", "테스트", "경제", "", "",
+                now, now));
+        news.save(new NewsItem("경제 이전", "https://example.com/e2", "e2", "테스트", "경제", "", "",
+                now.minusSeconds(3600), now.minusSeconds(7200)));
+        news.save(new NewsItem("국내", "https://example.com/d1", "d1", "테스트", "국내", "", "",
+                now, now.minusSeconds(1800)));
+
+        assertEquals(now, news.findMaxFetchedAt());
+        assertEquals(2, news.countByCategory("경제"));
+        assertEquals(1, news.countByCategory("국내"));
+        assertEquals(0, news.countByCategory("연예"));
+    }
+
+    @Test
+    void returnsNullFetchTimeWhenNoNewsStored() {
+        assertEquals(0, news.count());
+        assertNull(news.findMaxFetchedAt());
     }
 }

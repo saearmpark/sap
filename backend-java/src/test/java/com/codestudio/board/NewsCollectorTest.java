@@ -2,6 +2,7 @@ package com.codestudio.board;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,5 +35,22 @@ class NewsCollectorTest {
         assertTrue(NewsCollector.isFreshEconomicArticle(now.minusSeconds(60), now));
         assertFalse(NewsCollector.isFreshEconomicArticle(now.minusSeconds(8 * 24 * 60 * 60L), now));
         assertFalse(NewsCollector.isFreshEconomicArticle(null, now));
+    }
+
+    @Test
+    void treatsNewsAsStaleAfterTheMaxAge() {
+        Instant now = Instant.parse("2026-11-26T00:00:00Z");
+        Duration oneHour = Duration.ofHours(1);
+
+        assertTrue(NewsCollector.isStale(null, oneHour, now));
+        assertTrue(NewsCollector.isStale(now.minusSeconds(2 * 60 * 60), oneHour, now));
+        assertFalse(NewsCollector.isStale(now.minusSeconds(30 * 60), oneHour, now));
+        assertFalse(NewsCollector.isStale(now.minusSeconds(60 * 60 - 1), oneHour, now));
+    }
+
+    @Test
+    void refreshSummaryIsHealthyWhenAtLeastOneFeedSucceeded() {
+        assertTrue(new NewsCollector.RefreshSummary(0, 0, 0, 1, 8).healthy());
+        assertFalse(new NewsCollector.RefreshSummary(0, 0, 0, 0, 9).healthy());
     }
 }
