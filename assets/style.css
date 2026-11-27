@@ -1293,10 +1293,6 @@ code {
   .manual-pager { flex-direction: column; }
 }
 
-/* --- PWA install --- */
-.nav-install-toggle { border-color: #6f7277; }
-.nav-install-toggle[hidden] { display: none; }
-
 /* --- Home briefing --- */
 .briefing { margin: 0 0 24px; }
 .briefing-head {
