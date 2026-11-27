@@ -3,6 +3,7 @@ name: Refresh backend data
 # Render 무료 플랜은 15분 동안 요청이 없으면 잠들어 @Scheduled 수집기가 멈춥니다.
 # GitHub Actions 크론은 부하 시 지연되거나 누락될 수 있으므로 매시간 :07과 :37에
 # 두 번 호출해, 한 번이 누락돼도 시간당 갱신이 유지되게 합니다.
+# 무료 플랜의 월 750시간 한도를 넘지 않도록 한국시간 02:00~07:00에는 서버를 재웁니다.
 on:
   schedule:
     - cron: "7 * * * *"
@@ -23,7 +24,20 @@ jobs:
     env:
       API_BASE: https://board-backend-nngx.onrender.com/api
     steps:
+      - name: Check quiet hours
+        id: quiet
+        run: |
+          set -euo pipefail
+          hour=$(TZ=Asia/Seoul date +%H)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$hour" -ge 2 ] && [ "$hour" -lt 7 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "한국시간 ${hour}시: 무료 시간 한도를 지키려고 서버를 재우는 시간이라 갱신을 건너뜁니다."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Wake backend
+        if: steps.quiet.outputs.skip != 'true'
         run: |
           set -euo pipefail
           for attempt in 1 2 3 4 5; do
@@ -38,6 +52,7 @@ jobs:
           exit 1
 
       - name: Refresh news
+        if: steps.quiet.outputs.skip != 'true'
         run: |
           set -euo pipefail
           code=$(curl -sS -o refresh.json -w "%{http_code}" --max-time 240 \
@@ -51,6 +66,7 @@ jobs:
           fi
 
       - name: Warm stock quotes
+        if: steps.quiet.outputs.skip != 'true'
         run: |
           set -euo pipefail
           code=$(curl -sS -o stocks.json -w "%{http_code}" --max-time 120 \
@@ -62,6 +78,7 @@ jobs:
           fi
 
       - name: Verify news freshness
+        if: steps.quiet.outputs.skip != 'true'
         run: |
           set -euo pipefail
           curl -sS --max-time 120 "$API_BASE/news/status" -o status.json
