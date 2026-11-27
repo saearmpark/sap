@@ -413,6 +413,17 @@
     ]);
   }
 
+  // 잠든 서버를 깨우는 동안 요청이 영원히 매달리지 않도록 중단 시한을 둡니다.
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 90000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function fetchNotificationSource(path) {
     const response = await withTimeout(
       window.SAPAuth.apiFetch(`${API_ROOT}${path}`, { cache: "no-store", suppressAuthRedirect: true }),
@@ -482,7 +493,7 @@
 
   window.SAPCommon = {
     API_ROOT, addDays, addMonths, buildNotificationItems, clearNotificationState, escapeHtml,
-    expandOccurrences, localDate, markNotificationSynced, notificationUnreadCount, readCache,
+    expandOccurrences, fetchWithTimeout, localDate, markNotificationSynced, notificationUnreadCount, readCache,
     refreshNotificationCache, relTime, renderSidebar, sortNotificationItems, updateNotificationBadge,
     withTimeout, writeCache
   };

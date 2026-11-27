@@ -74,18 +74,53 @@
       listEl.replaceChildren(...items.map(card));
     }
 
+    const FETCH_TIMEOUT_MS = 100000;
+    const CACHE_DISPLAY_LIMIT_MS = 24 * 60 * 60 * 1000;
+    let loading = false;
+    let slowTimer = null;
+
+    function cacheAge(cached) {
+      return cached && cached.savedAt
+        ? window.SAPCommon.relTime(new Date(cached.savedAt).toISOString())
+        : "";
+    }
+
+    function isRecent(cached) {
+      const newest = cached && Array.isArray(cached.items)
+        ? cached.items.reduce((max, item) => Math.max(max, timestamp(item)), 0)
+        : 0;
+      return Date.now() - newest <= CACHE_DISPLAY_LIMIT_MS;
+    }
+
+    async function fetchNews(query) {
+      try {
+        return await window.SAPCommon.fetchWithTimeout(`${API}/news${query}`, { cache: "no-store" }, FETCH_TIMEOUT_MS);
+      } catch (error) {
+        // 첫 요청이 잠든 서버를 깨우다 시간 초과되면 한 번 더 시도합니다.
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        return window.SAPCommon.fetchWithTimeout(`${API}/news${query}`, { cache: "no-store" }, FETCH_TIMEOUT_MS);
+      }
+    }
+
     async function load() {
+      if (loading) return;
+      loading = true;
       const cached = window.SAPCommon.readCache(cacheKey);
-      if (cached) {
+      if (cached && isRecent(cached)) {
         items = newestFirst(cached.items);
         render();
-        statusEl.textContent = `저장된 ${noun} ${items.length}건을 먼저 표시합니다...`;
+        statusEl.textContent = `저장된 ${noun} ${items.length}건 (${cacheAge(cached)} 저장)을 먼저 표시합니다.`;
       } else {
+        listEl.replaceChildren();
         statusEl.textContent = `${noun}을 불러오는 중입니다...`;
       }
+      if (slowTimer) clearTimeout(slowTimer);
+      slowTimer = setTimeout(() => {
+        statusEl.textContent = "서버를 깨우는 중입니다. 최대 1~2분 걸릴 수 있어요.";
+      }, 6000);
+      const query = category ? `?category=${encodeURIComponent(category)}` : "";
       try {
-        const query = category ? `?category=${encodeURIComponent(category)}` : "";
-        const response = await fetch(`${API}/news${query}`, { cache: "no-store" });
+        const response = await fetchNews(query);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         items = newestFirst(await response.json());
         render();
@@ -97,9 +132,20 @@
           statusEl.textContent = `아직 수집된 ${noun}이 없습니다. 잠시 후 다시 확인해주세요.`;
         }
       } catch (error) {
-        statusEl.textContent = window.SAPCommon.readCache(cacheKey)
-          ? `서버 연결이 느립니다. 저장된 ${noun} ${items.length}건을 표시합니다.`
-          : `${noun}을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.`;
+        const fallback = window.SAPCommon.readCache(cacheKey);
+        if (fallback) {
+          items = newestFirst(fallback.items);
+          render();
+          statusEl.textContent = `서버 연결이 느립니다. 저장된 ${noun} ${items.length}건 (${cacheAge(fallback)} 저장)을 표시합니다.`;
+        } else {
+          statusEl.textContent = `${noun}을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.`;
+        }
+      } finally {
+        if (slowTimer) {
+          clearTimeout(slowTimer);
+          slowTimer = null;
+        }
+        loading = false;
       }
     }
 

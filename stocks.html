@@ -19,7 +19,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>사피엔스 — 투자정보</title>
 <script>try { if (localStorage.getItem("sap-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
-<link rel="stylesheet" href="assets/style.css?v=labels-47">
+<link rel="stylesheet" href="assets/style.css?v=labels-48">
 </head>
 <body>
 <div class="layout">
@@ -49,9 +49,9 @@
     </section>
   </main>
 </div>
-<script src="assets/common.js?v=labels-47"></script>
-<script src="assets/auth.js?v=labels-47"></script>
-<script src="assets/feed.js?v=labels-47"></script>
+<script src="assets/common.js?v=labels-48"></script>
+<script src="assets/auth.js?v=labels-48"></script>
+<script src="assets/feed.js?v=labels-48"></script>
 <script>
   (() => {
     const API = window.SAPCommon.API_ROOT;
@@ -272,9 +272,19 @@
       renderWatchlist(quotes);
     }
 
+    const FETCH_TIMEOUT_MS = 90000;
+    let loading = false;
+    let slowTimer = null;
+
     async function load() {
+      if (loading) return;
+      loading = true;
+      if (slowTimer) clearTimeout(slowTimer);
+      slowTimer = setTimeout(() => {
+        statusEl.textContent = "서버를 깨우는 중입니다. 시세는 준비되는 대로 표시됩니다. 최대 1~2분 걸릴 수 있어요.";
+      }, 6000);
       try {
-        const response = await fetch(`${API}/stocks`, { cache: "no-store" });
+        const response = await window.SAPCommon.fetchWithTimeout(`${API}/stocks`, { cache: "no-store" }, FETCH_TIMEOUT_MS);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         const quotes = Array.isArray(data.quotes) ? data.quotes : [];
@@ -292,8 +302,14 @@
       } catch (error) {
         const cached = readQuoteCache();
         statusEl.textContent = cached
-          ? `서버 연결이 느립니다. 저장된 시세 · 업데이트 ${formatUpdatedAt(cached.updatedAt)}`
+          ? `서버 연결이 느립니다. 저장된 시세 · 업데이트 ${formatUpdatedAt(cached.updatedAt)} (${window.SAPCommon.relTime(cached.updatedAt)})`
           : "시세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
+      } finally {
+        if (slowTimer) {
+          clearTimeout(slowTimer);
+          slowTimer = null;
+        }
+        loading = false;
       }
     }
 
@@ -308,7 +324,7 @@
     if (cachedQuotes) {
       lastSignature = JSON.stringify(cachedQuotes.quotes);
       render(cachedQuotes.quotes);
-      statusEl.textContent = `저장된 시세 · 업데이트 ${formatUpdatedAt(cachedQuotes.updatedAt)}`;
+      statusEl.textContent = `저장된 시세 · 업데이트 ${formatUpdatedAt(cachedQuotes.updatedAt)} (${window.SAPCommon.relTime(cachedQuotes.updatedAt)})`;
     }
 
     load();
@@ -324,6 +340,6 @@
     noun: "경제 소식",
   });
 </script>
-<script src="assets/theme.js?v=labels-47"></script>
+<script src="assets/theme.js?v=labels-48"></script>
 </body>
 </html>
