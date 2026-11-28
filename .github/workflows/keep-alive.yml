@@ -28,7 +28,7 @@ jobs:
         id: quiet
         run: |
           set -euo pipefail
-          hour=$(TZ=Asia/Seoul date +%H)
+          hour=$(TZ=Asia/Seoul date +%-H)
           if [ "${{ github.event_name }}" = "schedule" ] && [ "$hour" -ge 2 ] && [ "$hour" -lt 7 ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "한국시간 ${hour}시: 무료 시간 한도를 지키려고 서버를 재우는 시간이라 갱신을 건너뜁니다."
